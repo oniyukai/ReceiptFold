@@ -1,0 +1,365 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:469682224959179075",
+      "lastPropertyId": "14:5672548871981391401",
+      "name": "BindingCarrier",
+      "properties": [
+        {
+          "id": "1:3453549043708009172",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8767718761700368095",
+          "name": "cardCode",
+          "type": 9
+        },
+        {
+          "id": "3:4503324571875484729",
+          "name": "codeName",
+          "type": 9
+        },
+        {
+          "id": "4:1664656494839180139",
+          "name": "carrierId2",
+          "type": 9
+        },
+        {
+          "id": "5:8788418720583940369",
+          "name": "carrierName",
+          "type": 9
+        },
+        {
+          "id": "6:1823545975760573855",
+          "name": "carrierId1",
+          "type": 9
+        },
+        {
+          "id": "13:2950153300282734300",
+          "name": "awardMethod_",
+          "type": 9
+        },
+        {
+          "id": "14:5672548871981391401",
+          "name": "claimPrizesMode_",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:7318515650340693839",
+      "lastPropertyId": "7:2582247227820777396",
+      "name": "ReceiptDetail",
+      "properties": [
+        {
+          "id": "1:8487289058236570204",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1977957036178620861",
+          "name": "sequenceNumber",
+          "type": 9
+        },
+        {
+          "id": "3:8544868049799574241",
+          "name": "itemDescription",
+          "type": 9
+        },
+        {
+          "id": "4:3480044549119010118",
+          "name": "unitPrice",
+          "type": 8
+        },
+        {
+          "id": "5:6639404224385219183",
+          "name": "quantity",
+          "type": 8
+        },
+        {
+          "id": "6:6499456906514045838",
+          "name": "amount",
+          "type": 8
+        },
+        {
+          "id": "7:2582247227820777396",
+          "name": "receiptHeaderId",
+          "indexId": "1:1429176585328373005",
+          "type": 11,
+          "flags": 520,
+          "relationTarget": "ReceiptHeader"
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:1079460876789695771",
+      "lastPropertyId": "14:865216163863437120",
+      "name": "ReceiptFoldDataStore",
+      "properties": [
+        {
+          "id": "1:7076353075314851393",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3361745429023021481",
+          "name": "sharedPreferences",
+          "type": 9
+        },
+        {
+          "id": "12:4651218740795652925",
+          "name": "mobileBarcodeList_",
+          "type": 9
+        },
+        {
+          "id": "13:2520694363004643321",
+          "name": "memberBarcodeList_",
+          "type": 9
+        },
+        {
+          "id": "14:865216163863437120",
+          "name": "invoiceWinningNumberList_",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "6:4654609903794412736",
+      "lastPropertyId": "3:3876478732478884570",
+      "name": "ReceiptFoldInfo",
+      "properties": [
+        {
+          "id": "1:741492209525468801",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7790077907291895377",
+          "name": "lastDataChangeUpdate",
+          "type": 6
+        },
+        {
+          "id": "3:3876478732478884570",
+          "name": "lastTimeCloudBackup",
+          "type": 6
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "7:4379853736452989862",
+      "lastPropertyId": "24:6557404173454567501",
+      "name": "ReceiptHeader",
+      "properties": [
+        {
+          "id": "1:513372736905358400",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3357024100148158619",
+          "name": "invoiceInstantDate",
+          "type": 6
+        },
+        {
+          "id": "3:2899039870363132980",
+          "name": "totalAmount",
+          "type": 8
+        },
+        {
+          "id": "4:2882114974898859672",
+          "name": "invoiceNumber",
+          "type": 9
+        },
+        {
+          "id": "5:147980446674785409",
+          "name": "currency",
+          "type": 9
+        },
+        {
+          "id": "6:2733704370712255981",
+          "name": "mainRemark",
+          "type": 9
+        },
+        {
+          "id": "7:741687238455697168",
+          "name": "randomNumber",
+          "type": 9
+        },
+        {
+          "id": "8:4999662414911079696",
+          "name": "sellerAddress",
+          "type": 9
+        },
+        {
+          "id": "9:7285041823731447673",
+          "name": "sellerBanId",
+          "type": 9
+        },
+        {
+          "id": "10:6221208398690969964",
+          "name": "sellerName",
+          "type": 9
+        },
+        {
+          "id": "11:22201425509190986",
+          "name": "carrierId2",
+          "type": 9
+        },
+        {
+          "id": "12:4517031380776021750",
+          "name": "carrierType",
+          "type": 9
+        },
+        {
+          "id": "13:526705245235628296",
+          "name": "carrierName",
+          "type": 9
+        },
+        {
+          "id": "14:2361324759088688370",
+          "name": "prizeAmount",
+          "type": 6
+        },
+        {
+          "id": "15:2365403900961796983",
+          "name": "prizeInformation",
+          "type": 9
+        },
+        {
+          "id": "16:8493866215845666895",
+          "name": "userNote",
+          "type": 9
+        },
+        {
+          "id": "23:232999675943555976",
+          "name": "receiptOrigin_",
+          "type": 9
+        },
+        {
+          "id": "24:6557404173454567501",
+          "name": "invoiceStatus_",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "8:5890047482736057906",
+      "lastPropertyId": "10:2911971028091379648",
+      "name": "UserInfo",
+      "properties": [
+        {
+          "id": "1:9179224666624794340",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5511617383191854415",
+          "name": "userId",
+          "type": 9
+        },
+        {
+          "id": "3:8811913128413835734",
+          "name": "userType",
+          "type": 9
+        },
+        {
+          "id": "4:56989608117641563",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "5:1744495020872330462",
+          "name": "phone",
+          "type": 9
+        },
+        {
+          "id": "6:1242260848511036382",
+          "name": "carrierId2",
+          "type": 9
+        },
+        {
+          "id": "7:5147140591276142375",
+          "name": "email",
+          "type": 9
+        },
+        {
+          "id": "8:840669712010072295",
+          "name": "menu",
+          "type": 9
+        },
+        {
+          "id": "9:4878794624428492218",
+          "name": "emailChecked",
+          "type": 9
+        },
+        {
+          "id": "10:2911971028091379648",
+          "name": "lastLoginDate",
+          "type": 6
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "8:5890047482736057906",
+  "lastIndexId": "1:1429176585328373005",
+  "lastRelationId": "2:101432858550622428",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [
+    5505250124291089406,
+    5017302735504206538
+  ],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [
+    6374094936992944036,
+    644658137325984466,
+    8329668957335714307,
+    7151058949220974079,
+    5215725873732501237,
+    7858979313028683402,
+    6462471147409160452,
+    7640648921046032902,
+    5053825418459602766,
+    6821240630428149853,
+    3525934957851274299,
+    2018121391193618844,
+    4287342138468189985,
+    996384980476623596,
+    5464380158181594286,
+    8278221487413507018,
+    6545183710579149705,
+    8476164686773279113,
+    9028639119329108215,
+    1442384411649667249,
+    6525026840070316151,
+    7940926623085835842,
+    7365685869649243760,
+    1219056189156906618,
+    2338725937924056647,
+    8821037750577305913,
+    1256525593418484374,
+    427290507430543661
+  ],
+  "retiredRelationUids": [
+    3638656239345895125,
+    101432858550622428
+  ],
+  "version": 1
+}
