@@ -3,9 +3,24 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("org.jetbrains.kotlin.plugin.compose")
+}
+
+dependencies {
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("androidx.glance:glance-appwidget:1.1.1")
+    }
 }
 
 android {
+    buildFeatures {
+        compose = true
+    }
+
     namespace = "com.receipt.fold.receipt_fold"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
