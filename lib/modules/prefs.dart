@@ -7,7 +7,7 @@ import 'package:receipt_fold/locale/app_localizations.dart';
 import 'package:receipt_fold/pages/menu_settings/page_platform_form.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class _PrefDef<RUN extends Object, STO extends Object> {
+class PrefDef<RUN extends Object, STO extends Object> {
   final RUN defaultValue;
   late final STO Function(Object fromRUN) toSTO;
   late final RUN Function(Object fromSTO) toRUN;
@@ -15,7 +15,7 @@ class _PrefDef<RUN extends Object, STO extends Object> {
   Type get typeRUN => RUN;
   Type get typeSTO => STO;
 
-  _PrefDef(
+  PrefDef._(
     this.defaultValue, [
     STO Function(RUN fromRUN)? toSTO_,
     RUN? Function(STO fromSTO)? toRUN_,])
@@ -35,7 +35,7 @@ class _PrefDef<RUN extends Object, STO extends Object> {
     }
   }
 
-  static _PrefDef<T, T> same<T extends Object>(T defaultValue) => _PrefDef<T, T>(defaultValue);
+  static PrefDef<T, T> _same<T extends Object>(T defaultValue) => PrefDef<T, T>._(defaultValue);
 }
 
 enum PrefsEnum {
@@ -51,37 +51,37 @@ enum PrefsEnum {
   isShowScreenRotation,
   ;
 
-  static final Map<PrefsEnum, _PrefDef> _prefDefCache = {};
+  static final Map<PrefsEnum, PrefDef> _prefDefCache = {};
 
-  _PrefDef get _getPrefDef {
+  PrefDef get _getPrefDef {
     final cache = _prefDefCache[this];
     if (cache != null) return cache;
     final prefDef = switch (this) {
-      isAgreedAllTerms => _PrefDef.same(false),
-      invoicePlatformLoginState => _PrefDef<PlatformLoginState, String>(
+      isAgreedAllTerms => PrefDef._same(false),
+      invoicePlatformLoginState => PrefDef<PlatformLoginState, String>._(
           PlatformLoginState.notSet,
           (fromRUN) => fromRUN.name,
           (fromSTO) => PlatformLoginState.values.fromName(fromSTO)
       ),
-      isAppDeveloperMode => _PrefDef.same(false),
-      selectedColor => _PrefDef<ColorOption, String>(
+      isAppDeveloperMode => PrefDef._same(false),
+      selectedColor => PrefDef<ColorOption, String>._(
           ColorOption.sys,
           (fromRUN) => fromRUN.name,
           (fromSTO) => ColorOption.values.fromName(fromSTO)
       ),
-      selectedTheme => _PrefDef<ThemeOption, String>(
+      selectedTheme => PrefDef<ThemeOption, String>._(
           ThemeOption.sys,
           (fromRUN) => fromRUN.name,
           (fromSTO) => ThemeOption.values.fromName(fromSTO)
       ),
-      selectedLanguage => _PrefDef<LocaleOption, String>(
+      selectedLanguage => PrefDef<LocaleOption, String>._(
           LocaleOption.sys,
           (fromRUN) => fromRUN.name,
           (fromSTO) => LocaleOption.values.fromName(fromSTO)
       ),
-      isAutoBrightness => _PrefDef.same(false),
-      isScanScreenRotation => _PrefDef.same(false),
-      isShowScreenRotation => _PrefDef.same(false),
+      isAutoBrightness => PrefDef._same(false),
+      isScanScreenRotation => PrefDef._same(false),
+      isShowScreenRotation => PrefDef._same(false),
     };
     _prefDefCache[this] = prefDef;
     return prefDef;

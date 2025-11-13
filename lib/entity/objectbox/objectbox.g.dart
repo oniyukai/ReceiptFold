@@ -14,9 +14,9 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
-import 'basic_data.dart';
-import 'binding_carrier.dart';
-import 'receipt.dart';
+import '../../entity/objectbox/basic_data.dart';
+import '../../entity/objectbox/binding_carrier.dart';
+import '../../entity/objectbox/receipt.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 

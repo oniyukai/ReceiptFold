@@ -40,6 +40,7 @@ dependencies:
   objectbox_flutter_libs: ^4.3.1
   dio: ^5.9.0
   html: ^0.15.6
+#  logger: ^2.6.2
 
 dev_dependencies:
   flutter_test:
@@ -48,9 +49,18 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.7.1
   objectbox_generator: ^4.3.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/
+
+flutter_launcher_icons:
+  android: 'ic_launcher'
+  ios: true
+  image_path: 'assets/appicon.png'
+
+objectbox:
+  output_dir: entity/objectbox

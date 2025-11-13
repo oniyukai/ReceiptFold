@@ -6,6 +6,7 @@ import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_about_view.dart';
+import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_terms_view.dart';
 
 const Type _$HOME_ = MenuNavBar;
@@ -20,6 +21,7 @@ final Map<String, WidgetBuilder> _$ROUTES_ = Utils.typeNameMap({
   // menu_settings
   PageAboutView: (_) => PageAboutView(),
   PageTermsView: (_) => PageTermsView(),
+  PageLogsView: (_) => PageLogsView(),
 });
 
 /// 路由集中管理器
