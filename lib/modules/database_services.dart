@@ -23,7 +23,7 @@ final class DatabaseServices {
     _receiptFoldDataStoreBox = _store.box<ReceiptFoldDataStore>();
     _userInfoBox = _store.box<UserInfo>();
     _bindingCarrierBox = _store.box<BindingCarrier>();
-    receiptDao = ReceiptDao(_store.box<ReceiptHeader>(), _store.box<ReceiptDetail>());
+    receiptDao = ReceiptDao._(_store.box<ReceiptHeader>(), _store.box<ReceiptDetail>());
   }
 
   static void dispose() => _store.close();
@@ -81,7 +81,7 @@ class ReceiptDao {
   final Box<ReceiptHeader> _headerBox;
   final Box<ReceiptDetail> _detailBox;
 
-  const ReceiptDao(this._headerBox, this._detailBox);
+  const ReceiptDao._(this._headerBox, this._detailBox);
 
   QueryBuilder<ReceiptHeader> headerTimeFilter(int startUnixTime, int endUnixTime) =>
       _headerBox.query(ReceiptHeader_.invoiceInstantDate.between(startUnixTime, endUnixTime));

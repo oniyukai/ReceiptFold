@@ -21,8 +21,8 @@ class TabMemberView extends StatefulWidget {
 
 class _TabMemberViewState extends State<TabMemberView> {
   final ScrollController _scrollController = ScrollController();
-  List<MobileBarcodeItem> _mobileItems = [];
-  List<MemberBarcodeItem> _memberItems = [];
+  final List<MobileBarcodeItem> _mobileItems = [];
+  final List<MemberBarcodeItem> _memberItems = [];
 
   void _sortMobileItems() => showSortDialog(
     context: context,
@@ -90,8 +90,10 @@ class _TabMemberViewState extends State<TabMemberView> {
           } else if (!snapshot.hasData || snapshot.data == null) {
             return Center(child: Text('snapshot.hasData:${snapshot.hasData}\nsnapshot.data:snapshot.data'));
           }
-          _mobileItems = snapshot.data!.mobileBarcodeList;
-          _memberItems = snapshot.data!.memberBarcodeList;
+          _mobileItems.clear();
+          _memberItems.clear();
+          _mobileItems.addAll(snapshot.data!.mobileBarcodeList);
+          _memberItems.addAll(snapshot.data!.memberBarcodeList);
           return ListView(
             padding: const EdgeInsets.all(8.0),
             children: [
@@ -120,7 +122,7 @@ class _TabMemberViewState extends State<TabMemberView> {
                       icon: const Icon(Icons.add),
                     ),
                   ],
-                )
+                ),
               ),
               Column(
                 children: List.generate(_mobileItems.length, (index) => MobileItemCard(
@@ -129,7 +131,7 @@ class _TabMemberViewState extends State<TabMemberView> {
                     index: index,
                     items: _mobileItems,
                   )).to(),
-                ))
+                )),
               ),
               ListTile(
                 title: Text(AppLocale.barcodeManagerMembershipCardLabel.s),
@@ -156,7 +158,7 @@ class _TabMemberViewState extends State<TabMemberView> {
                       icon: const Icon(Icons.add),
                     ),
                   ],
-                )
+                ),
               ),
               Column(
                 children: List.generate(_memberItems.length, (index) => _MemberItemCard(
@@ -165,7 +167,7 @@ class _TabMemberViewState extends State<TabMemberView> {
                     index: index,
                     items: _memberItems,
                   )).to(),
-                ))
+                )),
               ),
             ],
           );
@@ -197,7 +199,7 @@ class MobileItemCard extends StatelessWidget {
         subtitle: Text(
           item.name ?? '',
           overflow: TextOverflow.ellipsis,
-        ) ,
+        ),
         onTap: onTap,
       ),
     );
