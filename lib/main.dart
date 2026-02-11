@@ -1,5 +1,6 @@
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/app_theme.dart';
 import 'package:receipt_fold/common/router.dart';
@@ -8,9 +9,12 @@ import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/app_localizations.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
+import 'package:watashi_locale/watashi_locale.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(MyAppTheme.systemOverlayStyle);
   await PrefsProvider.init();
   await DatabaseServices.init();
   runApp(
@@ -31,36 +35,32 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-
+class _MyAppState extends State<MyApp> {
   @override
-  void dispose() {
-    DatabaseServices.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    WatashiLocale.register([LocaleOption.dictDelegate]);
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+      builder: (lightDynamic, darkDynamic) {
         return Consumer<PrefsProvider>(
           builder: (context, prefs, child) {
-            return MaterialApp(
-
+            return MaterialApp.router(
               title: StaticString.appName,
-              theme: appTheme(context, lightDynamic, darkDynamic),
+              theme: MyAppTheme.themeData(context, lightDynamic, darkDynamic),
               debugShowCheckedModeBanner: false,
 
-              locale: prefs.get<LocaleOption>(PrefsEnum.selectedLanguage).locale,
-              localizationsDelegates: LocaleOption.localizationsDelegates,
-              supportedLocales: LocaleOption.supportedLocales,
+              locale: prefs.get<LocaleOption>(.selectedLanguage).locale,
+              localizationsDelegates: WatashiLocale.localizationsDelegates,
+              supportedLocales: WatashiLocale.supportedLocales,
 
-              routes: MyRouter.$ROUTES,
-              navigatorKey: MyRouter.navigatorKey,
-              onGenerateRoute: MyRouter.onGenerateRoute,
-
+              routerDelegate: MyRouter.delegate,
+              routeInformationParser: MyRouter.parser,
             );
-          }
+          },
         );
       },
     );

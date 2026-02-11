@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
@@ -18,7 +19,6 @@ import 'package:receipt_fold/pages/widget/barcode_field.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
 import 'package:receipt_fold/pages/widget/functions.dart';
 import 'package:screen_brightness/screen_brightness.dart';
-import 'package:string_validator/string_validator.dart';
 
 class TabBarcodeView extends StatefulWidget {
   const TabBarcodeView({super.key});
@@ -103,9 +103,9 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
     await Clipboard.setData(ClipboardData(text: _mobileItems[_mobileItemIndex!].code));
   }
 
-  void _changeMobileItem() => showMyDialog(
+  Future<void> _changeMobileItem() => showMyDialog(
     context: context,
-    title: AppLocale.barcodeManagerChangeMobileCarrierLabel.s,
+    title: DictKey.barcodeManagerChangeMobileCarrierLabel.s,
     noCancelButton: true,
     content: Scrollbar(
       child: SingleChildScrollView(
@@ -115,7 +115,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
             item: _mobileItems[index],
             onTap: () {
               setState(() => _mobileItemIndex = index);
-              Navigator.of(context).pop();
+              Navigator.pop(context);
             },
           ))),
         ),
@@ -124,7 +124,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
   );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     final barcodeWidth = MediaQuery.of(context).size.shortestSide / 2;
     final isPortrait = Utils.isPortrait(context);
     return Scrollbar(
@@ -134,25 +134,28 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
         children: [
           ExpandableCard(
             initialExpanded: true,
-            text: AppLocale.barcodeManagerMembershipCardLabel.s,
+            text: DictKey.barcodeManagerMembershipCardLabel.s,
             iconData: Icons.loyalty_outlined,
             expandedChild: (_memberItemIndex == null)
-                ? Center(child: Text(AppLocale.barcodeManagerNotYetSetLabel.s))
+                ? Center(child: Text(DictKey.barcodeManagerNotYetSetLabel.s))
                 : Flex(
               direction: isPortrait ? Axis.vertical : Axis.horizontal,
               children: [
-                Card(
-                  color: Colors.white,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: barcodeWidth/10,
-                      horizontal: barcodeWidth/6,
-                    ),
-                    child: Center(
-                      child: BarcodeSvgPicture(
-                        data:_memberItems[_memberItemIndex!].code,
-                        format: _memberItems[_memberItemIndex!].format,
-                        width: barcodeWidth,
+                Expanded(
+                  flex: isPortrait ? 0 : 1,
+                  child: Card(
+                    color: Colors.white,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: barcodeWidth / 10,
+                        horizontal: barcodeWidth / 6,
+                      ),
+                      child: Center(
+                        child: BarcodeSvgPicture(
+                          data:_memberItems[_memberItemIndex!].code,
+                          format: _memberItems[_memberItemIndex!].format,
+                          width: barcodeWidth,
+                        ),
                       ),
                     ),
                   ),
@@ -201,25 +204,28 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
           ),
           ExpandableCard(
             initialExpanded: true,
-            text: AppLocale.barcodeManagerMobileCarrierLabel.s,
+            text: DictKey.barcodeManagerMobileCarrierLabel.s,
             iconData: MaterialCommunityIcons.barcode,
             expandedChild: _mobileItemIndex == null
-                ? Center(child: Text(AppLocale.barcodeManagerNotYetSetLabel.s))
+                ? Center(child: Text(DictKey.barcodeManagerNotYetSetLabel.s))
                 : Flex(
               direction: isPortrait ? Axis.vertical : Axis.horizontal,
               children: [
-                Card(
-                  color: Colors.white,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: barcodeWidth/10,
-                      horizontal: barcodeWidth/6,
-                    ),
-                    child: Center(
-                      child: BarcodeSvgPicture(
-                        data: _mobileItems[_mobileItemIndex!].code,
-                        format: BarcodeFormat.code39,
-                        width: barcodeWidth,
+                Expanded(
+                  flex: isPortrait ? 0 : 1,
+                  child: Card(
+                    color: Colors.white,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: barcodeWidth / 10,
+                        horizontal: barcodeWidth / 6,
+                      ),
+                      child: Center(
+                        child: BarcodeSvgPicture(
+                          data: _mobileItems[_mobileItemIndex!].code,
+                          format: BarcodeFormat.code39,
+                          width: barcodeWidth,
+                        ),
                       ),
                     ),
                   ),
@@ -250,15 +256,15 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
             ),
           ),
           ListTileSwitch(
-            text: AppLocale.barcodeManagerBrightenScreenLabel.s,
-            initialValue: _isBrightness,
+            text: DictKey.barcodeManagerBrightenScreenLabel.s,
             iconData: Icons.brightness_6_outlined,
+            initialValue: _isBrightness,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(64.0)),
             onToggle: (value) {
               _setAppBrightness(value);
               setState(() => _isBrightness = value);
             },
-          )
+          ),
         ],
       ),
     );
@@ -280,7 +286,7 @@ class BarcodeSvgPicture extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     final checkMsg = barcodeValidator(data, format);
     if (checkMsg != null) return Text(checkMsg, style: TextStyle(color: Colors.grey));
     try {
@@ -315,7 +321,7 @@ class ImageBox extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     final double width = 100;
     final double height = 64;
     if (item.imageUrl == null || item.imageUrl==''){
@@ -337,7 +343,7 @@ class ImageBox extends StatelessWidget {
         )
       ) : const SizedBox.shrink();
     }
-    if (item.imageUrl?.isURL() != true) {
+    if (UrlValidator().isURL(item.imageUrl)) {
       return SizedBox(
         width: width,
         height: height,
@@ -348,7 +354,7 @@ class ImageBox extends StatelessWidget {
             shape: (needBorderRadius) ? null : RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
             child: Center(
               child: Text(
-                AppLocale.barcodeManagerNotanURL.s,
+                DictKey.barcodeManagerNotanURL.s,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: Colors.red,

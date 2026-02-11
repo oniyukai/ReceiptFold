@@ -22,9 +22,9 @@ class ListTileText extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
+  Widget build(context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final ThemeData theme = Theme.of(context);
     return ListTile(
       contentPadding: isSection ? const EdgeInsets.only(top: 16, left: 16) : null,
       leading: SizedBox(width: 48, child: Icon(iconData)),
@@ -36,14 +36,13 @@ class ListTileText extends StatelessWidget {
           fontSize: isSection ? theme.textTheme.titleSmall?.fontSize : null,
         ),
       ),
-      subtitle: subText==null ? null : Text(subText!),
+      subtitle: subText == null ? null : Text(subText!),
       textColor: isSection ? colorScheme.primary : null,
       trailing: trailing,
       onTap: onTap,
     );
   }
 }
-
 
 class ListTileSwitch extends StatelessWidget {
   final String text;
@@ -64,13 +63,13 @@ class ListTileSwitch extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return ListTile(
       leading: SizedBox(width: 48, child: Icon(iconData)),
       title: Text(text),
       enabled: enabled,
       shape: shape,
-      onTap: ()=>onToggle(!initialValue),
+      onTap: () => onToggle(!initialValue),
       trailing: Switch.adaptive(
         value: initialValue,
         onChanged: enabled ? onToggle : null,
@@ -79,14 +78,14 @@ class ListTileSwitch extends StatelessWidget {
   }
 }
 
-
 class ListTilePicker<T> extends StatelessWidget {
   final String text;
   final IconData? iconData;
   final String? dialogText;
   final T selectedOption;
-  final Map<T, String> optionMap;  // 現在開放<T>是因為新版Prefs對SharedPreferences不再限定於特定型別
+  final Map<T, String> optionMap;
   final ValueChanged<T> onChanged;
+  final Widget Function(Radio<T>, bool)? optionLeadingBuilder;
   final ShapeBorder? shape;
 
   const ListTilePicker({
@@ -97,36 +96,49 @@ class ListTilePicker<T> extends StatelessWidget {
     required this.selectedOption,
     required this.optionMap,
     required this.onChanged,
+    this.optionLeadingBuilder,
     this.shape,
   });
 
+  void _onChanged(BuildContext context, T? value) {
+    if (value != null && value != selectedOption) {
+      onChanged(value);
+      Navigator.pop(context);
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return ListTile(
       leading: SizedBox(width: 48, child: Icon(iconData)),
       title: Text(text),
       subtitle: Text('${optionMap[selectedOption] ?? selectedOption}'),
       shape: shape,
-      onTap: () => showMyDialog(
+      onTap: () async => showMyDialog(
         context: context,
         title: dialogText ?? text,
         content: Scrollbar(
           child: SingleChildScrollView(
             child: RadioGroup<T>(
               groupValue: selectedOption,
-              onChanged: (value) {
-                if (value != null) {
-                  onChanged(value);
-                  Navigator.pop(context);
-                }
-              },
+              onChanged: (value) => _onChanged(context, value),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: optionMap.entries.map((entry) => RadioListTile(
-                  title: Text(entry.value),
-                  value: entry.key,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-                )).toList(),
+                mainAxisSize: .min,
+                children: [
+                  for (final T value in optionMap.keys)
+                    ListTile(
+                      leading: (optionLeadingBuilder ?? (radio, _) => radio)(
+                        Radio(
+                            value: value,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap
+                        ),
+                        value == selectedOption,
+                      ),
+                      title: Text(optionMap[value]!),
+                      shape: RoundedRectangleBorder(borderRadius: .circular(12.0)),
+                      onTap: () => _onChanged(context, value),
+                    ),
+                ],
               ),
             ),
           ),

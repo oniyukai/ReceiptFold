@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/prefs.dart';
 
 enum ThemeOption {
   sys,
-  light(Brightness.light),
-  dark(Brightness.dark);
+  light(.light),
+  dark(.dark);
 
   final Brightness? brightness;
 
   const ThemeOption([this.brightness]);
 
   static Map<ThemeOption, String> get optionMap => (<ThemeOption, String>{
-    sys: AppLocale.preferencesThemeSystem.s,
-    light: AppLocale.preferencesThemeLight.s,
-    dark: AppLocale.preferencesThemeDark.s,
+    sys: DictKey.preferencesThemeSystem.s,
+    light: DictKey.preferencesThemeLight.s,
+    dark: DictKey.preferencesThemeDark.s,
   });
 }
 
@@ -31,55 +32,65 @@ enum ColorOption {
   const ColorOption([this.color]);
 
   static Map<ColorOption, String> get optionMap => <ColorOption, String>{
-    sys: AppLocale.preferencesColorMaterialYou.s,
-    blue: AppLocale.preferencesColorBlue.s,
-    orange: AppLocale.preferencesColorOrange.s,
-    green: AppLocale.preferencesColorGreen.s,
-    red: AppLocale.preferencesColorRed.s,
-    purple: AppLocale.preferencesColorPurple.s,
+    sys: DictKey.preferencesColorMaterialYou.s,
+    blue: DictKey.preferencesColorBlue.s,
+    orange: DictKey.preferencesColorOrange.s,
+    green: DictKey.preferencesColorGreen.s,
+    red: DictKey.preferencesColorRed.s,
+    purple: DictKey.preferencesColorPurple.s,
   };
 }
 
-ThemeData appTheme (
-  BuildContext context,
-  ColorScheme? lightDynamic,
-  ColorScheme? darkDynamic,)
-{
-  final ThemeOption selectedTheme = context.readPrefs.get(PrefsEnum.selectedTheme);
-  final ColorOption selectedColor = context.readPrefs.get(PrefsEnum.selectedColor);
-  final Brightness brightness = selectedTheme.brightness ?? View.of(context).platformDispatcher.platformBrightness;
-  final MaterialColor seedColor = selectedColor.color ?? Colors.blue; // <--sys顏色不支援時會用到
-  late final ColorScheme colorScheme;
+final class MyAppTheme {
+  const MyAppTheme._();
 
-  if (selectedColor==ColorOption.sys && lightDynamic!=null && brightness==Brightness.light) {
-    colorScheme = ColorScheme.fromSeed(
-      seedColor: lightDynamic.primary,
-      brightness: lightDynamic.brightness,
-    );
-  } else if (selectedColor==ColorOption.sys && darkDynamic!=null && brightness==Brightness.dark) {
-    colorScheme = ColorScheme.fromSeed(
-      seedColor: darkDynamic.primary,
-      brightness: darkDynamic.brightness,
-    );
-  } else {
-    colorScheme = ColorScheme.fromSeed(
-      seedColor: seedColor,
-      brightness: brightness,
+  static late ColorScheme? dynamicColorScheme;
+
+  static const systemOverlayStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemStatusBarContrastEnforced: false,
+    systemNavigationBarContrastEnforced: false,
+  );
+
+  static ThemeData themeData(
+      BuildContext context,
+      ColorScheme? lightDynamic,
+      ColorScheme? darkDynamic,)
+  {
+    dynamicColorScheme = lightDynamic ?? darkDynamic;
+    final Color? seedColor = context.readPrefs.get<ColorOption>(.selectedColor).color;
+    final Brightness brightness = context.readPrefs.get<ThemeOption>(.selectedTheme).brightness
+        ?? MediaQuery.platformBrightnessOf(context);
+    late final ColorScheme colorScheme;
+    if (seedColor == null && brightness == .light && lightDynamic != null) {
+      colorScheme = lightDynamic;
+    } else if (seedColor == null && brightness == .dark && darkDynamic != null) {
+      colorScheme = darkDynamic;
+    } else {
+      colorScheme = .fromSeed(
+        seedColor: seedColor ?? Colors.blue, // <- sys顏色不支援時會用到
+        brightness: brightness,
+      );
+    }
+
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      appBarTheme: const AppBarTheme(
+        systemOverlayStyle: systemOverlayStyle,
+      ),
+      scrollbarTheme: ScrollbarThemeData(
+        thumbColor: .all(colorScheme.secondaryContainer),
+        radius: const .circular(10.0),
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        border: OutlineInputBorder(),
+      ),
+      cardTheme: const CardThemeData(
+        clipBehavior: .antiAlias,
+      ),
     );
   }
-
-  return ThemeData(
-    useMaterial3: true,
-    colorScheme: colorScheme,
-    scrollbarTheme: ScrollbarThemeData(
-      thumbColor: WidgetStateProperty.all(colorScheme.primary.withValues(alpha:0.5)),
-      radius: Radius.circular(10.0),
-    ),
-    inputDecorationTheme: const InputDecorationTheme(
-      border: OutlineInputBorder(),
-    ),
-    cardTheme: const CardThemeData(
-      clipBehavior: Clip.antiAlias,
-    ),
-  );
 }

@@ -9,7 +9,7 @@ class TabNumberView extends StatefulWidget {
 
 class _TabNumberViewState extends State<TabNumberView> {
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     // todo: 瀏覽對獎號碼頁面
     return SizedBox.shrink();
   }

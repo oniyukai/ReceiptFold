@@ -53,7 +53,7 @@ class _TabCarrierViewState extends State<TabCarrierView> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return Center(
       child: Column(
         // todo: 載具歸戶頁面

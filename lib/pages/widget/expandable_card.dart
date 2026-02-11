@@ -23,9 +23,9 @@ class ExpandableCard extends StatefulWidget {
 class _ExpandableCardState extends State<ExpandableCard>
     with SingleTickerProviderStateMixin {
   late bool _isExpanded;
-  late AnimationController _controller;
-  late Animation<double> _arrowAnimation;
-  late Animation<double> _expandAnimation;
+  late final AnimationController _controller;
+  late final Animation<double> _arrowAnimation;
+  late final Animation<double> _expandAnimation;
 
   @override
   void initState() {
@@ -33,16 +33,16 @@ class _ExpandableCardState extends State<ExpandableCard>
     _isExpanded = widget.initialExpanded ?? false;
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: const .new(milliseconds: 200),
     );
-    _arrowAnimation = Tween<double>(begin: 0, end: 0.5).animate(_controller);
+    _arrowAnimation = Tween<double>(begin: 0.0, end: 0.5).animate(_controller);
     _expandAnimation = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
     );
 
     if (_isExpanded) {
-      _controller.value = 1;
+      _controller.value = 1.0;
     }
   }
 
@@ -64,15 +64,13 @@ class _ExpandableCardState extends State<ExpandableCard>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return Card(
       child: Column(
         children: [
           ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            leading: widget.iconData != null
-                ? Icon(widget.iconData)
-                : null,
+            contentPadding: const .symmetric(horizontal: 16.0),
+            leading: Icon(widget.iconData),
             title: Text(widget.text),
             trailing: RotationTransition(
               turns: _arrowAnimation,
@@ -82,14 +80,14 @@ class _ExpandableCardState extends State<ExpandableCard>
           ),
           if (widget.collapsedChild != null && !_isExpanded)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              padding: const .fromLTRB(16.0, 4.0, 16.0, 16.0),
               child: widget.collapsedChild,
             ),
           SizeTransition(
             sizeFactor: _expandAnimation,
             axisAlignment: -1,
             child: (widget.expandedChild == null) ? null : Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const .fromLTRB(16.0, 4.0, 16.0, 16.0),
               child: widget.expandedChild,
             ),
           ),

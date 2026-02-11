@@ -20,7 +20,7 @@ class PrefDef<RUN extends Object, STO extends Object> {
     STO Function(RUN fromRUN)? toSTO_,
     RUN? Function(STO fromSTO)? toRUN_,])
   {
-    assert(const {bool, int, double, String, List<String>}.contains(STO), 'STO<${STO.runtimeType}> unsupported.');
+    assert(const [bool, int, double, String, List<String>].contains(STO), 'STO<${STO.runtimeType}> unsupported.');
     if (RUN == STO) {
       toSTO = toSTO_ != null
           ? (fromRUN) => toSTO_(fromRUN as RUN)
@@ -53,29 +53,27 @@ enum PrefsEnum {
 
   static final Map<PrefsEnum, PrefDef> _prefDefCache = {};
 
-  PrefDef get _getPrefDef {
-    final cache = _prefDefCache[this];
-    if (cache != null) return cache;
+  PrefDef get _getPrefDef => _prefDefCache.putIfAbsent(this, () {
     final prefDef = switch (this) {
       isAgreedAllTerms => PrefDef._same(false),
       invoicePlatformLoginState => PrefDef<PlatformLoginState, String>._(
-          PlatformLoginState.notSet,
+          .notSet,
           (fromRUN) => fromRUN.name,
           (fromSTO) => PlatformLoginState.values.fromName(fromSTO)
       ),
       isAppDeveloperMode => PrefDef._same(false),
       selectedColor => PrefDef<ColorOption, String>._(
-          ColorOption.sys,
+          .sys,
           (fromRUN) => fromRUN.name,
           (fromSTO) => ColorOption.values.fromName(fromSTO)
       ),
       selectedTheme => PrefDef<ThemeOption, String>._(
-          ThemeOption.sys,
+          .sys,
           (fromRUN) => fromRUN.name,
           (fromSTO) => ThemeOption.values.fromName(fromSTO)
       ),
       selectedLanguage => PrefDef<LocaleOption, String>._(
-          LocaleOption.sys,
+          .sys,
           (fromRUN) => fromRUN.name,
           (fromSTO) => LocaleOption.values.fromName(fromSTO)
       ),
@@ -83,72 +81,71 @@ enum PrefsEnum {
       isScanScreenRotation => PrefDef._same(false),
       isShowScreenRotation => PrefDef._same(false),
     };
-    _prefDefCache[this] = prefDef;
     return prefDef;
-  }
+  });
 
   T defaultValue<T>() => _getPrefDef.defaultValue as T;
 
-  // /// 不依賴BuildContext, 不建議使用
+  // /// 不依賴BuildContext, 不即時請謹慎使用
   // T get<T>() {
-  //   final prefDef = _getPrefDef;
-  //   final fromSTO = PrefsProvider.instance.get(name);
+  //   final PrefDef<Object, Object> prefDef = _getPrefDef;
+  //   final Object? fromSTO = PrefsProvider._instance.get(name);
   //   if (fromSTO.runtimeType == prefDef.typeSTO && fromSTO != null) return prefDef.toRUN(fromSTO) as T;
   //   return prefDef.defaultValue as T;
   // }
 }
 
 class PrefsProvider extends ChangeNotifier {
-  static late SharedPreferences instance;
+  static late final SharedPreferences _instance;
 
   static Future<void> init() async {
-    instance = await SharedPreferences.getInstance();
+    _instance = await SharedPreferences.getInstance();
   }
 
-  final Map<PrefsEnum, Object> _prefsMap = {};
+  final Map<PrefsEnum, Object> _prefsRunsMap = {};
 
   PrefsProvider() {
     for (final PrefsEnum key in PrefsEnum.values) {
-      final prefDef = key._getPrefDef;
-      final fromSTO = instance.get(key.name);
-      if (fromSTO.runtimeType == prefDef.typeSTO && fromSTO != null) _prefsMap[key] = prefDef.toRUN(fromSTO);
+      final PrefDef<Object, Object> prefDef = key._getPrefDef;
+      final Object? fromSTO = _instance.get(key.name);
+      if (fromSTO.runtimeType == prefDef.typeSTO && fromSTO != null) _prefsRunsMap[key] = prefDef.toRUN(fromSTO);
     }
   }
 
   /// 依賴BuildContext
   T get<T>(PrefsEnum key) {
-    final prefDef = key._getPrefDef;
-    final value = _prefsMap[key] ?? prefDef.defaultValue;
+    final PrefDef<Object, Object> prefDef = key._getPrefDef;
+    final Object value = _prefsRunsMap[key] ?? prefDef.defaultValue;
     assert(value.runtimeType == prefDef.typeRUN);
     return value as T;
   }
 
   Future<void> update(PrefsEnum key, Object value, [bool notify = true]) async {
-    final prefDef = key._getPrefDef;
+    final PrefDef<Object, Object> prefDef = key._getPrefDef;
     if (value.runtimeType != prefDef.typeRUN) {
       throw ArgumentError('Error type: value<${value.runtimeType}> != $key<${prefDef.typeRUN}>');
     }
-    final fromSTO = prefDef.toSTO(value);
+    final Object fromSTO = prefDef.toSTO(value);
     if (fromSTO is bool) {
-      await instance.setBool(key.name, fromSTO);
+      await _instance.setBool(key.name, fromSTO);
     } else if (fromSTO is int) {
-      await instance.setInt(key.name, fromSTO);
+      await _instance.setInt(key.name, fromSTO);
     } else if (fromSTO is double) {
-      await instance.setDouble(key.name, fromSTO);
+      await _instance.setDouble(key.name, fromSTO);
     } else if (fromSTO is String) {
-      await instance.setString(key.name, fromSTO);
+      await _instance.setString(key.name, fromSTO);
     } else if (fromSTO is List<String>) {
-      await instance.setStringList(key.name, fromSTO);
+      await _instance.setStringList(key.name, fromSTO);
     } else {
       throw ArgumentError('Unsupported type $key: ${fromSTO.runtimeType}');
     }
-    _prefsMap[key] = value;
+    _prefsRunsMap[key] = value;
     if (notify) notifyListeners();
   }
 
   @override
   String toString() =>
-      jsonEncode(_prefsMap.map((key, value) => MapEntry(key.name, key._getPrefDef.toSTO(value))));
+      jsonEncode(_prefsRunsMap.map((key, value) => MapEntry(key.name, key._getPrefDef.toSTO(value))));
 
   Future<void> updateFromDatabase(String jsonString) async {
     try {

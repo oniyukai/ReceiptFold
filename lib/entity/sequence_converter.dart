@@ -20,12 +20,12 @@ class SeqConverter<RUN, SEQ> {
           ? jsonEncode(fromRun)
           : jsonEncode(fromRun.map(itemConverter)),
       toRun: (fromSeq) {
-        final list = <T>[];
+        final List<T> list = [];
         if (fromSeq.isEmpty) return list;
         try {
           final List jsonList = jsonDecode(fromSeq);
-          for (final json in jsonList) {
-            final item = stringFactory(jsonEncode(json));
+          for (final dynamic json in jsonList) {
+            final T?  item = stringFactory(jsonEncode(json));
             if (item != null) list.add(item);
           }
         } catch (e) {

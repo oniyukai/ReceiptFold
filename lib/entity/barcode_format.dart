@@ -1,4 +1,5 @@
 import 'package:barcode/barcode.dart';
+import 'package:flutter/material.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
 enum BarcodeFormat {
@@ -13,14 +14,14 @@ enum BarcodeFormat {
   code128,
   code93,
   code39,
-  codebar,
+  codabar,
   itf;
 
   String toJson() => name;
 
-  Barcode Function() get barcodeFunc => switch (this) {
+  ValueGetter<Barcode> get barcodeFunc => switch (this) {
     qrCode => Barcode.qrCode,
-    dataMatrix=> Barcode.dataMatrix,
+    dataMatrix => Barcode.dataMatrix,
     aztec => Barcode.aztec,
     pdf417 => Barcode.pdf417,
     ean13 => Barcode.ean13,
@@ -30,39 +31,39 @@ enum BarcodeFormat {
     code128 => Barcode.code128,
     code93 => Barcode.code93,
     code39 => Barcode.code39,
-    codebar => Barcode.codabar,
+    codabar => Barcode.codabar,
     itf => Barcode.itf,
   };
 
   String get locale => switch (this) {
-    qrCode => AppLocale.barcodeQrCodeLabel.s,
-    dataMatrix=> AppLocale.barcodeDataMatrixLabel.s,
-    aztec => AppLocale.barcodeAztecLabel.s,
-    pdf417 => AppLocale.barcodePdf417Label.s,
-    ean13 => AppLocale.barcodeEan13Label.s,
-    ean8 => AppLocale.barcodeEan8Label.s,
-    upcA => AppLocale.barcodeUpcALabel.s,
-    upcE => AppLocale.barcodeUpcELabel.s,
-    code128 => AppLocale.barcodeCode128Label.s,
-    code93 => AppLocale.barcodeCode93Label.s,
-    code39 => AppLocale.barcodeCode39Label.s,
-    codebar => AppLocale.barcodeCodabarLabel.s,
-    itf => AppLocale.barcodeItfLabel.s,
-  };
+    qrCode => DictKey.barcodeQrCodeLabel,
+    dataMatrix => DictKey.barcodeDataMatrixLabel,
+    aztec => DictKey.barcodeAztecLabel,
+    pdf417 => DictKey.barcodePdf417Label,
+    ean13 => DictKey.barcodeEan13Label,
+    ean8 => DictKey.barcodeEan8Label,
+    upcA => DictKey.barcodeUpcALabel,
+    upcE => DictKey.barcodeUpcELabel,
+    code128 => DictKey.barcodeCode128Label,
+    code93 => DictKey.barcodeCode93Label,
+    code39 => DictKey.barcodeCode39Label,
+    codabar => DictKey.barcodeCodabarLabel,
+    itf => DictKey.barcodeItfLabel,
+  }.s;
 
   String get composition => switch (this) {
-    qrCode => AppLocale.barcodeTextCompositionLabel.s,
-    dataMatrix => AppLocale.barcodeTextNoSpecialCompositionLabel.s,
-    aztec => AppLocale.barcodeTextNoSpecialCompositionLabel.s,
-    pdf417 => AppLocale.barcodeTextCompositionLabel.s,
-    ean13 => AppLocale.barcode12Digits1CheckCompositionLabel.s,
-    ean8 => AppLocale.barcode7Digits1CheckCompositionLabel.s,
-    upcA => AppLocale.barcode11Digits1CheckCompositionLabel.s,
-    upcE => AppLocale.barcode7Digits1CheckCompositionLabel.s,
-    code128 => AppLocale.barcodeTextNoSpecialCompositionLabel.s,
-    code93 => AppLocale.barcodeTextUpperNoSpecialCompositionLabel.s,
-    code39 => AppLocale.barcodeTextUpperNoSpecialCompositionLabel.s,
-    codebar => AppLocale.barcodeDigitsCompositionLabel.s,
-    itf => AppLocale.barcodeEvenDigitsCompositionLabel.s,
-  };
+    qrCode => DictKey.barcodeTextCompositionLabel,
+    dataMatrix => DictKey.barcodeTextNoSpecialCompositionLabel,
+    aztec => DictKey.barcodeTextNoSpecialCompositionLabel,
+    pdf417 => DictKey.barcodeTextCompositionLabel,
+    ean13 => DictKey.barcode12Digits1CheckCompositionLabel,
+    ean8 => DictKey.barcode7Digits1CheckCompositionLabel,
+    upcA => DictKey.barcode11Digits1CheckCompositionLabel,
+    upcE => DictKey.barcode7Digits1CheckCompositionLabel,
+    code128 => DictKey.barcodeTextNoSpecialCompositionLabel,
+    code93 => DictKey.barcodeTextUpperNoSpecialCompositionLabel,
+    code39 => DictKey.barcodeTextUpperNoSpecialCompositionLabel,
+    codabar => DictKey.barcodeDigitsCompositionLabel,
+    itf => DictKey.barcodeEvenDigitsCompositionLabel,
+  }.s;
 }

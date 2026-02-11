@@ -47,7 +47,7 @@ class ReceiptHeader {
 
 
   @Transient()
-  ReceiptOrigin get receiptOrigin => ReceiptOrigin.values.fromName(receiptOrigin_) ?? ReceiptOrigin.unknown;
+  ReceiptOrigin get receiptOrigin => ReceiptOrigin.values.fromName(receiptOrigin_) ?? .unknown;
   set receiptOrigin(ReceiptOrigin value) => receiptOrigin_ = value.name;
 
   @Transient()
@@ -65,10 +65,10 @@ enum ReceiptOrigin {
   manualAddition;
 
   String get locale => switch (this) {
-    unknown => AppLocale.unknownLabel.s,
-    cloudPlatform => AppLocale.receiptOriginCloudPlatform.s,
-    manualAddition => AppLocale.receiptOriginManualAddition.s,
-  };
+    unknown => DictKey.unknownLabel,
+    cloudPlatform => DictKey.receiptOriginCloudPlatform,
+    manualAddition => DictKey.receiptOriginManualAddition,
+  }.s;
 }
 
 
@@ -80,12 +80,12 @@ enum InvoiceStatus {
   confirmedNotDonated;
 
   String get locale => switch (this) {
-    unconfirmed => AppLocale.invoiceStatusUnconfirmed.s,
-    confirmed => AppLocale.invoiceStatusConfirmed.s,
-    invalidated => AppLocale.invoiceStatusInvalidated.s,
-    donated => AppLocale.invoiceStatusDonated.s,
-    confirmedNotDonated => AppLocale.invoiceStatusConfirmedNotDonated.s,
-  };
+    unconfirmed => DictKey.invoiceStatusUnconfirmed,
+    confirmed => DictKey.invoiceStatusConfirmed,
+    invalidated => DictKey.invoiceStatusInvalidated,
+    donated => DictKey.invoiceStatusDonated,
+    confirmedNotDonated => DictKey.invoiceStatusConfirmedNotDonated,
+  }.s;
 }
 
 

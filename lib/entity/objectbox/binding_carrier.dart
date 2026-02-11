@@ -25,15 +25,15 @@ class BindingCarrier {
   });
 
   @Transient()
-  PrizeRedemptionMode get awardMethod => PrizeRedemptionMode.values.fromName(awardMethod_) ?? PrizeRedemptionMode.unknown;
+  PrizeRedemptionMode get awardMethod => PrizeRedemptionMode.values.fromName(awardMethod_) ?? .unknown;
 
   @Transient()
   List<PrizeRedemptionMode> get claimPrizesMode {
-    final list = <PrizeRedemptionMode>[];
+    final List<PrizeRedemptionMode> list = [];
     try {
       final List jsonList = jsonDecode(claimPrizesMode_);
-      for (final json in jsonList) {
-        final value = PrizeRedemptionMode.values.fromName(jsonEncode(json));
+      for (final dynamic json in jsonList) {
+        final PrizeRedemptionMode? value = PrizeRedemptionMode.values.fromName(jsonEncode(json));
         if (value != null) list.add(value);
       }
     } catch (e) {

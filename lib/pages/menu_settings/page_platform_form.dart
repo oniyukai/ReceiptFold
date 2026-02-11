@@ -13,10 +13,10 @@ enum PlatformLoginState {
   verified;
 
   String get locale => switch (this) {
-    notSet => AppLocale.preferencesLoginStateNotSet.s,
-    pending => AppLocale.preferencesLoginStatePending.s,
-    failed => AppLocale.preferencesLoginStateFailed.s,
-    verified => AppLocale.preferencesLoginStateVerified.s,
+    notSet => DictKey.preferencesLoginStateNotSet.s,
+    pending => DictKey.preferencesLoginStatePending.s,
+    failed => DictKey.preferencesLoginStateFailed.s,
+    verified => DictKey.preferencesLoginStateVerified.s,
   };
 }
 
@@ -40,18 +40,18 @@ Future<void> pagePlatformForm(BuildContext context) async {
     if (initialPassword != password) await SecurePrefs.invoicePlatformPassword.write(password);
   }
 
-  void logoutPressed() {
+  Future<void> logoutPressed() async {
     assert(loginState != PlatformLoginState.notSet);
-    showMyDialog(
+    await showMyDialog(
       context: context,
-      title: AppLocale.preferencesInvoicePlatformTitle.s,
-      content: Text(AppLocale.preferencesSureToLogoutPlatformLabel.s),
+      title: DictKey.preferencesInvoicePlatformTitle.s,
+      content: Text(DictKey.preferencesSureToLogoutPlatformLabel.s),
       actions: [
         TextButton(
-          child: Text(AppLocale.preferencesLogoutLabel.s),
+          child: Text(DictKey.preferencesLogoutLabel.s),
           onPressed: () async {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
+            Navigator.pop(context);
+            Navigator.pop(context);
             context.readPrefs.update(PrefsEnum.invoicePlatformLoginState, PlatformLoginState.notSet);
             await SecurePrefs.invoicePlatformAccount.delete();
             await SecurePrefs.invoicePlatformPassword.delete();
@@ -61,7 +61,7 @@ Future<void> pagePlatformForm(BuildContext context) async {
     );
   }
 
-  void build() => showMyBottomSheet(
+  Future<void> build() => showMyBottomSheet(
     context: context,
     noCancelButton: true,
     title: ListTile(
@@ -70,7 +70,7 @@ Future<void> pagePlatformForm(BuildContext context) async {
         icon: const Icon(Icons.arrow_back),
       ),
       title: Text(
-        AppLocale.preferencesInvoicePlatformTitle.s,
+        DictKey.preferencesInvoicePlatformTitle.s,
         style: textTheme.titleMedium,
       ),
       trailing: Row(
@@ -94,11 +94,11 @@ Future<void> pagePlatformForm(BuildContext context) async {
           ListTile(
             minTileHeight: 0,
             title: Text(loginState.locale),
-            subtitle: Text(AppLocale.preferencesLoginStateLabel.s),
+            subtitle: Text(DictKey.preferencesLoginStateLabel.s),
           ),
           ListTile(
             minTileHeight: 0,
-            subtitle: Text(AppLocale.preferencesAccountLabel.s),
+            subtitle: Text(DictKey.preferencesAccountLabel.s),
           ),
           RequiredTextField(
             name: accountName,
@@ -106,7 +106,7 @@ Future<void> pagePlatformForm(BuildContext context) async {
           ),
           ListTile(
             minTileHeight: 0,
-            subtitle: Text(AppLocale.preferencesPasswordLabel.s),
+            subtitle: Text(DictKey.preferencesPasswordLabel.s),
           ),
           RequiredTextField(
             name: passwordName,

@@ -24,9 +24,9 @@ class MainRecorderView extends StatefulWidget {
 
 class PeriodData {
   final InvoicePeriod period;
-  final List<ReceiptHeader> headers = [];
   final List<ReceiptHeader> oddMonthHeaders = [];
   final List<ReceiptHeader> evenMonthHeaders = [];
+  List<ReceiptHeader> headers = [];
   double oddMonthTotalAmount = 0;
   double evenMonthTotalAmount = 0;
   bool isLoading = true;
@@ -105,8 +105,7 @@ class MainRecorderViewModel extends ChangeNotifier {
         periodData.dispose();
         return;
       }
-      periodData.headers.clear();
-      periodData.headers.addAll(newReceiptsQuery.find());
+      periodData.headers = newReceiptsQuery.find();
       periodData.oddMonthHeaders.clear();
       periodData.evenMonthHeaders.clear();
       periodData.oddMonthTotalAmount = 0;
@@ -169,8 +168,8 @@ class _MainRecorderViewState extends State<MainRecorderView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    AppLocale.load(context);
+  Widget build(context) {
+    DictKey.load(context);
     return ChangeNotifierProvider(
       create: (context) => MainRecorderViewModel(),
       child: Consumer<MainRecorderViewModel>(
@@ -181,35 +180,35 @@ class _MainRecorderViewState extends State<MainRecorderView> {
               title: Text(currentPeriodData.period.toString()),
               actions: [
                 IconButton(
-                  onPressed: () => context.routeOf<PageReceiptView>().arguments(PageReceiptViewArgs(
+                  onPressed: () => MyRouter.of<PageReceiptView>().toPass(PageReceiptViewArgs(
                     period: currentPeriodData.period,
-                  )).to(),
+                  )),
                   icon: const Icon(Icons.add),
                 ),
                 MyMenuButton(
                   items: [
                     MyMenuItem(
-                      text: AppLocale.recorderMenuSyncPlatformLabel.s,
+                      text: DictKey.recorderMenuSyncPlatformLabel.s,
                       iconData: Icons.sync,
                       onTap: (){}, // todo: 同步政府平台功能
                     ),
                     MyMenuItem(
-                      text: AppLocale.recorderMenuLabelPrizeVerification.s,
+                      text: DictKey.recorderMenuLabelPrizeVerification.s,
                       iconData: Icons.flip,
                       onTap: (){} // todo: 即時對獎功能
                     ),
                     MyMenuItem(
-                      text: AppLocale.recorderMenuStatisticalAnalysisLabel.s,
+                      text: DictKey.recorderMenuStatisticalAnalysisLabel.s,
                       iconData: Icons.bar_chart,
                       onTap: (){} // todo: 統計分析功能
                     ),
                     MyMenuItem(
-                      text: AppLocale.recorderMenuSearchLabel.s,
+                      text: DictKey.recorderMenuSearchLabel.s,
                       iconData: Icons.search,
                       onTap: (){} // todo: 查詢功能
                     ),
                     MyMenuItem(
-                      text: AppLocale.recorderMenuReturnTodayLabel.s,
+                      text: DictKey.recorderMenuReturnTodayLabel.s,
                       iconData: Icons.arrow_back,
                       onTap: () => _pageController.jumpToPage(MainRecorderView._initialPageIndex),
                     ),
@@ -241,7 +240,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                             },
                           ),
                           Text(Utils.multilingualFiller(
-                            AppLocale.recorderPeriodTransactionsAndAmount.s,
+                            DictKey.recorderPeriodTransactionsAndAmount.s,
                             [
                               (StaticString.fillObjectNumber, '${periodData.headers.length}'),
                               (StaticString.fillObjectAmount, Utils.amountToDescription(periodData.totalAmount))
@@ -276,7 +275,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                       minTileHeight: 0,
                                       subtitle: Center(
                                         child: Text(Utils.multilingualFiller(
-                                          AppLocale.recorderMonthTransactionsAndAmount.s,
+                                          DictKey.recorderMonthTransactionsAndAmount.s,
                                           [
                                             (StaticString.fillObjectMonth, UnitUtils.singleMonthText(periodData.period.endDateTime)),
                                             (StaticString.fillObjectNumber, '${periodData.evenMonthHeaders.length}'),
@@ -296,7 +295,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                       minTileHeight: 0,
                                       subtitle: Center(
                                         child: Text(Utils.multilingualFiller(
-                                          AppLocale.recorderMonthTransactionsAndAmount.s,
+                                          DictKey.recorderMonthTransactionsAndAmount.s,
                                           [
                                             (StaticString.fillObjectMonth, UnitUtils.singleMonthText(periodData.period.startDateTime)),
                                             (StaticString.fillObjectNumber, '${periodData.oddMonthHeaders.length}'),
@@ -335,16 +334,16 @@ class ReceiptItemTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     final DateTime dateTime = header.invoiceDateTime;
-    final String shortWeekday = DateFormat.E(AppLocale.languageTag).format(dateTime);
+    final String shortWeekday = DateFormat.E(DictKey.languageTag).format(dateTime);
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       visualDensity: VisualDensity.compact,
-      onTap: () => context.routeOf<PageReceiptView>().arguments(PageReceiptViewArgs(
+      onTap: () => MyRouter.of<PageReceiptView>().toPass(PageReceiptViewArgs(
         header: header,
-      )).to(),
+      )),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       leading: Column(
         mainAxisAlignment: MainAxisAlignment.center,

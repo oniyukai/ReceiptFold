@@ -28,32 +28,32 @@ class PageBarcodeFormArgs {
 
 class _PageMobileFormState extends State<PageMobileForm> {
   final _formKey = GlobalKey<FormBuilderState>();
+  late final PageBarcodeFormArgs? _args;
   bool _isInitialized = false;
-  PageBarcodeFormArgs? _args;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
-      _args = widget.argumentOf(context);
+      _args = widget.getArgs(context);
       _isInitialized = true;
     }
   }
 
-  void _deleteitem() {
+  Future<void> _deleteItem() async {
     assert(_args!=null);
-    showMyDialog(
+    await showMyDialog(
       context: context,
-      title: AppLocale.deleteLabel.s,
-      content: Text(AppLocale.sureToDeleteThisLabel.s),
+      title: DictKey.deleteLabel.s,
+      content: Text(DictKey.sureToDeleteThisLabel.s),
       actions: [
         TextButton(
-          child: Text(AppLocale.deleteLabel.s),
+          child: Text(DictKey.deleteLabel.s),
           onPressed: () async {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
-            _args!.items.removeAt(_args!.index);
-            DatabaseServices.updateMobileBarcodeList(_args!.items);
+            Navigator.pop(context);
+            Navigator.pop(context);
+            _args!.items.removeAt(_args.index);
+            DatabaseServices.updateMobileBarcodeList(_args.items);
             await updataHomeScreenMobile();
           },
         ),
@@ -74,28 +74,29 @@ class _PageMobileFormState extends State<PageMobileForm> {
         name: name,
       ));
     } else {
-      _args!.items[_args!.index] = MobileBarcodeItem(
+      _args.items[_args.index] = MobileBarcodeItem(
         code: code,
         name: name,
       );
-      items = _args!.items;
+      items = _args.items;
     }
     DatabaseServices.updateMobileBarcodeList(items);
     await updataHomeScreenMobile();
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
+    if (!_isInitialized) return const Center(child: CircularProgressIndicator());
     return Scaffold(
       appBar: AppBar(
         title: Text(_args==null
-            ? AppLocale.barcodeManagerAddMobileCarrierLabel.s
-            : AppLocale.barcodeManagerEditMobileCarrierLabel.s
+            ? DictKey.barcodeManagerAddMobileCarrierLabel.s
+            : DictKey.barcodeManagerEditMobileCarrierLabel.s
         ),
         actions: [
           if (_args!=null) IconButton(
             icon: const Icon(Icons.delete_forever),
-            onPressed: _deleteitem,
+            onPressed: _deleteItem,
           ),
           IconButton(
             icon: const Icon(Icons.check),
@@ -114,23 +115,21 @@ class _PageMobileFormState extends State<PageMobileForm> {
                   children: [
                     ListTile(
                       minTileHeight: 0,
-                      subtitle: Text(AppLocale.barcodeManagerCodeLabel.s),
+                      subtitle: Text(DictKey.barcodeManagerCodeLabel.s),
                     ),
                     BarcodeField(
                       format: BarcodeFormat.code39,
                       name: 'code',
-                      formKey: _formKey,
-                      initialValue: _args?.items[_args!.index].code,
+                      initialValue: _args?.items[_args.index].code,
                     ),
                     ListTile(
                       minTileHeight: 0,
-                      subtitle: Text(AppLocale.barcodeManagerNameLabel.s),
+                      subtitle: Text(DictKey.barcodeManagerNameLabel.s),
                     ),
                     BarcodeField(
                       format: null,
                       name: 'name',
-                      formKey: _formKey,
-                      initialValue: _args?.items[_args!.index].name,
+                      initialValue: _args?.items[_args.index].name,
                     ),
                   ],
                 ),

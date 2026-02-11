@@ -24,8 +24,8 @@ class MobileBarcodeItem {
     String? name;
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
-      code = json['code'] as String;
-      name = json['name'] as String?;
+      code = json['code'];
+      name = json['name'];
       if (name == '') name = null;
     } catch (e) {
       debugPrint(e.toString());
@@ -52,7 +52,7 @@ class MemberBarcodeItem {
     required this.code,
     this.name,
     this.imageUrl,
-    this.format = BarcodeFormat.code128,
+    this.format = .code128,
   });
 
   Map<String, dynamic> toJson() => {
@@ -69,12 +69,12 @@ class MemberBarcodeItem {
     BarcodeFormat? format;
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
-      code = json['code'] as String;
-      name = json['name'] as String?;
-      imageUrl = json['imageUrl'] as String?;
-      format = BarcodeFormat.values.fromName(json['format'] as String?);
+      code = json['code'];
+      name = json['name'];
       if (name == '') name = null;
+      imageUrl = json['imageUrl'];
       if (imageUrl == '') imageUrl = null;
+      format = BarcodeFormat.values.fromName(json['format']);
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -82,7 +82,7 @@ class MemberBarcodeItem {
       code: code ?? StaticString.nullString,
       name: name,
       imageUrl: imageUrl,
-      format: format ?? BarcodeFormat.code128,
+      format: format ?? .code128,
     );
   }
 

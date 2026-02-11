@@ -31,7 +31,7 @@ class MenuNavBarProvider extends ChangeNotifier {
 }
 
 class _MenuNavBarState extends State<MenuNavBar> {
-  final List<Widget> _pages = const <Widget>[
+  final List<Widget> _pages = const [
     MainRecorderView(),
     MainScannerView(),
     MainManagerView(),
@@ -39,8 +39,8 @@ class _MenuNavBarState extends State<MenuNavBar> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    AppLocale.load(context);
+  Widget build(context) {
+    DictKey.load(context);
     if (!context.readPrefs.get(PrefsEnum.isAgreedAllTerms)) return const PageTermsView();
     final bool isPortrait = Utils.isPortrait(context);
     return Consumer<MenuNavBarProvider>(
@@ -60,26 +60,26 @@ class _MenuNavBarState extends State<MenuNavBar> {
     return NavigationBar(
       selectedIndex: state.currentIndex,
       onDestinationSelected: state.updateIndex,
-      destinations: <NavigationDestination>[
+      destinations: [
         NavigationDestination(
           selectedIcon: const Icon(Icons.article),
           icon: const Icon(Icons.article_outlined),
-          label: AppLocale.titleRecorder.s,
+          label: DictKey.titleRecorder.s,
         ),
         NavigationDestination(
           selectedIcon: const Icon(Icons.document_scanner),
           icon: const Icon(Icons.fullscreen),
-          label: AppLocale.titleScanner.s,
+          label: DictKey.titleScanner.s,
         ),
         NavigationDestination(
           selectedIcon: const Icon(Icons.inbox),
           icon: const Icon(Icons.inbox_outlined),
-          label: AppLocale.titleManager.s,
+          label: DictKey.titleManager.s,
         ),
         NavigationDestination(
           selectedIcon: const Icon(Icons.settings),
           icon: const Icon(Icons.settings_outlined),
-          label: AppLocale.titleSettings.s,
+          label: DictKey.titleSettings.s,
         ),
       ],
     );
@@ -89,28 +89,28 @@ class _MenuNavBarState extends State<MenuNavBar> {
     return NavigationRail(
       selectedIndex: state.currentIndex,
       onDestinationSelected: state.updateIndex,
-      labelType: NavigationRailLabelType.all,
+      labelType: .all,
       groupAlignment: 1.0,
-      destinations: <NavigationRailDestination>[
+      destinations: [
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.article),
           icon: const Icon(Icons.article_outlined),
-          label: Text(AppLocale.titleRecorder.s),
+          label: Text(DictKey.titleRecorder.s),
         ),
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.document_scanner),
           icon: const Icon(Icons.fullscreen),
-          label: Text(AppLocale.titleScanner.s)
+          label: Text(DictKey.titleScanner.s)
         ),
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.inbox),
           icon: const Icon(Icons.inbox_outlined),
-          label: Text(AppLocale.titleManager.s),
+          label: Text(DictKey.titleManager.s),
         ),
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.settings),
           icon: const Icon(Icons.settings_outlined),
-          label: Text(AppLocale.titleSettings.s),
+          label: Text(DictKey.titleSettings.s),
         ),
       ],
     );

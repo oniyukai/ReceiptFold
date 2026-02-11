@@ -21,10 +21,10 @@ class TabMemberView extends StatefulWidget {
 
 class _TabMemberViewState extends State<TabMemberView> {
   final ScrollController _scrollController = ScrollController();
-  final List<MobileBarcodeItem> _mobileItems = [];
-  final List<MemberBarcodeItem> _memberItems = [];
+  List<MobileBarcodeItem> _mobileItems = [];
+  List<MemberBarcodeItem> _memberItems = [];
 
-  void _sortMobileItems() => showSortDialog(
+  Future<void> _sortMobileItems() => showSortDialog(
     context: context,
     items: _mobileItems,
     itemBuilder: (item) => MobileItemCard(item: item),
@@ -34,15 +34,15 @@ class _TabMemberViewState extends State<TabMemberView> {
     }
   );
 
-  void _deleteAllMobileItems() => showMyDialog(
+  Future<void> _deleteAllMobileItems() => showMyDialog(
     context: context,
-    title: AppLocale.barcodeManagerMobileCarrierLabel.s,
-    content: Text(AppLocale.sureToDeleteThisLabel.s),
+    title: DictKey.barcodeManagerMobileCarrierLabel.s,
+    content: Text(DictKey.sureToDeleteThisLabel.s),
     actions: [
       TextButton(
-        child: Text(AppLocale.deleteLabel.s),
+        child: Text(DictKey.deleteLabel.s),
         onPressed: () async {
-          Navigator.of(context).pop();
+          Navigator.pop(context);
           DatabaseServices.updateMobileBarcodeList([]);
           await updataHomeScreenMobile();
         },
@@ -50,7 +50,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     ],
   );
 
-  void _sortMemberItem() => showSortDialog(
+  Future<void> _sortMemberItem() => showSortDialog(
     context: context,
     items: _memberItems,
     itemBuilder: (item) => _MemberItemCard(item: item),
@@ -60,15 +60,15 @@ class _TabMemberViewState extends State<TabMemberView> {
     }
   );
 
-  void _deleteAllMemberItems() => showMyDialog(
+  Future<void> _deleteAllMemberItems() => showMyDialog(
     context: context,
-    title: AppLocale.barcodeManagerMembershipCardLabel.s,
-    content: Text(AppLocale.sureToDeleteThisLabel.s),
+    title: DictKey.barcodeManagerMembershipCardLabel.s,
+    content: Text(DictKey.sureToDeleteThisLabel.s),
     actions: [
       TextButton(
-        child: Text(AppLocale.deleteLabel.s),
+        child: Text(DictKey.deleteLabel.s),
         onPressed: () async {
-          Navigator.of(context).pop();
+          Navigator.pop(context);
           DatabaseServices.updateMemberBarcodeList([]);
           await updataHomeScreenMember();
         },
@@ -77,10 +77,10 @@ class _TabMemberViewState extends State<TabMemberView> {
   );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return Scrollbar(
       controller: _scrollController,
-      child: StreamBuilder<ReceiptFoldDataStore?>(
+      child: StreamBuilder<ReceiptFoldDataStore?>( // todo: Stream換個方式
         stream: DatabaseServices.dataStoreStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -90,15 +90,13 @@ class _TabMemberViewState extends State<TabMemberView> {
           } else if (!snapshot.hasData || snapshot.data == null) {
             return Center(child: Text('snapshot.hasData:${snapshot.hasData}\nsnapshot.data:snapshot.data'));
           }
-          _mobileItems.clear();
-          _memberItems.clear();
-          _mobileItems.addAll(snapshot.data!.mobileBarcodeList);
-          _memberItems.addAll(snapshot.data!.memberBarcodeList);
+          _mobileItems = snapshot.data!.mobileBarcodeList;
+          _memberItems = snapshot.data!.memberBarcodeList;
           return ListView(
             padding: const EdgeInsets.all(8.0),
             children: [
               ListTile(
-                title: Text(AppLocale.barcodeManagerMobileCarrierLabel.s),
+                title: Text(DictKey.barcodeManagerMobileCarrierLabel.s),
                 leading: const Icon(MaterialCommunityIcons.barcode),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -127,14 +125,14 @@ class _TabMemberViewState extends State<TabMemberView> {
               Column(
                 children: List.generate(_mobileItems.length, (index) => MobileItemCard(
                   item: _mobileItems[index],
-                  onTap: () => context.routeOf<PageMobileForm>().arguments(PageBarcodeFormArgs(
+                  onTap: () => MyRouter.of<PageMobileForm>().toPass(PageBarcodeFormArgs(
                     index: index,
                     items: _mobileItems,
-                  )).to(),
+                  )),
                 )),
               ),
               ListTile(
-                title: Text(AppLocale.barcodeManagerMembershipCardLabel.s),
+                title: Text(DictKey.barcodeManagerMembershipCardLabel.s),
                 leading: const Icon(Icons.loyalty_outlined),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -163,10 +161,10 @@ class _TabMemberViewState extends State<TabMemberView> {
               Column(
                 children: List.generate(_memberItems.length, (index) => _MemberItemCard(
                   item: _memberItems[index],
-                  onTap: () => context.routeOf<PageMemberForm>().arguments(PageMemberFormArgs(
+                  onTap: () => MyRouter.of<PageMemberForm>().toPass(PageMemberFormArgs(
                     index: index,
                     items: _memberItems,
-                  )).to(),
+                  )),
                 )),
               ),
             ],
@@ -188,7 +186,7 @@ class MobileItemCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return Card(
       child: ListTile(
         minTileHeight: 0,
@@ -216,7 +214,7 @@ class _MemberItemCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return Card(
       child: ListTile(
         onTap: onTap,

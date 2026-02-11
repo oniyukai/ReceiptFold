@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/entity/objectbox/basic_data.dart';
@@ -8,38 +9,33 @@ import 'package:path/path.dart' as p;
 import 'package:receipt_fold/entity/objectbox/receipt.dart';
 
 final class DatabaseServices {
+  const DatabaseServices._();
 
-  static late Store _store;
-  static late final Box<ReceiptFoldInfo> _receiptFoldInfoBox;
+  static late final Store _store;
   static late final Box<ReceiptFoldDataStore> _receiptFoldDataStoreBox;
-  static late final Box<UserInfo> _userInfoBox;
   static late final Box<BindingCarrier> _bindingCarrierBox;
   static late final ReceiptDao receiptDao;
 
   static Future<void> init() async {
-    final dir = await getApplicationSupportDirectory();
+    final Directory dir = await getApplicationSupportDirectory();
     _store = await openStore(directory: p.join(dir.path, 'objectbox'));
-    _receiptFoldInfoBox = _store.box<ReceiptFoldInfo>();
     _receiptFoldDataStoreBox = _store.box<ReceiptFoldDataStore>();
-    _userInfoBox = _store.box<UserInfo>();
     _bindingCarrierBox = _store.box<BindingCarrier>();
     receiptDao = ReceiptDao._(_store.box<ReceiptHeader>(), _store.box<ReceiptDetail>());
   }
 
-  static void dispose() => _store.close();
-
   static T getSingleEntity<T extends SingleEntity>(T initialEntity) {
-    final box = _store.box<T>();
-    final entities = box.getAll();
+    final Box<T> box = _store.box<T>();
+    final List<T> entities = box.getAll();
     if (entities.length == 1) {
       return entities.single;
     } else if (entities.isEmpty) {
       initialEntity.id = 0;
-      final id = box.put(initialEntity);
+      final int id = box.put(initialEntity);
       return box.get(id)!;
     } else {
-      final firstEntity = entities.removeAt(0);
-      final needRemoveIds = entities.map((entity) => entity.id).toList();
+      final T firstEntity = entities.removeAt(0);
+      final List<int> needRemoveIds = entities.map((entity) => entity.id).toList();
       box.removeMany(needRemoveIds);
       return firstEntity;
     }
@@ -55,7 +51,7 @@ final class DatabaseServices {
   static List<MobileBarcodeItem> get mobileBarcodeList =>
       getSingleEntity(ReceiptFoldDataStore()).mobileBarcodeList;
   static void updateMobileBarcodeList(List<MobileBarcodeItem> newList) {
-    final dataStore = getSingleEntity(ReceiptFoldDataStore());
+    final ReceiptFoldDataStore dataStore = getSingleEntity(ReceiptFoldDataStore());
     dataStore.mobileBarcodeList = newList;
     _receiptFoldDataStoreBox.put(dataStore);
   }
@@ -63,7 +59,7 @@ final class DatabaseServices {
   static List<MemberBarcodeItem> get memberBarcodeList =>
       getSingleEntity(ReceiptFoldDataStore()).memberBarcodeList;
   static void updateMemberBarcodeList(List<MemberBarcodeItem> newList) {
-    final dataStore = getSingleEntity(ReceiptFoldDataStore());
+    final ReceiptFoldDataStore dataStore = getSingleEntity(ReceiptFoldDataStore());
     dataStore.memberBarcodeList = newList;
     _receiptFoldDataStoreBox.put(dataStore);
   }
@@ -71,7 +67,7 @@ final class DatabaseServices {
   static List<InvoiceWinningNumber> get invoiceWinningNumberList =>
       getSingleEntity(ReceiptFoldDataStore()).invoiceWinningNumberList;
   static void updateInvoiceWinningNumberList(List<InvoiceWinningNumber> newList) {
-    final dataStore = getSingleEntity(ReceiptFoldDataStore());
+    final ReceiptFoldDataStore dataStore = getSingleEntity(ReceiptFoldDataStore());
     dataStore.invoiceWinningNumberList = newList;
     _receiptFoldDataStoreBox.put(dataStore);
   }
@@ -115,18 +111,19 @@ class ReceiptDao {
     int sequenceCounter = 1;
     double totalAmount = 0;
     final Set<int> newDetailIds = {};
-    for (final newDetail in details) {
-      newDetail
-        ..amount = newDetail.unitPrice * newDetail.quantity
-        ..sequenceNumber = sequenceCounter.toString().padLeft(3, '0');
-      totalAmount += newDetail.amount;
+    for (final ReceiptDetail detail in details) {
+      detail
+        ..amount = detail.unitPrice * detail.quantity
+        ..sequenceNumber = sequenceCounter.toString().padLeft(3, '0')
+        ..receiptHeader.target = header;
+      totalAmount += detail.amount;
       sequenceCounter += 1;
-      if (newDetail.id > 0) newDetailIds.add(newDetail.id);
+      if (detail.id > 0) newDetailIds.add(detail.id);
     }
     header.totalAmount = totalAmount;
 
     final List<int> removeOldDetailIds = [];
-    for (final oldDetail in oldHeader.details) {
+    for (final ReceiptDetail oldDetail in oldHeader.details) {
       if (oldDetail.id > 0 && !newDetailIds.contains(oldDetail.id)) {
         removeOldDetailIds.add(oldDetail.id);
       }
@@ -134,15 +131,12 @@ class ReceiptDao {
     if (removeOldDetailIds.isNotEmpty) _detailBox.removeMany(removeOldDetailIds);
 
     _headerBox.put(header);
-    for (final detail in details) {
-      detail.receiptHeader.target = header;
-      _detailBox.put(detail);
-    }
+    _detailBox.putMany(details);
   }
 
   void remove(ReceiptHeader header) {
     assert(header.id > 0);
-    final detailIds = header.details.map((detail) => detail.id).toList();
+    final List<int> detailIds = header.details.map((detail) => detail.id).toList();
     if (detailIds.isNotEmpty) _detailBox.removeMany(detailIds);
     _headerBox.remove(header.id);
   }

@@ -9,7 +9,7 @@ class TabManualView extends StatefulWidget {
 
 class _TabManualViewState extends State<TabManualView> {
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     // todo: 手動對獎頁面
     return SizedBox.shrink();
   }

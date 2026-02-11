@@ -54,11 +54,11 @@ class _HomeScreenMemberSampleState extends State<HomeScreenMemberSample> {
   int _memberItemIndex = 0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     if (widget.items.isEmpty) {
       return Container(
         color: Colors.white,
-        child: Text(AppLocale.barcodeManagerNotYetSetLabel.s),
+        child: Text(DictKey.barcodeManagerNotYetSetLabel.s),
       );
     } else if (_memberItemIndex != -1) {
       return InkWell(

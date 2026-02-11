@@ -29,34 +29,34 @@ class PageMemberFormArgs {
 
 class _PageMemberFormState extends State<PageMemberForm> {
   final _formKey = GlobalKey<FormBuilderState>();
+  late final PageMemberFormArgs? _args;
   bool _isInitialized = false;
   BarcodeFormat _format = BarcodeFormat.code128;
-  PageMemberFormArgs? _args;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
-      _args = widget.argumentOf(context);
-      _format = _args?.items[_args!.index].format ?? BarcodeFormat.code128;
+      _args = widget.getArgs(context);
+      _format = _args?.items[_args.index].format ?? BarcodeFormat.code128;
       _isInitialized = true;
     }
   }
 
-  void _deleteitem() {
-    assert(_args!=null);
-    showMyDialog(
+  Future<void> _deleteItem() async {
+    assert(_args != null);
+    await showMyDialog(
       context: context,
-      title: AppLocale.deleteLabel.s,
-      content: Text(AppLocale.sureToDeleteThisLabel.s),
+      title: DictKey.deleteLabel.s,
+      content: Text(DictKey.sureToDeleteThisLabel.s),
       actions: [
         TextButton(
-          child: Text(AppLocale.deleteLabel.s),
+          child: Text(DictKey.deleteLabel.s),
           onPressed: () async {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
-            _args!.items.removeAt(_args!.index);
-            DatabaseServices.updateMemberBarcodeList(_args!.items);
+            Navigator.pop(context);
+            Navigator.pop(context);
+            _args!.items.removeAt(_args.index);
+            DatabaseServices.updateMemberBarcodeList(_args.items);
             await updataHomeScreenMember();
           },
         ),
@@ -80,31 +80,32 @@ class _PageMemberFormState extends State<PageMemberForm> {
         format: _format,
       ));
     } else {
-      _args!.items[_args!.index] = MemberBarcodeItem(
+      _args.items[_args.index] = MemberBarcodeItem(
         code: code,
         name: name,
         imageUrl: imageUrl,
         format: _format,
       );
-      items = _args!.items;
+      items = _args.items;
     }
     DatabaseServices.updateMemberBarcodeList(items);
     await updataHomeScreenMember();
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
+    if (!_isInitialized) return const Center(child: CircularProgressIndicator());
     final barcodeWidth = MediaQuery.of(context).size.shortestSide / 2;
     return Scaffold(
       appBar: AppBar(
         title: Text(_args==null
-            ? AppLocale.barcodeManagerAddMembershipCardLabel.s
-            : AppLocale.barcodeManagerEditMembershipCardLabel.s
+            ? DictKey.barcodeManagerAddMembershipCardLabel.s
+            : DictKey.barcodeManagerEditMembershipCardLabel.s
         ),
         actions: [
           if (_args!=null) IconButton(
             icon: const Icon(Icons.delete_forever),
-            onPressed: _deleteitem,
+            onPressed: _deleteItem,
           ),
           IconButton(
             icon: const Icon(Icons.check),
@@ -123,17 +124,16 @@ class _PageMemberFormState extends State<PageMemberForm> {
                   children: [
                     ListTile(
                       minTileHeight: 0,
-                      subtitle: Text(AppLocale.barcodeManagerNameLabel.s),
+                      subtitle: Text(DictKey.barcodeManagerNameLabel.s),
                     ),
                     BarcodeField(
                       format: null,
                       name: 'name',
-                      formKey: _formKey,
-                      initialValue: _args?.items[_args!.index].name,
+                      initialValue: _args?.items[_args.index].name,
                     ),
                     ListTile(
                       minTileHeight: 0,
-                      subtitle: Text(AppLocale.barcodeManagerCodeLabel.s),
+                      subtitle: Text(DictKey.barcodeManagerCodeLabel.s),
                     ),
                     DropdownMenu(
                       initialSelection: _format,
@@ -149,18 +149,16 @@ class _PageMemberFormState extends State<PageMemberForm> {
                     BarcodeField(
                       format: _format,
                       name: 'code',
-                      formKey: _formKey,
-                      initialValue: _args?.items[_args!.index].code,
+                      initialValue: _args?.items[_args.index].code,
                     ),
                     ListTile(
                       minTileHeight: 0,
-                      subtitle: Text(AppLocale.barcodeManagerThumbnailURL.s),
+                      subtitle: Text(DictKey.barcodeManagerThumbnailURL.s),
                     ),
                     BarcodeField(
                       format: null,
                       name: 'imageUrl',
-                      formKey: _formKey,
-                      initialValue: _args?.items[_args!.index].imageUrl,
+                      initialValue: _args?.items[_args.index].imageUrl,
                     ),
                   ],
                 ),
@@ -169,7 +167,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
                 children: [
                   ListTile(
                     minTileHeight: 0,
-                    subtitle: Text(AppLocale.barcodeManagerPreviousRenderingLabel.s),
+                    subtitle: Text(DictKey.barcodeManagerPreviousRenderingLabel.s),
                   ),
                   Card(
                     color: Colors.white,
@@ -180,15 +178,15 @@ class _PageMemberFormState extends State<PageMemberForm> {
                       ),
                       child: Center(
                         child: BarcodeSvgPicture(
-                          data: _args!.items[_args!.index].code,
-                          format: _args!.items[_args!.index].format,
+                          data: _args.items[_args.index].code,
+                          format: _args.items[_args.index].format,
                           width: barcodeWidth,
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ImageBox(item: _args!.items[_args!.index], nullNeedBuild: false),
+                  ImageBox(item: _args.items[_args.index], nullNeedBuild: false),
                 ],
               ),
             ],

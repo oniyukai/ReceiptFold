@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 
 class MyMenuItem {
   final String? text;
@@ -6,47 +7,44 @@ class MyMenuItem {
   final VoidCallback? onTap;
 
   const MyMenuItem({
-    required this.text,
-    this.onTap,
+    this.text,
     this.iconData,
+    this.onTap,
   });
 }
 
 class MyMenuButton extends StatelessWidget {
-  final Widget? icon;
   final List<MyMenuItem> items;
-  final void Function(int value)? onSelectedEnd;
+  final Widget? icon;
+  final ValueChanged<int>? onSelectedEnd;
 
   const MyMenuButton({
     super.key,
-    this.icon,
     required this.items,
+    this.icon,
     this.onSelectedEnd,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return PopupMenuButton<int>(
       icon: icon ?? const Icon(Icons.more_vert),
-      itemBuilder: (BuildContext context) => List.generate(
-          items.length,
-          (value) {
-            final text = items[value].text;
-            final iconData = items[value].iconData;
-            return PopupMenuItem<int>(
-              value: value,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (iconData != null) Icon(iconData),
-                  if (iconData != null) const SizedBox(width: 8),
-                  if (text != null) Text(text),
-                ],
-              ),
-            );
-          }),
-      onSelected: (int value) {
-        final func = items[value].onTap;
+      itemBuilder: (context) => items.mapIndexed((index, item) {
+        assert (item.text != null || item.iconData != null);
+        return PopupMenuItem<int>(
+          value: index,
+          child: Row(
+            mainAxisSize: .min,
+            children: [
+              if (item.iconData != null) Icon(item.iconData),
+              if (item.iconData != null) const SizedBox(width: 8),
+              if (item.text != null) Text(item.text!),
+            ],
+          ),
+        );
+      }).toList(),
+      onSelected: (value) {
+        final VoidCallback? func = items[value].onTap;
         if (func != null) func();
         if (onSelectedEnd != null) onSelectedEnd!(value);
       },

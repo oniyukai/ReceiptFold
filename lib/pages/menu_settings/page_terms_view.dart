@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:path/path.dart' as p;
 import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
@@ -21,16 +22,16 @@ class _PageTermsViewState extends State<PageTermsView> {
   }
 
   Future<void> _loadTerms() async {
-    String termsText = await rootBundle.loadString('assets/license_and_terms.md');
+    String termsText = await rootBundle.loadString(p.join('assets/', 'license_and_terms.md'));
     setState(() => _termsText = termsText);
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     final bool isAgreed = context.readPrefs.get(PrefsEnum.isAgreedAllTerms);
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocale.preferencesTermsTitle.s),
+        title: Text(DictKey.preferencesTermsTitle.s),
       ),
       body: SafeArea(
         child: Column(
@@ -53,7 +54,7 @@ class _PageTermsViewState extends State<PageTermsView> {
               ),
             ),
             if (!isAgreed) CheckboxListTile(
-              title: Text(AppLocale.preferencesTermsAgreedAll.s),
+              title: Text(DictKey.preferencesTermsAgreedAll.s),
               value: _isAgreedAllTerms,
               enabled: _termsText != null,
               controlAffinity: ListTileControlAffinity.leading,
@@ -63,7 +64,7 @@ class _PageTermsViewState extends State<PageTermsView> {
               onPressed: _termsText != null && _isAgreedAllTerms
                   ? () => context.readPrefs.update(PrefsEnum.isAgreedAllTerms, true)
                   : null,
-              child: Text(AppLocale.preferencesTermsContinue.s),
+              child: Text(DictKey.preferencesTermsContinue.s),
             ),
             const Row(),
           ],

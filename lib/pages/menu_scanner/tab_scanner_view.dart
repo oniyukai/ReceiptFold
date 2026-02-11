@@ -9,7 +9,7 @@ class TabScannerView extends StatefulWidget {
 
 class _TabScannerViewState extends State<TabScannerView> {
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     // todo: 相機掃描器頁面
     return SizedBox.shrink();
   }

@@ -17,14 +17,13 @@ class InvoicePeriod {
   DateTime get endDateTime => DateTime(year, startMonth + 2, 0, 23, 59, 59, 999);
 
   /// 獲取期别(民國年)，例如 "11305"
-  String get getROCPeriod {
-    return '${(year-1911).toString().padLeft(3, '0')}${startMonth.toString().padLeft(2, '0')}';
-  }
+  String get getROCPeriod =>
+      '${(year-1911).toString().padLeft(3, '0')}${startMonth.toString().padLeft(2, '0')}';
 
   /// 以當地年雙月表示, 如 "2025年 7月, 8月"
   @override
   String toString() {
-    final DateFormat yearFormatter = DateFormat.y(AppLocale.languageTag);
+    final DateFormat yearFormatter = DateFormat.y(DictKey.languageTag);
     final String yearPart = yearFormatter.format(startDateTime);
     final String month1Name = UnitUtils.singleMonthText(startDateTime);
     final String month2Name = UnitUtils.singleMonthText(endDateTime);
@@ -33,14 +32,14 @@ class InvoicePeriod {
 
   /// 根據給定的[unixMilliseconds]，計算它所屬的發票期别
   factory InvoicePeriod.fromUnixTime(int unixMilliseconds) {
-    final dateTime = DateTime.fromMillisecondsSinceEpoch(unixMilliseconds);
-    final month = (dateTime.month%2 == 0) ? dateTime.month-1 : dateTime.month;
+    final DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(unixMilliseconds);
+    final int month = (dateTime.month%2 == 0) ? dateTime.month-1 : dateTime.month;
     return InvoicePeriod(dateTime.year, month);
   }
 
   /// 獲取下一期
   InvoicePeriod get next {
-    final newStartMonth = startMonth + 2;
+    final int newStartMonth = startMonth + 2;
     return newStartMonth > 11
         ? InvoicePeriod(year + 1, 1)
         : InvoicePeriod(year, newStartMonth);
@@ -48,7 +47,7 @@ class InvoicePeriod {
 
   /// 獲取上一期
   InvoicePeriod get previous {
-    final newStartMonth = startMonth - 2;
+    final int newStartMonth = startMonth - 2;
     return newStartMonth < 1
         ? InvoicePeriod(year - 1, 11)
         : InvoicePeriod(year, newStartMonth);

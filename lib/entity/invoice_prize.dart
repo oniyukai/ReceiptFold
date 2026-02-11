@@ -20,16 +20,16 @@ enum InvoiceEntityPrize {
   const InvoiceEntityPrize(this.amount);
 
   String get locale => switch (this) {
-    special => AppLocale.prizeSpecialLabel.s,
-    grand => AppLocale.prizeGrandLabel.s,
-    first => AppLocale.prizeFirstLabel.s,
-    second => AppLocale.prizeSecondLabel.s,
-    third => AppLocale.prizeThirdLabel.s,
-    fourth => AppLocale.prizeFourthLabel.s,
-    fifth => AppLocale.prizeFifthLabel.s,
-    sixth => AppLocale.prizeSixthLabel.s,
-    additionalSixth => AppLocale.prizeAdditionalSixthLabel.s,
-  };
+    special => DictKey.prizeSpecialLabel,
+    grand => DictKey.prizeGrandLabel,
+    first => DictKey.prizeFirstLabel,
+    second => DictKey.prizeSecondLabel,
+    third => DictKey.prizeThirdLabel,
+    fourth => DictKey.prizeFourthLabel,
+    fifth => DictKey.prizeFifthLabel,
+    sixth => DictKey.prizeSixthLabel,
+    additionalSixth => DictKey.prizeAdditionalSixthLabel,
+  }.s;
 }
 
 class InvoiceWinningNumber {
@@ -55,13 +55,13 @@ class InvoiceWinningNumber {
     Map<InvoiceEntityPrize, List<String>>? prizes;
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
-      period = json['period'] as String;
-      lastWebQueryTime = json['lastWebQueryTime'] as int;
-      final jsonPrizes = json['prizes'] as Map<String, dynamic>?;
+      period = json['period'];
+      lastWebQueryTime = json['lastWebQueryTime'];
+      final Map<String, dynamic>? jsonPrizes = json['prizes'] as Map<String, dynamic>?;
       if (jsonPrizes != null && jsonPrizes.isNotEmpty) {
         prizes = {};
-        for (final entry in jsonPrizes.entries) {
-          final invoiceEntityPrize = InvoiceEntityPrize.values.fromName(entry.key);
+        for (final MapEntry<String, dynamic> entry in jsonPrizes.entries) {
+          final InvoiceEntityPrize? invoiceEntityPrize = InvoiceEntityPrize.values.fromName(entry.key);
           if (invoiceEntityPrize != null) {
             prizes[invoiceEntityPrize] = (entry.value as List<dynamic>).cast<String>().toList();
           }

@@ -8,20 +8,6 @@ abstract class SingleEntity {
 }
 
 @Entity()
-class ReceiptFoldInfo extends SingleEntity {
-  @override
-  @Id() int id = 0;
-  int? lastDataChangeUpdate;
-  int? lastTimeCloudBackup;
-
-  ReceiptFoldInfo({
-    this.lastDataChangeUpdate,
-    this.lastTimeCloudBackup,
-  });
-}
-
-
-@Entity()
 class ReceiptFoldDataStore extends SingleEntity {
   @override
   @Id() int id = 0;
@@ -48,32 +34,4 @@ class ReceiptFoldDataStore extends SingleEntity {
   @Transient()
   List<InvoiceWinningNumber> get invoiceWinningNumberList => InvoiceWinningNumber.listConverter.toRun(invoiceWinningNumberList_);
   set invoiceWinningNumberList(List<InvoiceWinningNumber> value) => invoiceWinningNumberList_ = InvoiceWinningNumber.listConverter.toSeq(value);
-}
-
-
-@Entity()
-class UserInfo extends SingleEntity {
-  @override
-  @Id() int id = 0;
-  final String? userId;
-  final String? userType;
-  final String? name;
-  final String? phone;
-  final String? carrierId2;
-  final String? email;
-  final String? menu;
-  final String? emailChecked;
-  final int? lastLoginDate;
-
-  UserInfo({
-    this.userId,
-    this.userType,
-    this.name,
-    this.phone,
-    this.carrierId2,
-    this.email,
-    this.menu,
-    this.emailChecked,
-    this.lastLoginDate,
-  });
 }

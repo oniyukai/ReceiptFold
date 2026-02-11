@@ -28,22 +28,19 @@ class _ReorderableTilesState<T> extends State<ReorderableTiles<T>> {
   }
 
   @override
-  void didUpdateWidget(covariant ReorderableTiles<T> oldWidget) {
+  void didUpdateWidget(oldWidget) {
     super.didUpdateWidget(oldWidget);
     _items = List.from(widget.initialItems);
   }
 
   void _onReorder(int oldIndex, int newIndex) {
     if (newIndex > oldIndex) newIndex -= 1;
-    setState(() {
-      final item = _items.removeAt(oldIndex);
-      _items.insert(newIndex, item);
-    });
+    setState(() => _items.insert(newIndex, _items.removeAt(oldIndex)));
     widget.onReorderFinished(_items);
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return ReorderableListView.builder(
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
@@ -51,21 +48,16 @@ class _ReorderableTilesState<T> extends State<ReorderableTiles<T>> {
       padding: widget.padding,
       onReorder: _onReorder,
       buildDefaultDragHandles: false,
-      proxyDecorator: (child, index, animation) {
-        return Material(
-          elevation: 0,
-          color: Colors.transparent,
-          child: child,
-        );
-      },
-      itemBuilder: (BuildContext context, int index) {
-        final item = _items[index];
-        return ReorderableDragStartListener(
-          key: ValueKey(index),
-          index: index,
-          child: widget.itemBuilder(item),
-        );
-      },
+      proxyDecorator: (child, index, animation) => Material(
+        elevation: 0,
+        color: Colors.transparent,
+        child: child,
+      ),
+      itemBuilder: (BuildContext context, index) => ReorderableDragStartListener(
+        key: ValueKey(index),
+        index: index,
+        child: widget.itemBuilder(_items[index]),
+      ),
     );
   }
 }

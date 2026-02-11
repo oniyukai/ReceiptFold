@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-typedef LocaleInstance = Map<AppLocale, String?>;
-typedef K = AppLocale;
+typedef LocaleInstance = Map<DictKey, String?>;
 
-extension StaticString on AppLocale {
+extension StaticString on DictKey {
   static const String
     appName = 'ReceiptFold',
     appVersion = '1.0.0+1',
@@ -23,12 +22,10 @@ extension StaticString on AppLocale {
     fillObjectNewBytes = '<fillObject.fillObjectNewBytes>',
     // Other
     currencyNTD = 'NTD',
-    nullString = 'NULL<String>'
-
-  ;
+    nullString = 'NULL<String>';
 }
 
-enum AppLocale {
+enum DictKey {
   titleRecorder,
   titleScanner,
   titleManager,
@@ -102,6 +99,7 @@ enum AppLocale {
   barcodeCodabarLabel,
   barcodeItfLabel,
   // Barcode Composition
+  barcodeNumberCompositionLabel,
   barcodeTextCompositionLabel,
   barcodeTextNoSpecialCompositionLabel,
   barcodeTextUpperNoSpecialCompositionLabel,
@@ -119,6 +117,7 @@ enum AppLocale {
   errorBarcodeEncodingUsAsciiErrorMessage,
   errorBarcode93RegexErrorMessage,
   errorBarcode39RegexErrorMessage,
+  errorBarcodeCodabarRegexErrorMessage,
   errorBarcodeItfErrorMessage,
   errorBarcodeUpcENotStartWith0ErrorMessage,
   // Barcode Manager
@@ -188,12 +187,11 @@ enum AppLocale {
   invoiceStatusConfirmed,
   invoiceStatusInvalidated,
   invoiceStatusDonated,
-  invoiceStatusConfirmedNotDonated,
-  ;
+  invoiceStatusConfirmedNotDonated;
 
-  String get s => _instance?[this] ?? '<$name>';
+  String get s => _instance[this] ?? '<$name>';
 
-  static LocaleInstance? _instance;
+  static late LocaleInstance _instance;
   static late Locale _locale;
 
   static void load(BuildContext context) {

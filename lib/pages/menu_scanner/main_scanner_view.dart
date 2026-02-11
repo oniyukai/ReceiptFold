@@ -59,7 +59,7 @@ class _MainScannerViewState extends State<MainScannerView> with SingleTickerProv
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,

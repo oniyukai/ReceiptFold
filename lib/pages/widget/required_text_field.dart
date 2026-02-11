@@ -15,10 +15,10 @@ enum FieldType {
   const FieldType(this.iconData, this.inputType, this.isObscure);
 
   String get labelText => switch (this) {
-    onelineText => AppLocale.barcodeTextCompositionLabel.s,
-    number=> AppLocale.barcodeDigitsCompositionLabel.s,
-    password => AppLocale.barcodeTextCompositionLabel.s,
-  };
+    onelineText => DictKey.barcodeTextCompositionLabel,
+    number=> DictKey.barcodeNumberCompositionLabel,
+    password => DictKey.barcodeTextCompositionLabel,
+  }.s;
 }
 
 class RequiredTextField extends StatefulWidget {
@@ -47,7 +47,7 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return FormBuilderTextField(
       name: widget.name,
       maxLines: 1,
@@ -66,8 +66,8 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
       ),
       keyboardType: widget.type.inputType,
       validator: FormBuilderValidators.compose([
-        FormBuilderValidators.required(errorText: AppLocale.errorEmptyFields.s),
-        if (widget.type == FieldType.number) FormBuilderValidators.numeric(errorText: AppLocale.errorBarcodeNotANumberMessage.s),
+        FormBuilderValidators.required(errorText: DictKey.errorEmptyFields.s),
+        if (widget.type == .number) FormBuilderValidators.numeric(errorText: DictKey.errorBarcodeNotANumberMessage.s),
       ]),
     );
   }

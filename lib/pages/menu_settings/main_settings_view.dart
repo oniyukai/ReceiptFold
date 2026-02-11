@@ -28,20 +28,20 @@ class _MainSettingsPageState extends State<MainSettingsView> {
       await cache.emptyCache();
       final newSize = await cache.store.getCacheSize();
       Utils.showToast(Utils.multilingualFiller(
-        AppLocale.preferencesClearedImageCache.s,
+        DictKey.preferencesClearedImageCache.s,
         [
           (StaticString.fillObjectOldBytes, UnitUtils.shortBytesText(oldSize)),
           (StaticString.fillObjectNewBytes, UnitUtils.shortBytesText(newSize)),
         ]
       ));
     } catch (e) {
-      Utils.showToast('${AppLocale.preferencesFailure.s}: $e');
+      Utils.showToast('${DictKey.preferencesFailure.s}: $e');
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    AppLocale.load(context);
+  Widget build(context) {
+    DictKey.load(context);
     return SafeArea(
       child: Scrollbar(
         controller: _scrollController,
@@ -49,63 +49,63 @@ class _MainSettingsPageState extends State<MainSettingsView> {
           builder: (context, prefs, child) => ListView(
             controller: _scrollController,
             children: [
-              ListTileText(text: AppLocale.preferencesAppearanceTitle.s, isSection: true),
+              ListTileText(text: DictKey.preferencesAppearanceTitle.s, isSection: true),
               ListTilePicker<ColorOption>(
-                text: AppLocale.preferencesColorLabel.s,
+                text: DictKey.preferencesColorLabel.s,
                 selectedOption: prefs.get(PrefsEnum.selectedColor),
                 optionMap: ColorOption.optionMap,
                 onChanged: (value) => prefs.update(PrefsEnum.selectedColor, value),
               ),
               ListTilePicker<ThemeOption>(
-                text: AppLocale.preferencesThemeLabel.s,
+                text: DictKey.preferencesThemeLabel.s,
                 selectedOption: prefs.get(PrefsEnum.selectedTheme),
                 optionMap: ThemeOption.optionMap,
                 onChanged: (value) => prefs.update(PrefsEnum.selectedTheme, value),
               ),
               ListTilePicker<LocaleOption>(
-                text: AppLocale.preferencesLanguageLabel.s,
+                text: DictKey.preferencesLanguageLabel.s,
                 selectedOption: prefs.get(PrefsEnum.selectedLanguage),
                 optionMap: LocaleOption.optionMap,
                 onChanged: (value) => prefs.update(PrefsEnum.selectedLanguage, value),
               ),
 
-              ListTileText(text: AppLocale.preferencesPreferenceTitle.s, isSection: true),
+              ListTileText(text: DictKey.preferencesPreferenceTitle.s, isSection: true),
               ListTileSwitch(
-                text: AppLocale.preferencesSwitchAutoBrightnessLabel.s,
-                initialValue: prefs.get(PrefsEnum.isAutoBrightness),
+                text: DictKey.preferencesSwitchAutoBrightnessLabel.s,
                 iconData: Icons.brightness_6_outlined,
+                initialValue: prefs.get(PrefsEnum.isAutoBrightness),
                 onToggle: (value) => prefs.update(PrefsEnum.isAutoBrightness, value),
               ),
               ListTileSwitch(
-                text: AppLocale.preferencesSwitchScanScreenRotationLabel.s,
-                initialValue: prefs.get(PrefsEnum.isScanScreenRotation),
+                text: DictKey.preferencesSwitchScanScreenRotationLabel.s,
                 iconData: Icons.screen_rotation,
+                initialValue: prefs.get(PrefsEnum.isScanScreenRotation),
                 onToggle: (value) => prefs.update(PrefsEnum.isScanScreenRotation, value),
               ),
               ListTileSwitch(
-                text: AppLocale.preferencesSwitchShowScreenRotationLabel.s,
-                initialValue: prefs.get(PrefsEnum.isShowScreenRotation),
+                text: DictKey.preferencesSwitchShowScreenRotationLabel.s,
                 iconData: Icons.screen_rotation,
+                initialValue: prefs.get(PrefsEnum.isShowScreenRotation),
                 onToggle: (value) => prefs.update(PrefsEnum.isShowScreenRotation, value),
               ),
               ListTileText(
-                text: AppLocale.preferencesClearImageCacheLabel.s,
+                text: DictKey.preferencesClearImageCacheLabel.s,
                 iconData: Icons.image_outlined,
                 onTap: _clearImageCache,
               ),
 
-              ListTileText(text: AppLocale.preferencesInvoicePlatformTitle.s, isSection: true),
+              ListTileText(text: DictKey.preferencesInvoicePlatformTitle.s, isSection: true),
               ListTileText(
-                text: AppLocale.preferencesAccountPasswordLabel.s,
+                text: DictKey.preferencesAccountPasswordLabel.s,
                 trailing: const Icon(Icons.chevron_right),
                 iconData: Icons.manage_accounts,
                 onTap: () => pagePlatformForm(context),
               ),
 
-              ListTileText(text: AppLocale.preferencesBackupTitle.s, isSection: true),
+              ListTileText(text: DictKey.preferencesBackupTitle.s, isSection: true),
               // todo: 雲端同步功能
 
-              ListTileText(text: AppLocale.preferencesAboutTitle.s, isSection: true),
+              ListTileText(text: DictKey.preferencesAboutTitle.s, isSection: true),
               ListTileText(
                 text: StaticString.appName,
                 trailing: const Icon(Icons.chevron_right),

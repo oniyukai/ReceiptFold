@@ -43,19 +43,19 @@ class PageReceiptViewArgs {
 
 class _PageReceiptViewState extends State<PageReceiptView> {
   final _formKey = GlobalKey<FormBuilderState>();
-  final List<ReceiptDetail> _details = [];
   late final PageReceiptViewArgs _args;
   late final ReceiptHeader _header;
+  List<ReceiptDetail> _details = [];
   bool _isInitialized = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
-      _args = widget.argumentOf(context)!;
+      _args = widget.getArgs(context)!;
       if (_args.isEdit) {
         _header = _args.header!;
-        _details.addAll(_header.details);
+        _details = _header.details;
         ReceiptDetail.sortList(_details);
       } else {
         _header = ReceiptHeader(
@@ -98,7 +98,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       _updateInDatabase(false);
     }
 
-    return () => showMyBottomSheet(
+    return () async => showMyBottomSheet(
       context: context,
       noCancelButton: true,
       title: ListTile(
@@ -119,7 +119,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
         children: [
           _ReceiptInfoTile(
             titleText: initialValue,
-            subtitleText: AppLocale.receiptViewOriginalContentLabel.s,
+            subtitleText: DictKey.receiptViewOriginalContentLabel.s,
             trailing: IconButton(
               onPressed: _copyTextToClipboard(initialValue),
               icon: const Icon(Icons.copy),
@@ -127,7 +127,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
           ),
           if (allowModify) ListTile(
             minTileHeight: 0,
-            subtitle: Text(AppLocale.receiptViewModifyLabel.s),
+            subtitle: Text(DictKey.receiptViewModifyLabel.s),
           ),
           if (allowModify) FormBuilder(
             key: _formKey,
@@ -135,7 +135,6 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               initialValue: initialValue,
               format: null,
               name: fieldName,
-              formKey: _formKey
             ),
           ),
         ],
@@ -147,18 +146,18 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   // 適用於所有狀態的前端接口 ---------- >
   // < ---------- 適用於特定狀態的前端接口
 
-  void _deleteIconPressed() {
+  Future<void> _deleteIconPressed() async {
     assert(_args.isEdit);
-    showMyDialog(
+    await showMyDialog(
       context: context,
-      title: AppLocale.deleteLabel.s,
-      content: Text(AppLocale.sureToDeleteThisLabel.s),
+      title: DictKey.deleteLabel.s,
+      content: Text(DictKey.sureToDeleteThisLabel.s),
       actions: [
         TextButton(
-          child: Text(AppLocale.deleteLabel.s),
+          child: Text(DictKey.deleteLabel.s),
           onPressed: () async {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
+            Navigator.pop(context);
+            Navigator.pop(context);
             DatabaseServices.receiptDao.remove(_header);
           },
         ),
@@ -168,7 +167,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
 
   void _checkIconPressed() {
     assert(_args.isAdd && _header.id == 0);
-    Navigator.of(context).pop();
+    Navigator.pop(context);
     DatabaseServices.receiptDao.upsert(_header, _details);
   }
 
@@ -208,19 +207,20 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     final isAddNotModify = detail == null;
     final textTheme = Theme.of(context).textTheme;
 
-    void deleteDetail() {
+    Future<void> deleteDetail() async {
       assert(!isAddNotModify);
-      if (index == null) throw 'index不能是null';
-      showMyDialog(
+      if (index == null || detail == null) throw 'index不能是null';
+      await showMyDialog(
         context: context,
-        title: AppLocale.deleteLabel.s,
-        content: Text(AppLocale.sureToDeleteThisLabel.s),
+        title: DictKey.deleteLabel.s,
+        content: Text(DictKey.sureToDeleteThisLabel.s),
         actions: [
           TextButton(
-            child: Text(AppLocale.deleteLabel.s),
+            child: Text(DictKey.deleteLabel.s),
             onPressed: () async {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
+              Navigator.pop(context);
+              Navigator.pop(context);
+              _header.totalAmount -= detail.amount;
               _details.removeAt(index);
               _updateInDatabase(true);
             },
@@ -254,11 +254,12 @@ class _PageReceiptViewState extends State<PageReceiptView> {
         _details[index] = tempDetail;
       } else {
         _details.add(tempDetail);
+        _header.totalAmount += tempDetail.amount;
       }
       _updateInDatabase(true);
     }
 
-    return () => showMyBottomSheet(
+    return () async => showMyBottomSheet(
       context: context,
       noCancelButton: true,
       title: ListTile(
@@ -267,7 +268,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
           icon: const Icon(Icons.arrow_back),
         ),
         title: Text(
-          AppLocale.receiptDetailLabel.s,
+          DictKey.receiptDetailLabel.s,
           style: textTheme.titleMedium,
         ),
         trailing: Row(
@@ -290,7 +291,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
           children: [
             if (detail != null) ListTile(
               minTileHeight: 0,
-              subtitle: Text(AppLocale.receiptViewOriginalContentLabel.s),
+              subtitle: Text(DictKey.receiptViewOriginalContentLabel.s),
             ),
             if (detail != null) _DetailInfoRow(
               itemDescription: detail.itemDescription,
@@ -300,7 +301,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
             ),
             ListTile(
               minTileHeight: 0,
-              subtitle: Text(AppLocale.receiptDetailItemLabel.s),
+              subtitle: Text(DictKey.receiptDetailItemLabel.s),
             ),
             RequiredTextField(
               name: itemDescriptionName,
@@ -308,7 +309,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
             ),
             ListTile(
               minTileHeight: 0,
-              subtitle: Text(AppLocale.receiptDetailUnitPriceLabel.s),
+              subtitle: Text(DictKey.receiptDetailUnitPriceLabel.s),
             ),
             RequiredTextField(
               name: unitPriceName,
@@ -317,7 +318,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
             ),
             ListTile(
               minTileHeight: 0,
-              subtitle: Text(AppLocale.receiptDetailQuantityLabel.s),
+              subtitle: Text(DictKey.receiptDetailQuantityLabel.s),
             ),
             RequiredTextField(
               name: quantityName,
@@ -330,9 +331,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     );
   }
 
-  void _sortDetails() {
+  Future<void> _sortDetails() async {
     assert(!_isCloudPlatform && _details.length > 1);
-    showSortDialog(
+    await showSortDialog(
       context: context,
       items: _details,
       itemBuilder: (detail) => _DetailInfoRow(
@@ -342,8 +343,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
         amount: Utils.amountToDescription(detail.amount),
       ),
       saveOnTap: (items) {
-        _details.clear();
-        _details.addAll(items);
+        _details = items;
         _updateInDatabase(true);
       },
     );
@@ -359,19 +359,19 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   VoidCallback? _copyTextToClipboard(String? text) {
     if (text == null || text == '') {
       return () {
-        Utils.showToast(AppLocale.copiedLabel.s);
+        Utils.showToast(DictKey.copiedLabel.s);
       };
     } else {
       return () async {
         await Clipboard.setData(ClipboardData(text: text));
-        Utils.showToast('${AppLocale.noContentToCopyLabel.s}\n${text.replaceAll('\n', ' ')}');
+        Utils.showToast('${DictKey.noContentToCopyLabel.s}\n${text.replaceAll('\n', ' ')}');
       };
     }
   }
   // 後方函式 ---------- >
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     if (!_isInitialized) return const Center(child: CircularProgressIndicator());
     final textTheme = Theme.of(context).textTheme;
     final isCloudPlatform = _isCloudPlatform;
@@ -379,8 +379,8 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_args.isAdd
-            ? AppLocale.receiptViewAddRecordReceiptLabel.s
-            : AppLocale.receiptViewRecordReceiptLabel.s
+            ? DictKey.receiptViewAddRecordReceiptLabel.s
+            : DictKey.receiptViewRecordReceiptLabel.s
         ),
         actions: [
           if (_args.isEdit) IconButton(
@@ -402,49 +402,49 @@ class _PageReceiptViewState extends State<PageReceiptView> {
             children: [
               _ReceiptInfoTile(
                 titleText: _header.sellerName,
-                subtitleText: AppLocale.receiptHeaderSellerNameLabel.s,
+                subtitleText: DictKey.receiptHeaderSellerNameLabel.s,
                 onTap: _normalStringTileVoid(
-                  titleText: AppLocale.receiptHeaderSellerNameLabel.s,
+                  titleText: DictKey.receiptHeaderSellerNameLabel.s,
                   initialValue: _header.sellerName,
                   changed: (value) => _header.sellerName = value
                 ),
               ),
               _ReceiptInfoTile(
                 titleText: UnitUtils.fullTimeText(_header.invoiceDateTime),
-                subtitleText: '${AppLocale.receiptHeaderInvoicePeriodLabel.s
-                }($periodDescription)\n${AppLocale.receiptHeaderTimestampLabel.s}',
+                subtitleText: '${DictKey.receiptHeaderInvoicePeriodLabel.s
+                }($periodDescription)\n${DictKey.receiptHeaderTimestampLabel.s}',
                 onTap: isCloudPlatform ? null : _selectDateTime,
               ),
               _RowExpandedTile(
                 firstWidget: _ReceiptInfoTile(
                   titleText: _header.invoiceNumber,
-                  subtitleText: AppLocale.receiptHeaderInvoiceNumberLabel.s,
+                  subtitleText: DictKey.receiptHeaderInvoiceNumberLabel.s,
                   onTap: _normalStringTileVoid(
-                    titleText: AppLocale.receiptHeaderInvoiceNumberLabel.s,
+                    titleText: DictKey.receiptHeaderInvoiceNumberLabel.s,
                     initialValue: _header.invoiceNumber,
                     changed: (value) => _header.invoiceNumber = value
                   ),
                 ),
                 secondWidget: isCloudPlatform ? _ReceiptInfoTile(
                   titleText: _header.invoiceStatus?.locale,
-                  subtitleText: AppLocale.receiptHeaderInvoiceStatusLabel.s,
+                  subtitleText: DictKey.receiptHeaderInvoiceStatusLabel.s,
                 ) : null,
               ),
               _RowExpandedTile(
                 firstWidget: _ReceiptInfoTile(
                   titleText: _header.carrierName,
-                  subtitleText: AppLocale.receiptHeaderCarrierNameLabel.s,
+                  subtitleText: DictKey.receiptHeaderCarrierNameLabel.s,
                   onTap: _normalStringTileVoid(
-                    titleText: AppLocale.receiptHeaderCarrierNameLabel.s,
+                    titleText: DictKey.receiptHeaderCarrierNameLabel.s,
                     initialValue: _header.carrierName,
                     changed: (value) => _header.carrierName = value
                   ),
                 ),
                 secondWidget: _ReceiptInfoTile(
                   titleText: _header.carrierType,
-                  subtitleText: AppLocale.receiptHeaderCarrierTypeLabel.s,
+                  subtitleText: DictKey.receiptHeaderCarrierTypeLabel.s,
                   onTap: _normalStringTileVoid(
-                    titleText: AppLocale.receiptHeaderCarrierTypeLabel.s,
+                    titleText: DictKey.receiptHeaderCarrierTypeLabel.s,
                     initialValue: _header.carrierType,
                     changed: (value) => _header.carrierType = value
                   ),
@@ -452,9 +452,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               ),
               _ReceiptInfoTile(
                 titleText: _header.sellerAddress,
-                subtitleText: AppLocale.receiptHeaderSellerAddressLabel.s,
+                subtitleText: DictKey.receiptHeaderSellerAddressLabel.s,
                 onTap: _normalStringTileVoid(
-                  titleText: AppLocale.receiptHeaderSellerAddressLabel.s,
+                  titleText: DictKey.receiptHeaderSellerAddressLabel.s,
                   initialValue: _header.sellerAddress,
                   changed: (value) => _header.sellerAddress = value
                 ),
@@ -462,18 +462,18 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               _RowExpandedTile(
                 firstWidget: _ReceiptInfoTile(
                   titleText: _header.sellerBanId,
-                  subtitleText: AppLocale.receiptHeaderSellerBanIdLabel.s,
+                  subtitleText: DictKey.receiptHeaderSellerBanIdLabel.s,
                   onTap: _normalStringTileVoid(
-                    titleText: AppLocale.receiptHeaderSellerBanIdLabel.s,
+                    titleText: DictKey.receiptHeaderSellerBanIdLabel.s,
                     initialValue: _header.sellerBanId,
                     changed: (value) => _header.sellerBanId = value
                   ),
                 ),
                 secondWidget: _ReceiptInfoTile(
                   titleText: _header.randomNumber,
-                  subtitleText: AppLocale.receiptHeaderInvoiceRandomNumberLabel.s,
+                  subtitleText: DictKey.receiptHeaderInvoiceRandomNumberLabel.s,
                   onTap: _normalStringTileVoid(
-                    titleText: AppLocale.receiptHeaderInvoiceRandomNumberLabel.s,
+                    titleText: DictKey.receiptHeaderInvoiceRandomNumberLabel.s,
                     initialValue: _header.randomNumber,
                     changed: (value) => _header.randomNumber = value
                   ),
@@ -482,18 +482,18 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               _RowExpandedTile(
                 firstWidget: _ReceiptInfoTile(
                   titleText: _header.mainRemark,
-                  subtitleText: AppLocale.receiptHeaderMainRemarkLabel.s,
+                  subtitleText: DictKey.receiptHeaderMainRemarkLabel.s,
                   onTap: _normalStringTileVoid(
-                    titleText: AppLocale.receiptHeaderMainRemarkLabel.s,
+                    titleText: DictKey.receiptHeaderMainRemarkLabel.s,
                     initialValue: _header.mainRemark,
                     changed: (value) => _header.mainRemark = value
                   ),
                 ),
                 secondWidget: _ReceiptInfoTile(
                   titleText: _header.userNote,
-                  subtitleText: AppLocale.receiptHeaderUserNoteLabel.s,
+                  subtitleText: DictKey.receiptHeaderUserNoteLabel.s,
                   onTap: _normalStringTileVoid(
-                    titleText: AppLocale.receiptHeaderUserNoteLabel.s,
+                    titleText: DictKey.receiptHeaderUserNoteLabel.s,
                     initialValue: _header.userNote,
                     openModifyAllTime: true,
                     changed: (value) => _header.userNote = value
@@ -504,30 +504,30 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 equal: true,
                 firstWidget: _ReceiptInfoTile(
                   titleText: _header.prizeInformation,
-                  subtitleText: AppLocale.receiptHeaderPrizeInformationLabel.s,
+                  subtitleText: DictKey.receiptHeaderPrizeInformationLabel.s,
                 ),
                 secondWidget: _ReceiptInfoTile(
                   titleText: Utils.amountToDescription(_header.prizeAmount ?? 0),
-                  subtitleText: AppLocale.receiptHeaderPrizeAmountLabel.s,
+                  subtitleText: DictKey.receiptHeaderPrizeAmountLabel.s,
                 ),
                 thirdWidget: _ReceiptInfoTile(
                   titleText: _header.receiptOrigin.locale,
-                  subtitleText: AppLocale.receiptHeaderReceiptOriginLabel.s,
+                  subtitleText: DictKey.receiptHeaderReceiptOriginLabel.s,
                   trailing: MyMenuButton(
                     icon: Icon(Icons.arrow_drop_down),
                     items: [
                       MyMenuItem(
+                        text: ReceiptOrigin.cloudPlatform.locale,
                         iconData: _header.receiptOrigin == ReceiptOrigin.cloudPlatform
                             ? Icons.radio_button_checked
                             : Icons.radio_button_off,
-                        text: ReceiptOrigin.cloudPlatform.locale,
                         onTap: _switchReceiptOrigin(ReceiptOrigin.cloudPlatform),
                       ),
                       MyMenuItem(
+                        text: ReceiptOrigin.manualAddition.locale,
                         iconData: _header.receiptOrigin == ReceiptOrigin.manualAddition
                             ? Icons.radio_button_checked
                             : Icons.radio_button_off,
-                        text: ReceiptOrigin.manualAddition.locale,
                         onTap: _switchReceiptOrigin(ReceiptOrigin.manualAddition),
                       ),
                     ]
@@ -538,18 +538,18 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 equal: true,
                 firstWidget: _ReceiptInfoTile(
                   titleText: Utils.amountToDescription(_header.totalAmount),
-                  subtitleText: AppLocale.receiptHeaderTotalAmountLabel.s,
+                  subtitleText: DictKey.receiptHeaderTotalAmountLabel.s,
                 ),
                 secondWidget: _ReceiptInfoTile(
                   titleText: Utils.amountToDescription(_details.length),
-                  subtitleText: AppLocale.receiptHeaderItemLengthLabel.s,
+                  subtitleText: DictKey.receiptHeaderItemLengthLabel.s,
                 ),
                 thirdWidget: _ReceiptInfoTile(
                   titleText: _header.currency,
                   titleNullText: StaticString.currencyNTD,
-                  subtitleText: AppLocale.receiptHeaderCurrencyLabel.s,
+                  subtitleText: DictKey.receiptHeaderCurrencyLabel.s,
                   onTap: _normalStringTileVoid(
-                    titleText: AppLocale.receiptHeaderCurrencyLabel.s,
+                    titleText: DictKey.receiptHeaderCurrencyLabel.s,
                     initialValue: _header.currency,
                     changed: (value) => _header.currency = value
                   ),
@@ -563,10 +563,10 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                     children: [
                       _DetailInfoRow(
                         textStyle: textTheme.titleSmall,
-                        itemDescription: AppLocale.receiptDetailItemLabel.s,
-                        unitPrice: AppLocale.receiptDetailUnitPriceLabel.s,
-                        quantity: AppLocale.receiptDetailQuantityLabel.s,
-                        amount: AppLocale.receiptDetailAmountLabel.s,
+                        itemDescription: DictKey.receiptDetailItemLabel.s,
+                        unitPrice: DictKey.receiptDetailUnitPriceLabel.s,
+                        quantity: DictKey.receiptDetailQuantityLabel.s,
+                        amount: DictKey.receiptDetailAmountLabel.s,
                       ),
                       ...List.generate(_details.length, (index) {
                         final detail = _details[index];
@@ -589,7 +589,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                               children: [
                                 const Icon(Icons.swap_vert),
                                 const SizedBox(width: 4),
-                                Text(AppLocale.sortLabel.s),
+                                Text(DictKey.sortLabel.s),
                               ],
                             ),
                           ),
@@ -600,7 +600,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                               children: [
                                 const Icon(Icons.add),
                                 const SizedBox(width: 4),
-                                Text(AppLocale.addNewLabel.s),
+                                Text(DictKey.addNewLabel.s),
                               ],
                             ),
                           ),
@@ -633,7 +633,7 @@ class _RowExpandedTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -671,7 +671,7 @@ class _ReceiptInfoTile extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
@@ -722,7 +722,7 @@ class _DetailInfoRow extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return InkWell(
       borderRadius: BorderRadius.circular(8.0),
       onTap: onTap,
@@ -768,3 +768,5 @@ class _DetailInfoRow extends StatelessWidget {
     );
   }
 }
+
+// todo debug: add receipt中 add detail, receipt中無法及時算出並顯示details總額

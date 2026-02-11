@@ -26,18 +26,18 @@ class HomeScreenMobileSample extends StatelessWidget {
   const HomeScreenMobileSample({super.key, required this.items});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     MobileBarcodeItem? firstCode;
     if (items.isNotEmpty) firstCode = items.first;
     if (firstCode == null) {
       return Container(
         color: Colors.white,
-        child: Text(AppLocale.barcodeManagerNotYetSetLabel.s),
+        child: Text(DictKey.barcodeManagerNotYetSetLabel.s),
       );
     }
     return ScreenGadgetBarcode(
       data: firstCode.code,
-      name: '${AppLocale.barcodeManagerMobileCarrierLabel.s} ${firstCode.name ?? ''}',
+      name: '${DictKey.barcodeManagerMobileCarrierLabel.s} ${firstCode.name ?? ''}',
       format: BarcodeFormat.code39,
     );
   }
@@ -56,7 +56,7 @@ class ScreenGadgetBarcode extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final barcodeWidth = constraints.biggest.shortestSide;
@@ -100,3 +100,5 @@ class ScreenGadgetBarcode extends StatelessWidget {
     );
   }
 }
+
+// todo debug: 當APP位於路由中, 在用小工具進入會push路由

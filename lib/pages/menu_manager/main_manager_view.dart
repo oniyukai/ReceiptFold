@@ -26,7 +26,7 @@ class _MainManagerViewState extends State<MainManagerView> with SingleTickerProv
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,
