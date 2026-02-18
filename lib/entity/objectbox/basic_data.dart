@@ -11,27 +11,25 @@ abstract class SingleEntity {
 class ReceiptFoldDataStore extends SingleEntity {
   @override
   @Id() int id = 0;
-  String? sharedPreferences;
   String mobileBarcodeList_;
   String memberBarcodeList_;
   String invoiceWinningNumberList_;
 
   ReceiptFoldDataStore({
-    this.sharedPreferences,
     this.mobileBarcodeList_ = '[]',
     this.memberBarcodeList_ = '[]',
     this.invoiceWinningNumberList_ = '[]',
   });
 
   @Transient()
-  List<MobileBarcodeItem> get mobileBarcodeList => MobileBarcodeItem.listConverter.toRun(mobileBarcodeList_);
-  set mobileBarcodeList(List<MobileBarcodeItem> value) => mobileBarcodeList_ = MobileBarcodeItem.listConverter.toSeq(value);
+  List<MobileBarcodeItem> get mobileBarcodeList => MobileBarcodeItem.listConverter.toR(mobileBarcodeList_);
+  set mobileBarcodeList(List<MobileBarcodeItem> value) => mobileBarcodeList_ = MobileBarcodeItem.listConverter.toS(value);
 
   @Transient()
-  List<MemberBarcodeItem> get memberBarcodeList => MemberBarcodeItem.listConverter.toRun(memberBarcodeList_);
-  set memberBarcodeList(List<MemberBarcodeItem> value) => memberBarcodeList_ = MemberBarcodeItem.listConverter.toSeq(value);
+  List<MemberBarcodeItem> get memberBarcodeList => MemberBarcodeItem.listConverter.toR(memberBarcodeList_);
+  set memberBarcodeList(List<MemberBarcodeItem> value) => memberBarcodeList_ = MemberBarcodeItem.listConverter.toS(value);
 
   @Transient()
-  List<InvoiceWinningNumber> get invoiceWinningNumberList => InvoiceWinningNumber.listConverter.toRun(invoiceWinningNumberList_);
-  set invoiceWinningNumberList(List<InvoiceWinningNumber> value) => invoiceWinningNumberList_ = InvoiceWinningNumber.listConverter.toSeq(value);
+  List<InvoiceWinningNumber> get invoiceWinningNumberList => InvoiceWinningNumber.listConverter.toR(invoiceWinningNumberList_);
+  set invoiceWinningNumberList(List<InvoiceWinningNumber> value) => invoiceWinningNumberList_ = InvoiceWinningNumber.listConverter.toS(value);
 }

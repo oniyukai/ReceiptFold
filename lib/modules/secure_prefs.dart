@@ -4,7 +4,7 @@ enum SecurePrefs {
   invoicePlatformAccount,
   invoicePlatformPassword;
 
-  static final FlutterSecureStorage _instance = const FlutterSecureStorage();
+  static const FlutterSecureStorage _instance = FlutterSecureStorage();
 
   Future<void> write(String value) => _instance.write(key: name, value: value);
 

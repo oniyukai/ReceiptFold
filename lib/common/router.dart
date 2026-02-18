@@ -150,6 +150,8 @@ final class MyRouter {
   static final delegate = MyRouterDelegate();
   static final parser = MyRouteParser();
 
+  static Future<R?> routeTo<R>(Type t) => delegate.push<R>(t);
+
   static Type? _pageType;
 
   static P of<P extends RouterBridge>() {
@@ -172,8 +174,4 @@ mixin RouterBridge<A> {
     final args = MyRouteConfig.of(context).pushArgs;
     return args == null ? null : args as A;
   }
-}
-
-extension B on BuildContext {
-  Future<R?> routeTo<R>(Type t) => MyRouter.delegate.push<R>(t);
 }

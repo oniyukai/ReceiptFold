@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart' as material;
 
-class SeqConverter<RUN, SEQ> {
-  final SEQ Function(RUN fromRun) toSeq;
-  final RUN Function(SEQ fromSeq) toRun;
+class SeqConverter<R, S> {
+  final S Function(R fromR) toS;
+  final R Function(S fromS) toR;
 
   const SeqConverter({
-    required this.toSeq,
-    required this.toRun,
+    required this.toS,
+    required this.toR,
   });
 
   /// 用於資料庫時，僅少量大小的列表才使用，大量請使用標準資料庫方案
@@ -16,16 +16,16 @@ class SeqConverter<RUN, SEQ> {
     dynamic Function(T item)? itemConverter,})
   {
     return SeqConverter<List<T>, String>(
-      toSeq: (fromRun) => (itemConverter == null)
+      toS: (fromRun) => (itemConverter == null)
           ? jsonEncode(fromRun)
           : jsonEncode(fromRun.map(itemConverter)),
-      toRun: (fromSeq) {
+      toR: (fromSeq) {
         final List<T> list = [];
         if (fromSeq.isEmpty) return list;
         try {
           final List jsonList = jsonDecode(fromSeq);
           for (final dynamic json in jsonList) {
-            final T?  item = stringFactory(jsonEncode(json));
+            final T? item = stringFactory(jsonEncode(json));
             if (item != null) list.add(item);
           }
         } catch (e) {

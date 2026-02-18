@@ -4,7 +4,7 @@ import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/database_services.dart';
+import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/pages/screen_gadget/mobile_screen.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
 import 'package:receipt_fold/pages/widget/functions.dart';
@@ -53,8 +53,8 @@ class _PageMobileFormState extends State<PageMobileForm> {
             Navigator.pop(context);
             Navigator.pop(context);
             _args!.items.removeAt(_args.index);
-            DatabaseServices.updateMobileBarcodeList(_args.items);
-            await updataHomeScreenMobile();
+            OBServices.updateMobileBarcodeList(_args.items);
+            await updateHomeScreenMobile();
           },
         ),
       ],
@@ -68,7 +68,7 @@ class _PageMobileFormState extends State<PageMobileForm> {
     final String? name = _formKey.currentState?.value['name'];
     late final List<MobileBarcodeItem> items;
     if (_args==null) {
-      items = DatabaseServices.mobileBarcodeList;
+      items = OBServices.mobileBarcodeList;
       items.insert(0, MobileBarcodeItem(
         code: code,
         name: name,
@@ -80,8 +80,8 @@ class _PageMobileFormState extends State<PageMobileForm> {
       );
       items = _args.items;
     }
-    DatabaseServices.updateMobileBarcodeList(items);
-    await updataHomeScreenMobile();
+    OBServices.updateMobileBarcodeList(items);
+    await updateHomeScreenMobile();
   }
 
   @override

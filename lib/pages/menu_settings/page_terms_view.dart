@@ -28,7 +28,7 @@ class _PageTermsViewState extends State<PageTermsView> {
 
   @override
   Widget build(context) {
-    final bool isAgreed = context.readPrefs.get(PrefsEnum.isAgreedAllTerms);
+    final bool isAgreed = context.readPrefs.get(.isAgreedAllTerms);
     return Scaffold(
       appBar: AppBar(
         title: Text(DictKey.preferencesTermsTitle.s),

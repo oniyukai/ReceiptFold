@@ -6,7 +6,7 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/invoice_period.dart';
 import 'package:receipt_fold/entity/objectbox/receipt.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/database_services.dart';
+import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
 import 'package:receipt_fold/pages/widget/functions.dart';
 import 'package:receipt_fold/pages/widget/my_menu_button.dart';
@@ -158,7 +158,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
           onPressed: () async {
             Navigator.pop(context);
             Navigator.pop(context);
-            DatabaseServices.receiptDao.remove(_header);
+            OBServices.receiptDao.remove(_header);
           },
         ),
       ],
@@ -168,7 +168,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   void _checkIconPressed() {
     assert(_args.isAdd && _header.id == 0);
     Navigator.pop(context);
-    DatabaseServices.receiptDao.upsert(_header, _details);
+    OBServices.receiptDao.upsert(_header, _details);
   }
 
   Future<void> _selectDateTime() async {
@@ -353,7 +353,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   // < ---------- 後方函式
   void _updateInDatabase(bool updateDetails) {
     if (!_args.isEdit) return;
-    DatabaseServices.receiptDao.upsert(_header, updateDetails ? _details : null);
+    OBServices.receiptDao.upsert(_header, updateDetails ? _details : null);
   }
 
   VoidCallback? _copyTextToClipboard(String? text) {

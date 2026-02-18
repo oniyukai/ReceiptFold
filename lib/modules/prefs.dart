@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/app_theme.dart';
@@ -59,23 +59,23 @@ enum PrefsEnum {
       invoicePlatformLoginState => PrefDef<PlatformLoginState, String>._(
           .notSet,
           (fromRUN) => fromRUN.name,
-          (fromSTO) => PlatformLoginState.values.fromName(fromSTO)
+          PlatformLoginState.values.fromName,
       ),
       isAppDeveloperMode => PrefDef._same(false),
       selectedColor => PrefDef<ColorOption, String>._(
           .sys,
           (fromRUN) => fromRUN.name,
-          (fromSTO) => ColorOption.values.fromName(fromSTO)
+          ColorOption.values.fromName,
       ),
       selectedTheme => PrefDef<ThemeOption, String>._(
           .sys,
           (fromRUN) => fromRUN.name,
-          (fromSTO) => ThemeOption.values.fromName(fromSTO)
+          ThemeOption.values.fromName,
       ),
       selectedLanguage => PrefDef<LocaleOption, String>._(
           .sys,
           (fromRUN) => fromRUN.name,
-          (fromSTO) => LocaleOption.values.fromName(fromSTO)
+          LocaleOption.values.fromName,
       ),
       isAutoBrightness => PrefDef._same(false),
       isScanScreenRotation => PrefDef._same(false),
@@ -86,37 +86,59 @@ enum PrefsEnum {
 
   T defaultValue<T>() => _getPrefDef.defaultValue as T;
 
-  // /// 不依賴BuildContext, 不即時請謹慎使用
-  // T get<T>() {
-  //   final PrefDef<Object, Object> prefDef = _getPrefDef;
-  //   final Object? fromSTO = PrefsProvider._instance.get(name);
-  //   if (fromSTO.runtimeType == prefDef.typeSTO && fromSTO != null) return prefDef.toRUN(fromSTO) as T;
-  //   return prefDef.defaultValue as T;
-  // }
+  /// 不依賴BuildContext, 不即時請謹慎使用
+  T get<T>() {
+    final PrefDef<Object, Object> prefDef = _getPrefDef;
+    final Object? fromSTO = PrefsProvider._instance.get(name);
+    if (fromSTO.runtimeType == prefDef.typeSTO && fromSTO != null) return prefDef.toRUN(fromSTO) as T;
+    return prefDef.defaultValue as T;
+  }
+}
+
+class OneNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
+  T _value;
+
+  OneNotifier(this._value);
+
+  @override
+  T get value => _value;
+
+  void _update(T newValue, [bool notify = true]) {
+    if (_value == newValue) return;
+    _value = newValue;
+    if (notify) notifyListeners();
+  }
 }
 
 class PrefsProvider extends ChangeNotifier {
-  static late final SharedPreferences _instance;
+  static late final SharedPreferencesWithCache _instance;
 
   static Future<void> init() async {
-    _instance = await SharedPreferences.getInstance();
+    _instance = await SharedPreferencesWithCache.create(
+        cacheOptions: .new(allowList: PrefsEnum.values.map((e) => e.name).toSet())
+    );
   }
 
-  final Map<PrefsEnum, Object> _prefsRunsMap = {};
+  final Map<PrefsEnum, OneNotifier<Object>> _prefsNotifierMap = {};
 
   PrefsProvider() {
     for (final PrefsEnum key in PrefsEnum.values) {
       final PrefDef<Object, Object> prefDef = key._getPrefDef;
       final Object? fromSTO = _instance.get(key.name);
-      if (fromSTO.runtimeType == prefDef.typeSTO && fromSTO != null) _prefsRunsMap[key] = prefDef.toRUN(fromSTO);
+      _prefsNotifierMap[key] = fromSTO.runtimeType == prefDef.typeSTO && fromSTO != null
+          ? OneNotifier(prefDef.toRUN(fromSTO))
+          : OneNotifier(prefDef.defaultValue);
     }
   }
 
+  Listenable listens(Iterable<PrefsEnum> keys) => Listenable.merge(keys.map((e) => _prefsNotifierMap[e]));
+
+  OneNotifier<T> oneNotifier<T extends Object>(PrefsEnum key) => _prefsNotifierMap[key] as OneNotifier<T>;
+
   /// 依賴BuildContext
   T get<T>(PrefsEnum key) {
-    final PrefDef<Object, Object> prefDef = key._getPrefDef;
-    final Object value = _prefsRunsMap[key] ?? prefDef.defaultValue;
-    assert(value.runtimeType == prefDef.typeRUN);
+    final Object value = _prefsNotifierMap[key]!.value;
+    assert(value.runtimeType == key._getPrefDef.typeRUN);
     return value as T;
   }
 
@@ -139,36 +161,12 @@ class PrefsProvider extends ChangeNotifier {
     } else {
       throw ArgumentError('Unsupported type $key: ${fromSTO.runtimeType}');
     }
-    _prefsRunsMap[key] = value;
+    _prefsNotifierMap[key]!._update(value, notify);
     if (notify) notifyListeners();
-  }
-
-  @override
-  String toString() =>
-      jsonEncode(_prefsRunsMap.map((key, value) => MapEntry(key.name, key._getPrefDef.toSTO(value))));
-
-  Future<void> updateFromDatabase(String jsonString) async {
-    try {
-      final Map jsonList = jsonDecode(jsonString);
-      for (final json in jsonList.entries) {
-        final key = PrefsEnum.values.fromName(json.key as String);
-        final fromSTO = json.value;
-        if (key == null || fromSTO == null) continue;
-        try {
-          final value = key._getPrefDef.toRUN(fromSTO);
-          await update(key, value, false);
-        } catch (e) {
-          debugPrint(e.toString());
-        }
-      }
-      notifyListeners();
-    } catch (e) {
-      debugPrint(e.toString());
-    }
   }
 }
 
 extension Context on BuildContext {
-  PrefsProvider get readPrefs => Provider.of<PrefsProvider>(this, listen: false); //same mean: read<PrefsProvider>();
-  PrefsProvider get watchPrefs => Provider.of<PrefsProvider>(this, listen: true); //same mean: watch<PrefsProvider>();
+  PrefsProvider get readPrefs => Provider.of<PrefsProvider>(this, listen: false);
+  PrefsProvider get watchPrefs => Provider.of<PrefsProvider>(this, listen: true);
 }

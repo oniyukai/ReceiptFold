@@ -41,7 +41,7 @@ class _MenuNavBarState extends State<MenuNavBar> {
   @override
   Widget build(context) {
     DictKey.load(context);
-    if (!context.readPrefs.get(PrefsEnum.isAgreedAllTerms)) return const PageTermsView();
+    if (!context.readPrefs.get(PrefsEnum.isAgreedAllTerms)) return const PageTermsView(); // todo debug
     final bool isPortrait = Utils.isPortrait(context);
     return Consumer<MenuNavBarProvider>(
       builder: (context, state, child) => Scaffold(

@@ -109,7 +109,7 @@ class _MainSettingsPageState extends State<MainSettingsView> {
               ListTileText(
                 text: StaticString.appName,
                 trailing: const Icon(Icons.chevron_right),
-                onTap:() => context.routeTo(PageAboutView)
+                onTap:() => MyRouter.routeTo(PageAboutView)
               ),
             ],
           ),

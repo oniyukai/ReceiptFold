@@ -3,15 +3,15 @@ import 'package:home_widget/home_widget.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/database_services.dart';
+import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 
 const String _androidName = 'HomeWidgetMobile';
 const String _homeWidgetMobilePath = 'HomeWidgetMobilePath';
 
-Future<void> updataHomeScreenMobile() async {
+Future<void> updateHomeScreenMobile() async {
   await HomeWidget.renderFlutterWidget(
-    HomeScreenMobileSample(items: DatabaseServices.mobileBarcodeList),
+    HomeScreenMobileSample(items: OBServices.mobileBarcodeList),
     key: _homeWidgetMobilePath,
     logicalSize: const Size(500, 200),
   );

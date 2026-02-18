@@ -47,7 +47,7 @@ class _PageAboutViewState extends State<PageAboutView> {
               ListTile(
                 title: Text('除錯日誌'), // todo: 除錯日誌功能
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.routeTo(PageLogsView),
+                onTap: () => MyRouter.routeTo(PageLogsView),
               ),
               ListTile(
                 title: Text(DictKey.preferencesAboutOpenSourceLibrariesLabel.s),
@@ -60,7 +60,7 @@ class _PageAboutViewState extends State<PageAboutView> {
               ListTile(
                 title: Text(DictKey.preferencesTermsTitle.s),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.routeTo(PageTermsView),
+                onTap: () => MyRouter.routeTo(PageTermsView),
               ),
               ListTile(
                 title: Text(DictKey.preferencesSourceCodeLabel.s),

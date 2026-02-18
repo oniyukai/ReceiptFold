@@ -8,7 +8,7 @@ import 'package:receipt_fold/entity/invoice_period.dart';
 import 'package:receipt_fold/entity/objectbox/objectbox.g.dart';
 import 'package:receipt_fold/entity/objectbox/receipt.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/database_services.dart';
+import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
 import 'package:receipt_fold/pages/widget/my_menu_button.dart';
 
@@ -94,7 +94,7 @@ class MainRecorderViewModel extends ChangeNotifier {
     final period = _getInvoicePeriodByIndex(index);
     final periodData = PeriodData(period);
     _periodDataCache[index] = periodData;
-    final query = DatabaseServices.receiptDao
+    final query = OBServices.receiptDao
         .headerTimeFilter(
           period.startDateTime.millisecondsSinceEpoch,
           period.endDateTime.millisecondsSinceEpoch

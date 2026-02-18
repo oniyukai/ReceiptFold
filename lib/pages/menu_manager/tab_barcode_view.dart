@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
-import 'package:receipt_fold/modules/database_services.dart';
+import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_member_view.dart';
@@ -29,8 +29,10 @@ class TabBarcodeView extends StatefulWidget {
 
 class _TabBarcodeViewState extends State<TabBarcodeView> {
   final ScrollController _scrollController = ScrollController();
-  final List<MobileBarcodeItem> _mobileItems = DatabaseServices.mobileBarcodeList;
-  final List<MemberBarcodeItem> _memberItems = DatabaseServices.memberBarcodeList;
+
+  // 他沒有監聽是因為tab是及時initState dispose
+  final List<MobileBarcodeItem> _mobileItems = OBServices.mobileBarcodeList;
+  final List<MemberBarcodeItem> _memberItems = OBServices.memberBarcodeList;
   int? _mobileItemIndex;
   int? _memberItemIndex;
   bool _isBrightness = PrefsEnum.isAutoBrightness.defaultValue();

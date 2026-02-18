@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/app_theme.dart';
 import 'package:receipt_fold/common/router.dart';
-import 'package:receipt_fold/modules/database_services.dart';
+import 'package:receipt_fold/entity/drift/drift_database.dart';
+import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/app_localizations.dart';
@@ -15,13 +16,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(MyAppTheme.systemOverlayStyle);
-  await PrefsProvider.init();
-  await DatabaseServices.init();
+  await Future.wait([PrefsProvider.init(), OBServices.init()]);
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => MenuNavBarProvider()),
-        ChangeNotifierProvider(create: (context) => PrefsProvider()),
+        ChangeNotifierProvider(create: (_) => MenuNavBarProvider()),
+        ChangeNotifierProvider(create: (_) => PrefsProvider()),
+        Provider(create: (_) => MyDriftDatabase(), dispose: (_, db) => db.close()),
       ],
       child: const MyApp(),
     ),
@@ -46,14 +47,15 @@ class _MyAppState extends State<MyApp> {
   Widget build(context) {
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
-        return Consumer<PrefsProvider>(
-          builder: (context, prefs, child) {
+        return ListenableBuilder(
+          listenable: context.readPrefs.listens(const [.selectedColor, .selectedTheme, .selectedLanguage]),
+          builder: (context, child) {
             return MaterialApp.router(
               title: StaticString.appName,
               theme: MyAppTheme.themeData(context, lightDynamic, darkDynamic),
               debugShowCheckedModeBanner: false,
 
-              locale: prefs.get<LocaleOption>(.selectedLanguage).locale,
+              locale: context.readPrefs.get<LocaleOption>(.selectedLanguage).locale,
               localizationsDelegates: WatashiLocale.localizationsDelegates,
               supportedLocales: WatashiLocale.supportedLocales,
 

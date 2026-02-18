@@ -3,7 +3,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/entity/objectbox/basic_data.dart';
-import 'package:receipt_fold/modules/database_services.dart';
+import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/screen_gadget/member_screen.dart';
 import 'package:receipt_fold/pages/screen_gadget/mobile_screen.dart';
@@ -29,8 +29,8 @@ class _TabMemberViewState extends State<TabMemberView> {
     items: _mobileItems,
     itemBuilder: (item) => MobileItemCard(item: item),
     saveOnTap: (items) async {
-      DatabaseServices.updateMobileBarcodeList(items);
-      await updataHomeScreenMobile();
+      OBServices.updateMobileBarcodeList(items);
+      await updateHomeScreenMobile();
     }
   );
 
@@ -43,8 +43,8 @@ class _TabMemberViewState extends State<TabMemberView> {
         child: Text(DictKey.deleteLabel.s),
         onPressed: () async {
           Navigator.pop(context);
-          DatabaseServices.updateMobileBarcodeList([]);
-          await updataHomeScreenMobile();
+          OBServices.updateMobileBarcodeList([]);
+          await updateHomeScreenMobile();
         },
       ),
     ],
@@ -55,7 +55,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     items: _memberItems,
     itemBuilder: (item) => _MemberItemCard(item: item),
     saveOnTap: (items) async {
-      DatabaseServices.updateMemberBarcodeList(items);
+      OBServices.updateMemberBarcodeList(items);
       await updataHomeScreenMember();
     }
   );
@@ -69,7 +69,7 @@ class _TabMemberViewState extends State<TabMemberView> {
         child: Text(DictKey.deleteLabel.s),
         onPressed: () async {
           Navigator.pop(context);
-          DatabaseServices.updateMemberBarcodeList([]);
+          OBServices.updateMemberBarcodeList([]);
           await updataHomeScreenMember();
         },
       ),
@@ -81,7 +81,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     return Scrollbar(
       controller: _scrollController,
       child: StreamBuilder<ReceiptFoldDataStore?>( // todo: Stream換個方式
-        stream: DatabaseServices.dataStoreStream,
+        stream: OBServices.dataStoreStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -116,7 +116,7 @@ class _TabMemberViewState extends State<TabMemberView> {
                     IconButton(
                       padding: const EdgeInsets.all(0),
                       visualDensity: VisualDensity.compact,
-                      onPressed: () => context.routeTo(PageMobileForm),
+                      onPressed: () => MyRouter.routeTo(PageMobileForm),
                       icon: const Icon(Icons.add),
                     ),
                   ],
@@ -152,7 +152,7 @@ class _TabMemberViewState extends State<TabMemberView> {
                     IconButton(
                       padding: const EdgeInsets.all(0),
                       visualDensity: VisualDensity.compact,
-                      onPressed: () => context.routeTo(PageMemberForm),
+                      onPressed: () => MyRouter.routeTo(PageMemberForm),
                       icon: const Icon(Icons.add),
                     ),
                   ],

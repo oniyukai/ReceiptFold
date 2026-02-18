@@ -2,25 +2,22 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/entity/objectbox/basic_data.dart';
-import 'package:receipt_fold/entity/objectbox/binding_carrier.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/entity/objectbox/objectbox.g.dart';
 import 'package:path/path.dart' as p;
 import 'package:receipt_fold/entity/objectbox/receipt.dart';
 
-final class DatabaseServices {
-  const DatabaseServices._();
+final class OBServices {
+  const OBServices._();
 
   static late final Store _store;
   static late final Box<ReceiptFoldDataStore> _receiptFoldDataStoreBox;
-  static late final Box<BindingCarrier> _bindingCarrierBox;
   static late final ReceiptDao receiptDao;
 
   static Future<void> init() async {
     final Directory dir = await getApplicationSupportDirectory();
     _store = await openStore(directory: p.join(dir.path, 'objectbox'));
     _receiptFoldDataStoreBox = _store.box<ReceiptFoldDataStore>();
-    _bindingCarrierBox = _store.box<BindingCarrier>();
     receiptDao = ReceiptDao._(_store.box<ReceiptHeader>(), _store.box<ReceiptDetail>());
   }
 
