@@ -22,7 +22,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => MenuNavBarProvider()),
         ChangeNotifierProvider(create: (_) => PrefsProvider()),
-        Provider(create: (_) => MyDriftDatabase(), dispose: (_, db) => db.close()),
+        Provider(create: (_) => MyDriftDatabase(), lazy: false, dispose: (_, db) => db.close()),
       ],
       child: const MyApp(),
     ),

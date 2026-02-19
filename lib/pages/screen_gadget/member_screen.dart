@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
-import 'package:receipt_fold/modules/ob_services.dart';
+import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 import 'package:receipt_fold/pages/screen_gadget/mobile_screen.dart';
@@ -13,7 +13,7 @@ const String _homeWidgetMemberItemLength = 'HomeWidgetMemberItemLength';
 const int _maxItemLength = 6;
 
 Future<void> updataHomeScreenMember() async {
-  final memberItems = OBServices.memberBarcodeList;
+  final List<MemberBarcodeItem> memberItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.memberBarcodeList);
   final itemLength = min(memberItems.length, _maxItemLength);
   await HomeWidget.saveWidgetData<int>(_homeWidgetMemberItemLength, itemLength);
   await HomeWidget.saveWidgetData<int>(_homeWidgetMemberItemIndex, -1);

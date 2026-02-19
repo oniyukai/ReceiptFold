@@ -4,35 +4,6 @@
   "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   "entities": [
     {
-      "id": "5:1079460876789695771",
-      "lastPropertyId": "14:865216163863437120",
-      "name": "ReceiptFoldDataStore",
-      "properties": [
-        {
-          "id": "1:7076353075314851393",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "12:4651218740795652925",
-          "name": "mobileBarcodeList_",
-          "type": 9
-        },
-        {
-          "id": "13:2520694363004643321",
-          "name": "memberBarcodeList_",
-          "type": 9
-        },
-        {
-          "id": "14:865216163863437120",
-          "name": "invoiceWinningNumberList_",
-          "type": 9
-        }
-      ],
-      "relations": []
-    },
-    {
       "id": "10:5915821701848146731",
       "lastPropertyId": "7:7493369445859982677",
       "name": "ReceiptDetail",
@@ -193,7 +164,8 @@
     4654609903794412736,
     4379853736452989862,
     5890047482736057906,
-    2034222204318544696
+    2034222204318544696,
+    1079460876789695771
   ],
   "retiredIndexUids": [],
   "retiredPropertyUids": [
@@ -279,7 +251,11 @@
     5417635320909471955,
     4517677949696087609,
     8519334872469532604,
-    3361745429023021481
+    3361745429023021481,
+    7076353075314851393,
+    4651218740795652925,
+    2520694363004643321,
+    865216163863437120
   ],
   "retiredRelationUids": [
     3638656239345895125,

@@ -2,7 +2,6 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:receipt_fold/entity/sequence_converter.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
 class MobileBarcodeItem {
@@ -35,10 +34,6 @@ class MobileBarcodeItem {
       name: name,
     );
   }
-
-  static final listConverter = SeqConverter.list<MobileBarcodeItem>(
-    stringFactory: (jsonString) => MobileBarcodeItem.fromString(jsonString),
-  );
 }
 
 
@@ -85,8 +80,4 @@ class MemberBarcodeItem {
       format: format ?? .code128,
     );
   }
-
-  static final listConverter = SeqConverter.list<MemberBarcodeItem>(
-    stringFactory: (jsonString) => MemberBarcodeItem.fromString(jsonString),
-  );
 }

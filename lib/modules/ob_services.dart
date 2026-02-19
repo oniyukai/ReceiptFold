@@ -1,8 +1,5 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:receipt_fold/entity/barcode_item.dart';
-import 'package:receipt_fold/entity/objectbox/basic_data.dart';
-import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/entity/objectbox/objectbox.g.dart';
 import 'package:path/path.dart' as p;
 import 'package:receipt_fold/entity/objectbox/receipt.dart';
@@ -11,62 +8,12 @@ final class OBServices {
   const OBServices._();
 
   static late final Store _store;
-  static late final Box<ReceiptFoldDataStore> _receiptFoldDataStoreBox;
   static late final ReceiptDao receiptDao;
 
   static Future<void> init() async {
     final Directory dir = await getApplicationSupportDirectory();
     _store = await openStore(directory: p.join(dir.path, 'objectbox'));
-    _receiptFoldDataStoreBox = _store.box<ReceiptFoldDataStore>();
     receiptDao = ReceiptDao._(_store.box<ReceiptHeader>(), _store.box<ReceiptDetail>());
-  }
-
-  static T getSingleEntity<T extends SingleEntity>(T initialEntity) {
-    final Box<T> box = _store.box<T>();
-    final List<T> entities = box.getAll();
-    if (entities.length == 1) {
-      return entities.single;
-    } else if (entities.isEmpty) {
-      initialEntity.id = 0;
-      final int id = box.put(initialEntity);
-      return box.get(id)!;
-    } else {
-      final T firstEntity = entities.removeAt(0);
-      final List<int> needRemoveIds = entities.map((entity) => entity.id).toList();
-      box.removeMany(needRemoveIds);
-      return firstEntity;
-    }
-  }
-
-  static Stream<ReceiptFoldDataStore?> get dataStoreStream =>
-      _receiptFoldDataStoreBox
-          .query()
-          .order(ReceiptFoldDataStore_.id)
-          .watch(triggerImmediately: true)
-          .map((query) => query.findFirst());
-
-  static List<MobileBarcodeItem> get mobileBarcodeList =>
-      getSingleEntity(ReceiptFoldDataStore()).mobileBarcodeList;
-  static void updateMobileBarcodeList(List<MobileBarcodeItem> newList) {
-    final ReceiptFoldDataStore dataStore = getSingleEntity(ReceiptFoldDataStore());
-    dataStore.mobileBarcodeList = newList;
-    _receiptFoldDataStoreBox.put(dataStore);
-  }
-
-  static List<MemberBarcodeItem> get memberBarcodeList =>
-      getSingleEntity(ReceiptFoldDataStore()).memberBarcodeList;
-  static void updateMemberBarcodeList(List<MemberBarcodeItem> newList) {
-    final ReceiptFoldDataStore dataStore = getSingleEntity(ReceiptFoldDataStore());
-    dataStore.memberBarcodeList = newList;
-    _receiptFoldDataStoreBox.put(dataStore);
-  }
-
-  static List<InvoiceWinningNumber> get invoiceWinningNumberList =>
-      getSingleEntity(ReceiptFoldDataStore()).invoiceWinningNumberList;
-  static void updateInvoiceWinningNumberList(List<InvoiceWinningNumber> newList) {
-    final ReceiptFoldDataStore dataStore = getSingleEntity(ReceiptFoldDataStore());
-    dataStore.invoiceWinningNumberList = newList;
-    _receiptFoldDataStoreBox.put(dataStore);
   }
 }
 

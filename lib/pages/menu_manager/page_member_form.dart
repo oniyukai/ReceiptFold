@@ -3,8 +3,8 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
+import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 import 'package:receipt_fold/pages/screen_gadget/member_screen.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
@@ -56,7 +56,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
             Navigator.pop(context);
             Navigator.pop(context);
             _args!.items.removeAt(_args.index);
-            OBServices.updateMemberBarcodeList(_args.items);
+            await DriftServices.appDb.keyValueStoreDao.upsert(.memberBarcodeList, _args.items);
             await updataHomeScreenMember();
           },
         ),
@@ -72,7 +72,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
     final String? imageUrl = _formKey.currentState?.value['imageUrl'];
     late final List<MemberBarcodeItem> items;
     if (_args==null) {
-      items = OBServices.memberBarcodeList;
+      items = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.memberBarcodeList);
       items.insert(0, MemberBarcodeItem(
         code: code,
         name: name,
@@ -88,7 +88,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
       );
       items = _args.items;
     }
-    OBServices.updateMemberBarcodeList(items);
+    await DriftServices.appDb.keyValueStoreDao.upsert(.memberBarcodeList, items);
     await updataHomeScreenMember();
   }
 

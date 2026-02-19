@@ -2,9 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';
 import 'package:receipt_fold/common/utils.dart';
+import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/invoice_period.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
-import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:receipt_fold/modules/prefs.dart';
 
@@ -29,7 +29,7 @@ class InvoicePrizeSearcher {
 
   Future<InvoiceWinningNumber?> findInvoiceWinningNumber(InvoicePeriod invoicePeriod) async {
     final String period = invoicePeriod.getROCPeriod;
-    final List<InvoiceWinningNumber> history = OBServices.invoiceWinningNumberList;
+    final List<InvoiceWinningNumber> history = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.invoiceWinningNumberList);
     final int historyWhere = history.indexWhere((item) => item.period == period);
     if (historyWhere >= 0) {
       final InvoiceWinningNumber result = history[historyWhere];
@@ -114,7 +114,7 @@ class InvoicePrizeSearcher {
     } else {
       history.add(invoiceWinningNumber);
     }
-    OBServices.updateInvoiceWinningNumberList(history);
+    await DriftServices.appDb.keyValueStoreDao.upsert(.invoiceWinningNumberList, history);
     return invoiceWinningNumber.prizes!=null ? invoiceWinningNumber : null;
   }
 

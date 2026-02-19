@@ -14,46 +14,11 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
-import '../../entity/objectbox/basic_data.dart';
 import '../../entity/objectbox/receipt.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
 final _entities = <obx_int.ModelEntity>[
-  obx_int.ModelEntity(
-    id: const obx_int.IdUid(5, 1079460876789695771),
-    name: 'ReceiptFoldDataStore',
-    lastPropertyId: const obx_int.IdUid(14, 865216163863437120),
-    flags: 0,
-    properties: <obx_int.ModelProperty>[
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 7076353075314851393),
-        name: 'id',
-        type: 6,
-        flags: 1,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(12, 4651218740795652925),
-        name: 'mobileBarcodeList_',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(13, 2520694363004643321),
-        name: 'memberBarcodeList_',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(14, 865216163863437120),
-        name: 'invoiceWinningNumberList_',
-        type: 9,
-        flags: 0,
-      ),
-    ],
-    relations: <obx_int.ModelRelation>[],
-    backlinks: <obx_int.ModelBacklink>[],
-  ),
   obx_int.ModelEntity(
     id: const obx_int.IdUid(10, 5915821701848146731),
     name: 'ReceiptDetail',
@@ -291,6 +256,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       4379853736452989862,
       5890047482736057906,
       2034222204318544696,
+      1079460876789695771,
     ],
     retiredIndexUids: const [],
     retiredPropertyUids: const [
@@ -377,6 +343,10 @@ obx_int.ModelDefinition getObjectBoxModel() {
       4517677949696087609,
       8519334872469532604,
       3361745429023021481,
+      7076353075314851393,
+      4651218740795652925,
+      2520694363004643321,
+      865216163863437120,
     ],
     retiredRelationUids: const [3638656239345895125, 101432858550622428],
     modelVersion: 5,
@@ -385,55 +355,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
   );
 
   final bindings = <Type, obx_int.EntityDefinition>{
-    ReceiptFoldDataStore: obx_int.EntityDefinition<ReceiptFoldDataStore>(
-      model: _entities[0],
-      toOneRelations: (ReceiptFoldDataStore object) => [],
-      toManyRelations: (ReceiptFoldDataStore object) => {},
-      getId: (ReceiptFoldDataStore object) => object.id,
-      setId: (ReceiptFoldDataStore object, int id) {
-        object.id = id;
-      },
-      objectToFB: (ReceiptFoldDataStore object, fb.Builder fbb) {
-        final mobileBarcodeList_Offset = fbb.writeString(
-          object.mobileBarcodeList_,
-        );
-        final memberBarcodeList_Offset = fbb.writeString(
-          object.memberBarcodeList_,
-        );
-        final invoiceWinningNumberList_Offset = fbb.writeString(
-          object.invoiceWinningNumberList_,
-        );
-        fbb.startTable(15);
-        fbb.addInt64(0, object.id);
-        fbb.addOffset(11, mobileBarcodeList_Offset);
-        fbb.addOffset(12, memberBarcodeList_Offset);
-        fbb.addOffset(13, invoiceWinningNumberList_Offset);
-        fbb.finish(fbb.endTable());
-        return object.id;
-      },
-      objectFromFB: (obx.Store store, ByteData fbData) {
-        final buffer = fb.BufferContext(fbData);
-        final rootOffset = buffer.derefObject(0);
-        final mobileBarcodeList_Param = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 26, '');
-        final memberBarcodeList_Param = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 28, '');
-        final invoiceWinningNumberList_Param = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 30, '');
-        final object = ReceiptFoldDataStore(
-          mobileBarcodeList_: mobileBarcodeList_Param,
-          memberBarcodeList_: memberBarcodeList_Param,
-          invoiceWinningNumberList_: invoiceWinningNumberList_Param,
-        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
-
-        return object;
-      },
-    ),
     ReceiptDetail: obx_int.EntityDefinition<ReceiptDetail>(
-      model: _entities[1],
+      model: _entities[0],
       toOneRelations: (ReceiptDetail object) => [object.receiptHeader],
       toManyRelations: (ReceiptDetail object) => {},
       getId: (ReceiptDetail object) => object.id,
@@ -499,7 +422,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       },
     ),
     ReceiptHeader: obx_int.EntityDefinition<ReceiptHeader>(
-      model: _entities[2],
+      model: _entities[1],
       toOneRelations: (ReceiptHeader object) => [],
       toManyRelations: (ReceiptHeader object) => {
         obx_int.RelInfo<ReceiptDetail>.toOneBacklink(
@@ -673,62 +596,42 @@ obx_int.ModelDefinition getObjectBoxModel() {
   return obx_int.ModelDefinition(model, bindings);
 }
 
-/// [ReceiptFoldDataStore] entity fields to define ObjectBox queries.
-class ReceiptFoldDataStore_ {
-  /// See [ReceiptFoldDataStore.id].
-  static final id = obx.QueryIntegerProperty<ReceiptFoldDataStore>(
-    _entities[0].properties[0],
-  );
-
-  /// See [ReceiptFoldDataStore.mobileBarcodeList_].
-  static final mobileBarcodeList_ =
-      obx.QueryStringProperty<ReceiptFoldDataStore>(_entities[0].properties[1]);
-
-  /// See [ReceiptFoldDataStore.memberBarcodeList_].
-  static final memberBarcodeList_ =
-      obx.QueryStringProperty<ReceiptFoldDataStore>(_entities[0].properties[2]);
-
-  /// See [ReceiptFoldDataStore.invoiceWinningNumberList_].
-  static final invoiceWinningNumberList_ =
-      obx.QueryStringProperty<ReceiptFoldDataStore>(_entities[0].properties[3]);
-}
-
 /// [ReceiptDetail] entity fields to define ObjectBox queries.
 class ReceiptDetail_ {
   /// See [ReceiptDetail.id].
   static final id = obx.QueryIntegerProperty<ReceiptDetail>(
-    _entities[1].properties[0],
+    _entities[0].properties[0],
   );
 
   /// See [ReceiptDetail.sequenceNumber].
   static final sequenceNumber = obx.QueryStringProperty<ReceiptDetail>(
-    _entities[1].properties[1],
+    _entities[0].properties[1],
   );
 
   /// See [ReceiptDetail.itemDescription].
   static final itemDescription = obx.QueryStringProperty<ReceiptDetail>(
-    _entities[1].properties[2],
+    _entities[0].properties[2],
   );
 
   /// See [ReceiptDetail.unitPrice].
   static final unitPrice = obx.QueryDoubleProperty<ReceiptDetail>(
-    _entities[1].properties[3],
+    _entities[0].properties[3],
   );
 
   /// See [ReceiptDetail.quantity].
   static final quantity = obx.QueryDoubleProperty<ReceiptDetail>(
-    _entities[1].properties[4],
+    _entities[0].properties[4],
   );
 
   /// See [ReceiptDetail.amount].
   static final amount = obx.QueryDoubleProperty<ReceiptDetail>(
-    _entities[1].properties[5],
+    _entities[0].properties[5],
   );
 
   /// See [ReceiptDetail.receiptHeader].
   static final receiptHeader =
       obx.QueryRelationToOne<ReceiptDetail, ReceiptHeader>(
-        _entities[1].properties[6],
+        _entities[0].properties[6],
       );
 }
 
@@ -736,92 +639,92 @@ class ReceiptDetail_ {
 class ReceiptHeader_ {
   /// See [ReceiptHeader.id].
   static final id = obx.QueryIntegerProperty<ReceiptHeader>(
-    _entities[2].properties[0],
+    _entities[1].properties[0],
   );
 
   /// See [ReceiptHeader.invoiceInstantDate].
   static final invoiceInstantDate = obx.QueryIntegerProperty<ReceiptHeader>(
-    _entities[2].properties[1],
+    _entities[1].properties[1],
   );
 
   /// See [ReceiptHeader.receiptOrigin_].
   static final receiptOrigin_ = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[2],
+    _entities[1].properties[2],
   );
 
   /// See [ReceiptHeader.totalAmount].
   static final totalAmount = obx.QueryDoubleProperty<ReceiptHeader>(
-    _entities[2].properties[3],
+    _entities[1].properties[3],
   );
 
   /// See [ReceiptHeader.invoiceStatus_].
   static final invoiceStatus_ = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[4],
+    _entities[1].properties[4],
   );
 
   /// See [ReceiptHeader.invoiceNumber].
   static final invoiceNumber = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[5],
+    _entities[1].properties[5],
   );
 
   /// See [ReceiptHeader.currency].
   static final currency = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[6],
+    _entities[1].properties[6],
   );
 
   /// See [ReceiptHeader.mainRemark].
   static final mainRemark = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[7],
+    _entities[1].properties[7],
   );
 
   /// See [ReceiptHeader.randomNumber].
   static final randomNumber = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[8],
+    _entities[1].properties[8],
   );
 
   /// See [ReceiptHeader.sellerAddress].
   static final sellerAddress = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[9],
+    _entities[1].properties[9],
   );
 
   /// See [ReceiptHeader.sellerBanId].
   static final sellerBanId = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[10],
+    _entities[1].properties[10],
   );
 
   /// See [ReceiptHeader.sellerName].
   static final sellerName = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[11],
+    _entities[1].properties[11],
   );
 
   /// See [ReceiptHeader.carrierId2].
   static final carrierId2 = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[12],
+    _entities[1].properties[12],
   );
 
   /// See [ReceiptHeader.carrierType].
   static final carrierType = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[13],
+    _entities[1].properties[13],
   );
 
   /// See [ReceiptHeader.carrierName].
   static final carrierName = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[14],
+    _entities[1].properties[14],
   );
 
   /// See [ReceiptHeader.prizeAmount].
   static final prizeAmount = obx.QueryIntegerProperty<ReceiptHeader>(
-    _entities[2].properties[15],
+    _entities[1].properties[15],
   );
 
   /// See [ReceiptHeader.prizeInformation].
   static final prizeInformation = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[16],
+    _entities[1].properties[16],
   );
 
   /// See [ReceiptHeader.userNote].
   static final userNote = obx.QueryStringProperty<ReceiptHeader>(
-    _entities[2].properties[17],
+    _entities[1].properties[17],
   );
 
   /// see [ReceiptHeader.details]

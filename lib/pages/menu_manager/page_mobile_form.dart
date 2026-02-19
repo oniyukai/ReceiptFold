@@ -3,8 +3,8 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
+import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/pages/screen_gadget/mobile_screen.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
 import 'package:receipt_fold/pages/widget/functions.dart';
@@ -53,7 +53,7 @@ class _PageMobileFormState extends State<PageMobileForm> {
             Navigator.pop(context);
             Navigator.pop(context);
             _args!.items.removeAt(_args.index);
-            OBServices.updateMobileBarcodeList(_args.items);
+            await DriftServices.appDb.keyValueStoreDao.upsert(.mobileBarcodeList, _args.items);
             await updateHomeScreenMobile();
           },
         ),
@@ -68,7 +68,7 @@ class _PageMobileFormState extends State<PageMobileForm> {
     final String? name = _formKey.currentState?.value['name'];
     late final List<MobileBarcodeItem> items;
     if (_args==null) {
-      items = OBServices.mobileBarcodeList;
+      items = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.mobileBarcodeList);
       items.insert(0, MobileBarcodeItem(
         code: code,
         name: name,
@@ -80,7 +80,7 @@ class _PageMobileFormState extends State<PageMobileForm> {
       );
       items = _args.items;
     }
-    OBServices.updateMobileBarcodeList(items);
+    await DriftServices.appDb.keyValueStoreDao.upsert(.mobileBarcodeList, items);
     await updateHomeScreenMobile();
   }
 

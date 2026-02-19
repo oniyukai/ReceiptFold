@@ -16,7 +16,8 @@ class $KeyValueStoresTable extends KeyValueStores
         aliasedName,
         false,
         type: DriftSqlType.int,
-        requiredDuringInsert: true,
+        requiredDuringInsert: false,
+        clientDefault: () => DateTime.now().millisecondsSinceEpoch,
       ).withConverter<DateTime>($KeyValueStoresTable.$convertermodified);
   static const VerificationMeta _keyMeta = const VerificationMeta('key');
   @override
@@ -199,12 +200,11 @@ class KeyValueStoresCompanion extends UpdateCompanion<KeyValueStore> {
     this.rowid = const Value.absent(),
   });
   KeyValueStoresCompanion.insert({
-    required DateTime modified,
+    this.modified = const Value.absent(),
     required String key,
     this.value = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : modified = Value(modified),
-       key = Value(key);
+  }) : key = Value(key);
   static Insertable<KeyValueStore> custom({
     Expression<int>? modified,
     Expression<String>? key,
@@ -277,7 +277,8 @@ class $ReceiptsTable extends Receipts with TableInfo<$ReceiptsTable, Receipt> {
         aliasedName,
         false,
         type: DriftSqlType.int,
-        requiredDuringInsert: true,
+        requiredDuringInsert: false,
+        clientDefault: () => DateTime.now().millisecondsSinceEpoch,
       ).withConverter<DateTime>($ReceiptsTable.$convertermodified);
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
@@ -467,12 +468,11 @@ class ReceiptsCompanion extends UpdateCompanion<Receipt> {
     this.rowid = const Value.absent(),
   });
   ReceiptsCompanion.insert({
-    required DateTime modified,
+    this.modified = const Value.absent(),
     required String uuid,
     required String valueString,
     this.rowid = const Value.absent(),
-  }) : modified = Value(modified),
-       uuid = Value(uuid),
+  }) : uuid = Value(uuid),
        valueString = Value(valueString);
   static Insertable<Receipt> custom({
     Expression<int>? modified,
@@ -551,7 +551,7 @@ abstract class _$MyDriftDatabase extends GeneratedDatabase {
 
 typedef $$KeyValueStoresTableCreateCompanionBuilder =
     KeyValueStoresCompanion Function({
-      required DateTime modified,
+      Value<DateTime> modified,
       required String key,
       Value<String?> value,
       Value<int> rowid,
@@ -683,7 +683,7 @@ class $$KeyValueStoresTableTableManager
               ),
           createCompanionCallback:
               ({
-                required DateTime modified,
+                Value<DateTime> modified = const Value.absent(),
                 required String key,
                 Value<String?> value = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -720,7 +720,7 @@ typedef $$KeyValueStoresTableProcessedTableManager =
     >;
 typedef $$ReceiptsTableCreateCompanionBuilder =
     ReceiptsCompanion Function({
-      required DateTime modified,
+      Value<DateTime> modified,
       required String uuid,
       required String valueString,
       Value<int> rowid,
@@ -845,7 +845,7 @@ class $$ReceiptsTableTableManager
               ),
           createCompanionCallback:
               ({
-                required DateTime modified,
+                Value<DateTime> modified = const Value.absent(),
                 required String uuid,
                 required String valueString,
                 Value<int> rowid = const Value.absent(),

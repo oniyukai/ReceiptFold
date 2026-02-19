@@ -7,35 +7,39 @@ import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:path/path.dart' as p;
+import 'package:uuid/v7.dart';
 
 part 'drift_database.g.dart';
 
 class BasicTypeConverter<R, S> extends TypeConverter<R, S> {
-  final R Function(S fromS) toR;
-  final S Function(R fromR) toS;
+  final R Function(S fromS) _toR;
+  final S Function(R fromR) _toS;
 
   const BasicTypeConverter({
-    required this.toR,
-    required this.toS,
-  });
+    required R Function(S fromS) toR,
+    required S Function(R fromR) toS,
+  }) : _toR = toR, _toS = toS;
+
+  R toR(S fromDb) => _toR(fromDb);
+  S toS(R value) => _toS(value);
 
   @override
-  R fromSql(S fromDb) => toR(fromDb);
+  R fromSql(S fromDb) => _toR(fromDb);
 
   @override
-  S toSql(R value) => toS(value);
+  S toSql(R value) => _toS(value);
 }
 
 final dateTimeConverter = BasicTypeConverter<DateTime, int>(
   toR: DateTime.fromMillisecondsSinceEpoch,
   toS: (fromR) => fromR.millisecondsSinceEpoch,
 );
-
+const globalUuidV7 = UuidV7();
 mixin ModifiedMixin on Table {
-  late final modified = integer().map(dateTimeConverter)();
+  late final modified = integer().clientDefault(() => DateTime.now().millisecondsSinceEpoch).map(dateTimeConverter)();
 }
 mixin UuidMixin on Table {
-  late final uuid = text()();
+  late final uuid = text().clientDefault(() => globalUuidV7.generate())();
 }
 
 /// 保持一個 [Table] 不出現在另一個 [SyncableDao] 中

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:receipt_fold/common/utils.dart';
-import 'package:receipt_fold/entity/sequence_converter.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
 enum InvoiceEntityPrize {
@@ -76,8 +75,4 @@ class InvoiceWinningNumber {
       prizes: prizes,
     );
   }
-
-  static final listConverter = SeqConverter.list<InvoiceWinningNumber>(
-    stringFactory: (jsonString) => InvoiceWinningNumber.fromString(jsonString),
-  );
 }

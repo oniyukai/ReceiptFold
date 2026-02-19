@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
-import 'package:receipt_fold/entity/objectbox/basic_data.dart';
-import 'package:receipt_fold/modules/ob_services.dart';
+import 'package:receipt_fold/entity/drift/drift_database.dart';
+import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/screen_gadget/member_screen.dart';
 import 'package:receipt_fold/pages/screen_gadget/mobile_screen.dart';
@@ -29,7 +29,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     items: _mobileItems,
     itemBuilder: (item) => MobileItemCard(item: item),
     saveOnTap: (items) async {
-      OBServices.updateMobileBarcodeList(items);
+      await DriftServices.appDb.keyValueStoreDao.upsert(.mobileBarcodeList, items);
       await updateHomeScreenMobile();
     }
   );
@@ -43,8 +43,9 @@ class _TabMemberViewState extends State<TabMemberView> {
         child: Text(DictKey.deleteLabel.s),
         onPressed: () async {
           Navigator.pop(context);
-          OBServices.updateMobileBarcodeList([]);
+          await DriftServices.appDb.keyValueStoreDao.upsert(.mobileBarcodeList, null);
           await updateHomeScreenMobile();
+          setState(() {});
         },
       ),
     ],
@@ -55,7 +56,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     items: _memberItems,
     itemBuilder: (item) => _MemberItemCard(item: item),
     saveOnTap: (items) async {
-      OBServices.updateMemberBarcodeList(items);
+      await DriftServices.appDb.keyValueStoreDao.upsert(.memberBarcodeList, items);
       await updataHomeScreenMember();
     }
   );
@@ -69,8 +70,9 @@ class _TabMemberViewState extends State<TabMemberView> {
         child: Text(DictKey.deleteLabel.s),
         onPressed: () async {
           Navigator.pop(context);
-          OBServices.updateMemberBarcodeList([]);
+          await DriftServices.appDb.keyValueStoreDao.upsert(.memberBarcodeList, null);
           await updataHomeScreenMember();
+          setState(() {});
         },
       ),
     ],
@@ -80,8 +82,8 @@ class _TabMemberViewState extends State<TabMemberView> {
   Widget build(context) {
     return Scrollbar(
       controller: _scrollController,
-      child: StreamBuilder<ReceiptFoldDataStore?>( // todo: Stream換個方式
-        stream: OBServices.dataStoreStream,
+      child: StreamBuilder<Map<KVStoreKey, dynamic>>( // todo: Stream換個方式
+        stream: DriftServices.appDb.keyValueStoreDao.stream(const [.mobileBarcodeList, .memberBarcodeList]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -90,8 +92,8 @@ class _TabMemberViewState extends State<TabMemberView> {
           } else if (!snapshot.hasData || snapshot.data == null) {
             return Center(child: Text('snapshot.hasData:${snapshot.hasData}\nsnapshot.data:snapshot.data'));
           }
-          _mobileItems = snapshot.data!.mobileBarcodeList;
-          _memberItems = snapshot.data!.memberBarcodeList;
+          _mobileItems = snapshot.data![KVStoreKey.mobileBarcodeList];
+          _memberItems = snapshot.data![KVStoreKey.memberBarcodeList];
           return ListView(
             padding: const EdgeInsets.all(8.0),
             children: [

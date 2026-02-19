@@ -76,7 +76,7 @@ class LogService {
     this.levelTag = levelTag;
     final String where = <String>[
       if (classType != null) 'class<$classType>',
-      if (instance != null) 'instance<${instance.runtimeType}>',
+      if (instance != null) 'instance<$instance>',
     ].join(', ');
     return (level < .warning ? _logger : _warnLogger).log(
       level,

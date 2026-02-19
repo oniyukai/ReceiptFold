@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
-import 'package:receipt_fold/modules/ob_services.dart';
+import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_member_view.dart';
@@ -31,13 +31,14 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
   final ScrollController _scrollController = ScrollController();
 
   // 他沒有監聽是因為tab是及時initState dispose
-  final List<MobileBarcodeItem> _mobileItems = OBServices.mobileBarcodeList;
-  final List<MemberBarcodeItem> _memberItems = OBServices.memberBarcodeList;
+  late List<MobileBarcodeItem> _mobileItems;
+  late List<MemberBarcodeItem> _memberItems;
   int? _mobileItemIndex;
   int? _memberItemIndex;
   bool _isBrightness = PrefsEnum.isAutoBrightness.defaultValue();
   bool _isLockOrientation = PrefsEnum.isAutoBrightness.defaultValue();
   bool _isLastTimeOnView = false;
+  bool _isInitialized = false;
 
   @override
   void initState() {
@@ -70,9 +71,14 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
     }
   }
 
-  void _initLoadItem() {
+  Future<void> _initLoadItem() async {
+    if (_isInitialized) return;
+    _isInitialized = true;
+    _mobileItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.mobileBarcodeList);
+    _memberItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.memberBarcodeList);
     if (_mobileItems.isNotEmpty) _mobileItemIndex = 0;
     if (_memberItems.isNotEmpty) _memberItemIndex = 0;
+    if (mounted) setState(() {});
   }
 
   Future<void> _setAppBrightness(bool toBrightness) async {
