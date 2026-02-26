@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +68,35 @@ final class Utils {
     toastLength: longTime ? .LENGTH_LONG : .LENGTH_SHORT,
     timeInSecForIosWeb: longTime ? 4 : 2,
   );
+
+  static void showWidgetToast(Widget content, {
+    bool force = true,
+    bool persist = false,
+    int seconds = 2,
+    String actionLabel = StaticString.nullString,
+    VoidCallback? action,})
+  {
+    final BuildContext? context = MyRouter.delegate.navigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    if (force) messenger.removeCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        behavior: .floating,
+        content: content,
+        persist: persist,
+        shape: RoundedRectangleBorder(borderRadius: .circular(16.0)),
+        duration: Duration(seconds: seconds),
+        action: action == null ? null : SnackBarAction(
+          label: actionLabel,
+          onPressed: () {
+            action();
+            messenger.hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
+  }
 
   /// 在預設瀏覽器開啟網站
   static Future<void> openUrlInBrowser(String url) async {

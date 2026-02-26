@@ -9,6 +9,7 @@ import 'package:receipt_fold/locale/app_localizations.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/menu_settings/page_about_view.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
 import 'package:receipt_fold/pages/menu_settings/page_platform_form.dart';
 
 class MainSettingsView extends StatefulWidget {
@@ -94,22 +95,25 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 onTap: _clearImageCache,
               ),
 
-              ListTileText(text: DictKey.preferencesInvoicePlatformTitle.s, isSection: true),
+              ListTileText(text: '資料與自動化', isSection: true),
               ListTileText(
-                text: DictKey.preferencesAccountPasswordLabel.s,
+                text: '發票平台',
                 trailing: const Icon(Icons.chevron_right),
                 iconData: Icons.manage_accounts,
                 onTap: () => pagePlatformForm(context),
               ),
-
-              ListTileText(text: DictKey.preferencesBackupTitle.s, isSection: true),
-              // todo: 雲端同步功能
+              ListTileText(
+                text: '備份與同步',
+                trailing: const Icon(Icons.chevron_right),
+                iconData: Icons.cloud,
+                onTap: () => MyRouter.routeTo(PageBackupPage),
+              ),
 
               ListTileText(text: DictKey.preferencesAboutTitle.s, isSection: true),
               ListTileText(
                 text: StaticString.appName,
                 trailing: const Icon(Icons.chevron_right),
-                onTap:() => MyRouter.routeTo(PageAboutView)
+                onTap:() => MyRouter.routeTo(PageAboutView),
               ),
             ],
           ),

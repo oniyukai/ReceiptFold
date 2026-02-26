@@ -48,6 +48,8 @@ dependencies:
   drift: ^2.31.0
   drift_flutter: ^0.2.8
   logger: ^2.6.2
+  webdav_client: ^1.2.2
+  es_compression: ^2.0.15
 
 dev_dependencies:
   flutter_test:

@@ -25,48 +25,54 @@ class KVConverter<R> extends BasicTypeConverter<R?, String?> {
   R? get defaultValue => _defaultValue?.call();
 
   KVConverter({
-    required super.toR,
     required super.toS,
+    required super.toR,
     R? Function()? defaultValue,
   }) : _defaultValue = defaultValue;
 
-  static KVConverter<int> integer([int? defaultValue]) => KVConverter<int>(
-    toR: (fromS) => fromS != null ? int.tryParse(fromS) : null,
+  static KVConverter<bool> boolean([bool? defaultValue]) => KVConverter<bool>(
     toS: (fromR) => fromR?.toString(),
+    toR: (fromS) => fromS != null ? bool.tryParse(fromS) : null,
+    defaultValue: () => defaultValue,
+  );
+
+  static KVConverter<int> integer([int? defaultValue]) => KVConverter<int>(
+    toS: (fromR) => fromR?.toString(),
+    toR: (fromS) => fromS != null ? int.tryParse(fromS) : null,
     defaultValue: () => defaultValue,
   );
 
   static KVConverter<double> floating([double? defaultValue]) => KVConverter<double>(
-    toR: (fromS) => fromS != null ? double.tryParse(fromS) : null,
     toS: (fromR) => fromR?.toString(),
+    toR: (fromS) => fromS != null ? double.tryParse(fromS) : null,
     defaultValue: () => defaultValue,
   );
 
   static KVConverter<String> string([String? defaultValue]) => KVConverter<String>(
-    toR: (fromS) => fromS,
     toS: (fromR) => fromR,
+    toR: (fromS) => fromS,
     defaultValue: () => defaultValue,
   );
 
   static KVConverter<List<String>> listString([List<String>? defaultValue]) => KVConverter<List<String>>(
+    toS: (fromR) => fromR != null ? jsonEncode(fromR) : null,
     toR: (fromS) {
       if (fromS == null) return null;
       try {
         return List<String>.from(jsonDecode(fromS));
       } catch (e) {
-        LogService(null, errorObject: e, classType: KVConverter<List<String>>).w();
+        LogService('listString.toR', errorObject: e, classType: KVConverter<List<String>>).w();
         return null;
       }
     },
-    toS: (fromR) => fromR != null ? jsonEncode(fromR) : null,
     defaultValue: () => defaultValue?.toList(),
   );
 
-  static KVConverter<List<R>> listCustom<R>(R Function(String) itemToR, String Function(R) itemToS, [List<R>? defaultValue]) {
+  static KVConverter<List<R>> listCustom<R>(String Function(R) itemToS, R Function(String) itemToR, [List<R>? defaultValue]) {
     final KVConverter<List<String>> lsConverter = listString();
     return KVConverter<List<R>>(
-      toR: (fromS) => lsConverter.toR(fromS)?.map(itemToR).toList(),
       toS: (fromR) => lsConverter.toS(fromR?.map(itemToS).toList()),
+      toR: (fromS) => lsConverter.toR(fromS)?.map(itemToR).toList(),
       defaultValue: () => defaultValue?.toList(),
     );
   }
@@ -82,13 +88,13 @@ enum KVStoreKey {
   KVConverter<R> _getConverter<R>() => _converterCache.putIfAbsent(this, () {
     final converter = switch (this) {
       .mobileBarcodeList => KVConverter.listCustom<MobileBarcodeItem>(
-        MobileBarcodeItem.fromString, jsonEncode, const [],
+        jsonEncode, MobileBarcodeItem.fromString, const [],
       ),
       .memberBarcodeList => KVConverter.listCustom<MemberBarcodeItem>(
-        MemberBarcodeItem.fromString, jsonEncode, const [],
+        jsonEncode, MemberBarcodeItem.fromString, const [],
       ),
       .invoiceWinningNumberList => KVConverter.listCustom<InvoiceWinningNumber>(
-        InvoiceWinningNumber.fromString, jsonEncode, const [],
+        jsonEncode, InvoiceWinningNumber.fromString, const [],
       ),
     };
     return converter;

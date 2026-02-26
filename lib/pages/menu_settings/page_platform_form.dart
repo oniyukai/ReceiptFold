@@ -44,7 +44,7 @@ Future<void> pagePlatformForm(BuildContext context) async {
     assert(loginState != PlatformLoginState.notSet);
     await showMyDialog(
       context: context,
-      title: DictKey.preferencesInvoicePlatformTitle.s,
+      title: '發票平台',
       content: Text(DictKey.preferencesSureToLogoutPlatformLabel.s),
       actions: [
         TextButton(
@@ -70,7 +70,7 @@ Future<void> pagePlatformForm(BuildContext context) async {
         icon: const Icon(Icons.arrow_back),
       ),
       title: Text(
-        DictKey.preferencesInvoicePlatformTitle.s,
+        '發票平台',
         style: textTheme.titleMedium,
       ),
       trailing: Row(

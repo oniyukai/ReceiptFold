@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:receipt_fold/locale/app_language.dart';
+import 'package:receipt_fold/pages/widget/functions.dart';
 import 'package:share_plus/share_plus.dart';
 
 const String _separatorOfLog = '‖§SEPARATOR_OF_LOG¶';
@@ -191,10 +193,23 @@ class _PageLogsViewState extends State<PageLogsView> {
     ),
   );
 
-  Future<void> _pressDelete() async {
-    setState(() => _formattedLogs = null);
-    await _LogFileListener.replaceLogs('');
-    await _pressRefresh();
+  Future<void> _pressDelete() {
+    return showMyDialog(
+      context: context,
+      title: '刪除日誌',
+      content: Text('確定要刪除日誌嗎'),
+      actions: [
+        TextButton(
+          onPressed: () async {
+            Navigator.pop(context);
+            setState(() => _formattedLogs = null);
+            await _LogFileListener.replaceLogs('');
+            await _pressRefresh();
+          },
+          child: Text(DictKey.deleteLabel.s),
+        ),
+      ],
+    );
   }
 
   @override
@@ -205,7 +220,7 @@ class _PageLogsViewState extends State<PageLogsView> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _pressDelete,
+            onPressed: _pressRefresh,
           ),
           IconButton(
             icon: const Icon(Icons.share),

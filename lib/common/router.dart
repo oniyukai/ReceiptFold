@@ -6,6 +6,7 @@ import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_about_view.dart';
+import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_terms_view.dart';
 import 'package:collection/collection.dart';
@@ -32,6 +33,7 @@ final Map<Type, RouteEntry> _routingTable = Map.fromEntries(const <Type, Widget>
   PageAboutView: PageAboutView(),
   PageTermsView: PageTermsView(),
   PageLogsView: PageLogsView(),
+  PageBackupPage: PageBackupPage(),
 }.entries.mapIndexed((index, entry) => MapEntry(
     entry.key, RouteEntry(
     '/${_useIndexPrefix ? '$index-' : ''}${entry.key}',
@@ -59,11 +61,11 @@ class MyRouteConfig<A, R> {
 
 class MyRouteParser extends RouteInformationParser<MyRouteConfig> {
   @override
-  Future<MyRouteConfig> parseRouteInformation(RouteInformation routeInformation) =>
+  Future<MyRouteConfig> parseRouteInformation(routeInformation) =>
       SynchronousFuture(MyRouteConfig(routeEntries[routeInformation.uri.path]?.route ?? _initialRoute));
 
   @override
-  RouteInformation restoreRouteInformation(MyRouteConfig configuration) =>
+  RouteInformation restoreRouteInformation(configuration) =>
       RouteInformation(uri: Uri.parse(configuration.route));
 }
 
@@ -76,7 +78,7 @@ class MyRouterDelegate extends RouterDelegate<MyRouteConfig> with ChangeNotifier
   MyRouteConfig? get currentConfiguration => _stack.lastOrNull;
 
   @override
-  Future<void> setNewRoutePath(MyRouteConfig configuration) async {
+  Future<void> setNewRoutePath(configuration) async {
     if (_stack.lastOrNull?.route == configuration.route) return;
     _stack..clear()..add(configuration);
   }
@@ -112,7 +114,7 @@ class MyRouterDelegate extends RouterDelegate<MyRouteConfig> with ChangeNotifier
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     if (_stack.isEmpty) return const Center(child: Text('Navigator _stack.isEmpty'));
     return Navigator(
       key: navigatorKey,
@@ -141,7 +143,7 @@ class _RouteConfigScope extends InheritedWidget {
   });
 
   @override
-  bool updateShouldNotify(_) => false;
+  bool updateShouldNotify(oldWidget) => false;
 }
 
 final class MyRouter {
