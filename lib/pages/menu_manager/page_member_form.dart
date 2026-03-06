@@ -8,7 +8,7 @@ import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 import 'package:receipt_fold/pages/screen_gadget/member_screen.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
-import 'package:receipt_fold/pages/widget/functions.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
 class PageMemberForm extends StatefulWidget with RouterBridge<PageMemberFormArgs>  {
   const PageMemberForm({super.key});
@@ -43,9 +43,9 @@ class _PageMemberFormState extends State<PageMemberForm> {
     }
   }
 
-  Future<void> _deleteItem() async {
+  Future<void> _deleteItem() {
     assert(_args != null);
-    await showMyDialog(
+    return OverlayShow.dialog(
       context: context,
       title: DictKey.deleteLabel.s,
       content: Text(DictKey.sureToDeleteThisLabel.s),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:receipt_fold/pages/widget/functions.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
 class ListTileText extends StatelessWidget {
   final String text;
@@ -114,7 +114,7 @@ class ListTilePicker<T> extends StatelessWidget {
       title: Text(text),
       subtitle: Text('${optionMap[selectedOption] ?? selectedOption}'),
       shape: shape,
-      onTap: () async => showMyDialog(
+      onTap: () => OverlayShow.dialog(
         context: context,
         title: dialogText ?? text,
         content: Scrollbar(

@@ -3,8 +3,8 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/modules/secure_prefs.dart';
-import 'package:receipt_fold/pages/widget/functions.dart';
-import 'package:receipt_fold/pages/widget/required_text_field.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
+import 'package:receipt_fold/pages/widget/my_text_field.dart';
 
 enum PlatformLoginState {
   notSet,
@@ -40,9 +40,9 @@ Future<void> pagePlatformForm(BuildContext context) async {
     if (initialPassword != password) await SecurePrefs.invoicePlatformPassword.write(password);
   }
 
-  Future<void> logoutPressed() async {
+  Future<void> logoutPressed() {
     assert(loginState != PlatformLoginState.notSet);
-    await showMyDialog(
+    return OverlayShow.dialog(
       context: context,
       title: '發票平台',
       content: Text(DictKey.preferencesSureToLogoutPlatformLabel.s),
@@ -61,7 +61,7 @@ Future<void> pagePlatformForm(BuildContext context) async {
     );
   }
 
-  Future<void> build() => showMyBottomSheet(
+  Future<void> build() => OverlayShow.bottomSheet(
     context: context,
     noCancelButton: true,
     title: ListTile(
@@ -100,7 +100,7 @@ Future<void> pagePlatformForm(BuildContext context) async {
             minTileHeight: 0,
             subtitle: Text(DictKey.preferencesAccountLabel.s),
           ),
-          RequiredTextField(
+          MyTextField(
             name: accountName,
             initialValue: initialAccount,
           ),
@@ -108,7 +108,7 @@ Future<void> pagePlatformForm(BuildContext context) async {
             minTileHeight: 0,
             subtitle: Text(DictKey.preferencesPasswordLabel.s),
           ),
-          RequiredTextField(
+          MyTextField(
             name: passwordName,
             initialValue: initialPassword,
             type: FieldType.password,

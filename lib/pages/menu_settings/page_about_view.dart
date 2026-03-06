@@ -4,6 +4,7 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_terms_view.dart';
+import 'package:path/path.dart' as p;
 
 class PageAboutView extends StatefulWidget {
   const PageAboutView({super.key});
@@ -23,12 +24,9 @@ class _PageAboutViewState extends State<PageAboutView> {
         child: Scrollbar(
           child: ListView(
             children: [
-              const SizedBox(
-                width: 64,
-                height: 64,
-                child: Image(
-                  image: AssetImage('assets/appicon.png'),
-                ),
+              SizedBox.square(
+                dimension: 64,
+                child: Image.asset(p.join('assets/', 'appicon.png')),
               ),
               const SizedBox(height: 16),
               Text(

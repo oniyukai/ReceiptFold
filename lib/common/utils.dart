@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
@@ -53,50 +52,12 @@ final class Utils {
     }
   }
 
-  /// 嗶的一聲
-  // static Future<void> audioPlayBeep(AudioPlayer audioPlayer) async {
-  //   try {
-  //     await audioPlayer.play(AssetSource(p.join('assets/', 'short_beep_tone.mp3')));
-  //   } catch (e) {
-  //     await showToast(e.toString());
-  //   }
-  // }
-
   /// 一個簡易的Toast訊息提示
   static Future<bool?> showToast(String msg, [bool longTime = false]) => Fluttertoast.showToast(
     msg: msg,
     toastLength: longTime ? .LENGTH_LONG : .LENGTH_SHORT,
     timeInSecForIosWeb: longTime ? 4 : 2,
   );
-
-  static void showWidgetToast(Widget content, {
-    bool force = true,
-    bool persist = false,
-    int seconds = 2,
-    String actionLabel = StaticString.nullString,
-    VoidCallback? action,})
-  {
-    final BuildContext? context = MyRouter.delegate.navigatorKey.currentContext;
-    if (context == null || !context.mounted) return;
-    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
-    if (force) messenger.removeCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        behavior: .floating,
-        content: content,
-        persist: persist,
-        shape: RoundedRectangleBorder(borderRadius: .circular(16.0)),
-        duration: Duration(seconds: seconds),
-        action: action == null ? null : SnackBarAction(
-          label: actionLabel,
-          onPressed: () {
-            action();
-            messenger.hideCurrentSnackBar();
-          },
-        ),
-      ),
-    );
-  }
 
   /// 在預設瀏覽器開啟網站
   static Future<void> openUrlInBrowser(String url) async {
@@ -105,8 +66,6 @@ final class Utils {
       await showToast('Could not launch $url');
     }
   }
-  static Future<void> searchInBrowser(String searchUrl, String keyWord) =>
-      openUrlInBrowser(searchUrl.replaceAll('{code}', Uri.encodeComponent(keyWord)));
 
   /// 鎖定螢幕轉向
   static Future<void> lockCurrentOrientation(BuildContext context) {

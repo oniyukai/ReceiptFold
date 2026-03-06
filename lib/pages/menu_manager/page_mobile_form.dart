@@ -7,7 +7,7 @@ import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/screen_gadget/mobile_screen.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
-import 'package:receipt_fold/pages/widget/functions.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
 class PageMobileForm extends StatefulWidget with RouterBridge<PageBarcodeFormArgs> {
   const PageMobileForm({super.key});
@@ -40,9 +40,9 @@ class _PageMobileFormState extends State<PageMobileForm> {
     }
   }
 
-  Future<void> _deleteItem() async {
+  Future<void> _deleteItem() {
     assert(_args!=null);
-    await showMyDialog(
+    return OverlayShow.dialog(
       context: context,
       title: DictKey.deleteLabel.s,
       content: Text(DictKey.sureToDeleteThisLabel.s),

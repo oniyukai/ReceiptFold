@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
-import 'package:es_compression/zstd.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
+import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:webdav_client/webdav_client.dart' as webdav;
 import 'package:uuid/v7.dart';
@@ -57,6 +57,7 @@ abstract class SyncableDao extends DatabaseAccessor<MyDriftDatabase> {
 class MyDriftDatabase extends _$MyDriftDatabase {
   MyDriftDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection()) {
     if (executor == null) DriftServices.appDb = this;
+    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   }
 
   static QueryExecutor _openConnection() => driftDatabase(
@@ -104,13 +105,12 @@ final class DriftServices {
 
   static late final MyDriftDatabase appDb;
 
-  static MyDriftDatabase _openFileDb(File file) => MyDriftDatabase(driftDatabase(
-    name: p.basenameWithoutExtension(file.path),
-    native: DriftNativeOptions(
-      databaseDirectory: () => SynchronousFuture(file.parent),
-      setup: (db) => db.execute('PRAGMA journal_mode = DELETE;')
+  static MyDriftDatabase _openFileDb(File file) => MyDriftDatabase(
+    NativeDatabase(
+      file,
+      setup: (db) => db.execute('PRAGMA journal_mode = DELETE;'),
     ),
-  ));
+  );
 
   // /.---------------- 傳遞層 ----------------
   static Future<File?> downloadLocal(String sourceFilePath) async {
@@ -130,6 +130,7 @@ final class DriftServices {
   // /.---------------- 交換層 ----------------
   static Future<File?> pushForce(Upload upload) async {
     LogService('pushForce...', classType: DriftServices).d();
+    await appDb.selfTidy();
     final Directory tempDir = await getTemporaryDirectory();
     final File appDbCopyFile = File(p.join(tempDir.path, 'pushForce_$_timestamp.sqlite'));
     bool success = false;
@@ -218,13 +219,13 @@ class WebDAV {
 
   WebDAV._(this.client, this.remoteDir, this.remoteFileName);
 
-  static Future<WebDAV> init(String url, String user, String password, {
+  static Future<WebDAV> connect(String url, String user, String password, {
     String remoteDir = '/ReceiptFoldSync',
-    String remoteFileName = 'drift.sqlite.zst',
+    String remoteFileName = 'drift.sqlite.gz',
   }) async {
     // if (url.isEmpty) throw Exception('WebDAV.init: url cannot be empty.');
     final client = webdav.newClient(url, user: user, password: password);
-    client.setHeaders({'accept-charset': 'utf-8'});
+    client.setHeaders({'content-type': 'application/octet-stream'});
     await client.ping();
     try {
       await client.mkdirAll(remoteDir);
@@ -234,10 +235,10 @@ class WebDAV {
     return WebDAV._(client, remoteDir, remoteFileName);
   }
 
-  /// [converter] 可以傳入 [ZstdEncoder] 來壓縮, 或是傳入 [ZstdDecoder] 解壓縮.
-  static Future<File> convertedFile(File sourceFile, Converter<List<int>, List<int>> converter) async {
+  /// [converter] 可以傳入 [gzip.decoder] 來壓縮, 或是傳入 [gzip.encoder] 解壓縮.
+  static Future<File> convertFile(File sourceFile, Converter<List<int>, List<int>> converter) async {
     final Directory tempDir = await getTemporaryDirectory();
-    final File file = File(p.join(tempDir.path, 'WebDAV_convertedFile_$_timestamp.temp'));
+    final File file = File(p.join(tempDir.path, 'WebDAV_convertFile_$_timestamp.temp'));
     final Stream<List<int>> input = sourceFile.openRead();
     final IOSink output = file.openWrite();
     bool success = false;
@@ -251,7 +252,7 @@ class WebDAV {
     }
   }
 
-  Future<File?> download(Future<File> Function(File) fileTransform) async {
+  Future<File?> download([Future<File> Function(File)? fileTransform]) async {
     LogService('download...', instance: this).d();
     late final webdav.File remoteFile;
     try {
@@ -266,13 +267,13 @@ class WebDAV {
     final File downloadFile = File(p.join(tempDir.path, 'WebDAV_download_$_timestamp.temp'));
     try {
       await client.read2File(remotePath, downloadFile.path);
-      return await fileTransform(downloadFile);
+      return await (fileTransform ?? (file) => convertFile(file, gzip.decoder))(downloadFile);
     } finally {
       if (await downloadFile.exists()) await downloadFile.delete();
     }
   }
 
-  Future<bool> upload(File file, Future<File> Function(File) fileTransform) async {
+  Future<bool> upload(File file, [Future<File> Function(File)? fileTransform]) async {
     LogService('upload...', instance: this).d();
     final String remoteCachePath = '$remotePath.cache';
     try {
@@ -281,7 +282,7 @@ class WebDAV {
       // } catch (e) {
       //   LogService('client.remove($remoteCachePath)', errorObject: e, instance: this).t();
       // }
-      final File convertedFile = await fileTransform(file);
+      final File convertedFile = await (fileTransform ?? (file) => convertFile(file, gzip.encoder))(file);
       try {
         await client.writeFromFile(convertedFile.path, remoteCachePath);
         // try {

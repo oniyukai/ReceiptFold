@@ -4,7 +4,7 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
 enum FieldType {
-  onelineText(Icons.format_size, TextInputType.text, false),
+  text(Icons.format_size, TextInputType.text, false),
   number(Icons.pin_outlined, TextInputType.number, false),
   password(Icons.password, TextInputType.visiblePassword, true);
 
@@ -15,29 +15,31 @@ enum FieldType {
   const FieldType(this.iconData, this.inputType, this.isObscure);
 
   String get labelText => switch (this) {
-    onelineText => DictKey.barcodeTextCompositionLabel,
+    text => DictKey.barcodeTextCompositionLabel,
     number=> DictKey.barcodeNumberCompositionLabel,
     password => DictKey.barcodeTextCompositionLabel,
   }.s;
 }
 
-class RequiredTextField extends StatefulWidget {
+class MyTextField extends StatefulWidget {
   final String name;
   final String? initialValue;
   final FieldType type;
+  final bool required;
 
-  const RequiredTextField({
+  const MyTextField({
     super.key,
     required this.name,
     this.initialValue,
-    this.type = FieldType.onelineText,
+    this.type = .text,
+    this.required = true,
   });
 
   @override
-  State<RequiredTextField> createState() => _RequiredTextFieldState();
+  State<MyTextField> createState() => _MyTextFieldState();
 }
 
-class _RequiredTextFieldState extends State<RequiredTextField> {
+class _MyTextFieldState extends State<MyTextField> {
   bool textHidden = false;
 
   @override
@@ -66,8 +68,8 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
       ),
       keyboardType: widget.type.inputType,
       validator: FormBuilderValidators.compose([
-        FormBuilderValidators.required(errorText: DictKey.errorEmptyFields.s),
-        if (widget.type == .number) FormBuilderValidators.numeric(errorText: DictKey.errorBarcodeNotANumberMessage.s),
+        if (widget.required) FormBuilderValidators.required(errorText: DictKey.errorEmptyFields.s),
+        if (widget.type == .number) FormBuilderValidators.numeric(errorText: DictKey.errorBarcodeNotANumberMessage.s, checkNullOrEmpty: false),
       ]),
     );
   }

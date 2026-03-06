@@ -10,6 +10,7 @@ import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/app_localizations.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
+import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
 import 'package:watashi_locale/watashi_locale.dart';
 
 Future<void> main() async {
@@ -41,6 +42,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     WatashiLocale.register([LocaleOption.dictDelegate]);
+    PageBackupPage.setWebDAV();
   }
 
   @override

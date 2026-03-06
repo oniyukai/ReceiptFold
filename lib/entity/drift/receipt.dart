@@ -37,8 +37,7 @@ class ReceiptDao extends SyncableDao {
   }
 
   @override
-  Future<void> mergeFrom(MyDriftDatabase otherDb) {
+  Future<void> mergeFrom(MyDriftDatabase otherDb) async {
     // TODO: implement syncFrom
-    throw UnimplementedError();
   }
 }

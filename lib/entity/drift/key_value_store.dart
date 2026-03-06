@@ -163,13 +163,13 @@ class KeyValueStoreDao extends SyncableDao {
 
   @override
   Future<void> mergeFrom(MyDriftDatabase otherDb) async {
-    final List<KeyValueStore> appRows = await _table.select().get();
-    final Map<String, KeyValueStore> appRowsMap = {
-      for (final KeyValueStore row in appRows)
+    final List<KeyValueStore> rows = await _table.select().get();
+    final Map<String, KeyValueStore> rowsMap = {
+      for (final KeyValueStore row in rows)
         row.key: row,
     };
     final Set<String> allowUpdateKeys = {
-      ...appRowsMap.keys,
+      ...rowsMap.keys,
       ...KVStoreKey.values.map((e) => e.name),
     };
     if (allowUpdateKeys.isEmpty) return;
@@ -180,8 +180,8 @@ class KeyValueStoreDao extends SyncableDao {
       batch.insertAll(
         _table,
         otherRows.where((otherRow) {
-          final KeyValueStore? appRow = appRowsMap[otherRow.key];
-          return appRow == null || otherRow.modified.isAfter(appRow.modified);
+          final KeyValueStore? row = rowsMap[otherRow.key];
+          return row == null || otherRow.modified.isAfter(row.modified);
         }),
         mode: .insertOrReplace,
       );

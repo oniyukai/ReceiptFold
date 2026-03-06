@@ -8,9 +8,9 @@ import 'package:receipt_fold/entity/objectbox/receipt.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
-import 'package:receipt_fold/pages/widget/functions.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 import 'package:receipt_fold/pages/widget/my_menu_button.dart';
-import 'package:receipt_fold/pages/widget/required_text_field.dart';
+import 'package:receipt_fold/pages/widget/my_text_field.dart';
 
 class PageReceiptView extends StatefulWidget with RouterBridge<PageReceiptViewArgs> {
   const PageReceiptView({super.key});
@@ -98,7 +98,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       _updateInDatabase(false);
     }
 
-    return () async => showMyBottomSheet(
+    return () => OverlayShow.bottomSheet(
       context: context,
       noCancelButton: true,
       title: ListTile(
@@ -146,9 +146,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   // 適用於所有狀態的前端接口 ---------- >
   // < ---------- 適用於特定狀態的前端接口
 
-  Future<void> _deleteIconPressed() async {
+  Future<void> _deleteIconPressed() {
     assert(_args.isEdit);
-    await showMyDialog(
+    return OverlayShow.dialog(
       context: context,
       title: DictKey.deleteLabel.s,
       content: Text(DictKey.sureToDeleteThisLabel.s),
@@ -207,10 +207,10 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     final isAddNotModify = detail == null;
     final textTheme = Theme.of(context).textTheme;
 
-    Future<void> deleteDetail() async {
+    Future<void> deleteDetail() {
       assert(!isAddNotModify);
       if (index == null || detail == null) throw 'index不能是null';
-      await showMyDialog(
+      return OverlayShow.dialog(
         context: context,
         title: DictKey.deleteLabel.s,
         content: Text(DictKey.sureToDeleteThisLabel.s),
@@ -259,7 +259,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       _updateInDatabase(true);
     }
 
-    return () async => showMyBottomSheet(
+    return () => OverlayShow.bottomSheet(
       context: context,
       noCancelButton: true,
       title: ListTile(
@@ -303,7 +303,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               minTileHeight: 0,
               subtitle: Text(DictKey.receiptDetailItemLabel.s),
             ),
-            RequiredTextField(
+            MyTextField(
               name: itemDescriptionName,
               initialValue: detail?.itemDescription,
             ),
@@ -311,7 +311,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               minTileHeight: 0,
               subtitle: Text(DictKey.receiptDetailUnitPriceLabel.s),
             ),
-            RequiredTextField(
+            MyTextField(
               name: unitPriceName,
               initialValue: detail?.unitPrice.toString(),
               type: FieldType.number,
@@ -320,7 +320,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               minTileHeight: 0,
               subtitle: Text(DictKey.receiptDetailQuantityLabel.s),
             ),
-            RequiredTextField(
+            MyTextField(
               name: quantityName,
               initialValue: detail?.quantity.toString(),
               type: FieldType.number,
@@ -331,9 +331,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     );
   }
 
-  Future<void> _sortDetails() async {
+  Future<void> _sortDetails() {
     assert(!_isCloudPlatform && _details.length > 1);
-    await showSortDialog(
+    return OverlayShow.sortDialog(
       context: context,
       items: _details,
       itemBuilder: (detail) => _DetailInfoRow(

@@ -15,7 +15,7 @@ class MainScannerView extends StatefulWidget {
 }
 
 class _MainScannerViewState extends State<MainScannerView> with SingleTickerProviderStateMixin {
-  final InvoicePrizeSearcher _invoicePrizeSearcher = InvoicePrizeSearcher();
+  late final InvoicePrizeSearcher _invoicePrizeSearcher = InvoicePrizeSearcher();
   late final TabController _tabController;
   late final InvoiceWinningNumber? _thisWinningNumber;
   late final InvoiceWinningNumber? _lastWinningNumber;
@@ -24,7 +24,7 @@ class _MainScannerViewState extends State<MainScannerView> with SingleTickerProv
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _loadPeriodNumber();
+    // _loadPeriodNumber();
   }
 
   @override

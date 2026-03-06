@@ -46,6 +46,7 @@ enum PrefsEnum {
   isAutoBrightness,
   isScanScreenRotation,
   isShowScreenRotation,
+  isAutoWebDAVSync,
   ;
 
   static final Map<PrefsEnum, PrefDef> _prefDefCache = {};
@@ -77,6 +78,7 @@ enum PrefsEnum {
       isAutoBrightness => PrefDef._same(false),
       isScanScreenRotation => PrefDef._same(false),
       isShowScreenRotation => PrefDef._same(false),
+      isAutoWebDAVSync => PrefDef._same(false),
     };
     return prefDef;
   });

@@ -17,7 +17,7 @@ import 'package:receipt_fold/pages/menu_nav_bar.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
-import 'package:receipt_fold/pages/widget/functions.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
 class TabBarcodeView extends StatefulWidget {
@@ -111,7 +111,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
     await Clipboard.setData(ClipboardData(text: _mobileItems[_mobileItemIndex!].code));
   }
 
-  Future<void> _changeMobileItem() => showMyDialog(
+  Future<void> _changeMobileItem() => OverlayShow.dialog(
     context: context,
     title: DictKey.barcodeManagerChangeMobileCarrierLabel.s,
     noCancelButton: true,

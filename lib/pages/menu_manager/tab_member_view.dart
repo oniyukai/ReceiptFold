@@ -10,7 +10,7 @@ import 'package:receipt_fold/pages/screen_gadget/mobile_screen.dart';
 import 'package:receipt_fold/pages/menu_manager/page_mobile_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
-import 'package:receipt_fold/pages/widget/functions.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
 class TabMemberView extends StatefulWidget {
   const TabMemberView({super.key});
@@ -24,7 +24,7 @@ class _TabMemberViewState extends State<TabMemberView> {
   List<MobileBarcodeItem> _mobileItems = [];
   List<MemberBarcodeItem> _memberItems = [];
 
-  Future<void> _sortMobileItems() => showSortDialog(
+  Future<void> _sortMobileItems() => OverlayShow.sortDialog(
     context: context,
     items: _mobileItems,
     itemBuilder: (item) => MobileItemCard(item: item),
@@ -34,7 +34,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     }
   );
 
-  Future<void> _deleteAllMobileItems() => showMyDialog(
+  Future<void> _deleteAllMobileItems() => OverlayShow.dialog(
     context: context,
     title: DictKey.barcodeManagerMobileCarrierLabel.s,
     content: Text(DictKey.sureToDeleteThisLabel.s),
@@ -51,7 +51,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     ],
   );
 
-  Future<void> _sortMemberItem() => showSortDialog(
+  Future<void> _sortMemberItem() => OverlayShow.sortDialog(
     context: context,
     items: _memberItems,
     itemBuilder: (item) => _MemberItemCard(item: item),
@@ -61,7 +61,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     }
   );
 
-  Future<void> _deleteAllMemberItems() => showMyDialog(
+  Future<void> _deleteAllMemberItems() => OverlayShow.dialog(
     context: context,
     title: DictKey.barcodeManagerMembershipCardLabel.s,
     content: Text(DictKey.sureToDeleteThisLabel.s),
