@@ -67,7 +67,7 @@ class InvoiceWinningNumber {
         }
       }
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint('$InvoiceWinningNumber.fromString: $e');
     }
     return InvoiceWinningNumber(
       period: period ?? StaticString.nullString,

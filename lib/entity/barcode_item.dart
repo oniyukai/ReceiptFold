@@ -27,7 +27,7 @@ class MobileBarcodeItem {
       name = json['name'];
       if (name == '') name = null;
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint('$MobileBarcodeItem.fromString: $e');
     }
     return MobileBarcodeItem(
       code: code ?? StaticString.nullString,
@@ -71,7 +71,7 @@ class MemberBarcodeItem {
       if (imageUrl == '') imageUrl = null;
       format = BarcodeFormat.values.fromName(json['format']);
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint('$MemberBarcodeItem.fromString: $e');
     }
     return MemberBarcodeItem(
       code: code ?? StaticString.nullString,

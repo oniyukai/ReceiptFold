@@ -41,18 +41,21 @@ class _MenuNavBarState extends State<MenuNavBar> {
   @override
   Widget build(context) {
     DictKey.load(context);
-    if (!context.readPrefs.get(PrefsEnum.isAgreedAllTerms)) return const PageTermsView(); // todo debug
     final bool isPortrait = Utils.isPortrait(context);
-    return Consumer<MenuNavBarProvider>(
-      builder: (context, state, child) => Scaffold(
-        bottomNavigationBar: isPortrait ? _buildBottomNavigationBar(state) : null,
-        body: Row(
-          children: [
-            if (!isPortrait) _buildSideNavigationBar(state),
-            Expanded(child: IndexedStack(index: state.currentIndex, children: _pages)),
-          ],
+    return ValueListenableBuilder(
+      valueListenable: context.readPrefs.oneNotifier(.isAgreedAllTerms),
+      builder: (context, value, child) => value
+          ? Consumer<MenuNavBarProvider>(
+        builder: (context, state, child) => Scaffold(
+          bottomNavigationBar: isPortrait ? _buildBottomNavigationBar(state) : null,
+          body: Row(
+            children: [
+              if (!isPortrait) _buildSideNavigationBar(state),
+              Expanded(child: IndexedStack(index: state.currentIndex, children: _pages)),
+            ],
+          ),
         ),
-      )
+      ) : const PageTermsView(),
     );
   }
 

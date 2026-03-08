@@ -27,7 +27,7 @@ class ListTileText extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     return ListTile(
       contentPadding: isSection ? const EdgeInsets.only(top: 16, left: 16) : null,
-      leading: SizedBox(width: 48, child: Icon(iconData)),
+      leading: Icon(iconData),
       shape: shape,
       minTileHeight: isSection ? 0 : null,
       title: Text(
@@ -65,12 +65,12 @@ class ListTileSwitch extends StatelessWidget {
   @override
   Widget build(context) {
     return ListTile(
-      leading: SizedBox(width: 48, child: Icon(iconData)),
+      leading: Icon(iconData),
       title: Text(text),
       enabled: enabled,
       shape: shape,
       onTap: () => onToggle(!initialValue),
-      trailing: Switch.adaptive(
+      trailing: Switch(
         value: initialValue,
         onChanged: enabled ? onToggle : null,
       ),
@@ -110,7 +110,7 @@ class ListTilePicker<T> extends StatelessWidget {
   @override
   Widget build(context) {
     return ListTile(
-      leading: SizedBox(width: 48, child: Icon(iconData)),
+      leading: Icon(iconData),
       title: Text(text),
       subtitle: Text('${optionMap[selectedOption] ?? selectedOption}'),
       shape: shape,

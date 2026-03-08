@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -13,8 +14,9 @@ import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
 import 'package:path/path.dart' as p;
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
-enum DBActions {
+enum _DriftAction {
   pushForce,
   push,
   pullForce,
@@ -22,73 +24,84 @@ enum DBActions {
   sync,
 }
 
+Future<({String? url, String? user, String? password})> _readWebDAVAccount() async {
+  String? url;
+  String? user;
+  String? password;
+  final String? jsonString = await SecurePrefs.webDAVAccount.read();
+  try {
+    if (jsonString != null) {
+      final Map map = jsonDecode(jsonString);
+      url = map['url'];
+      user = map['user'];
+      password = map['password'];
+    }
+  } catch (e) {
+    debugPrint('_readWebDAVAccount: $e');
+  }
+  return (
+  url: url,
+  user: user,
+  password: password
+  );
+}
+
 class PageBackupPage extends StatefulWidget {
   const PageBackupPage({super.key});
 
-  static Timer? _webDAVSyncFirstTimer;
-  static int _lastTimeWebDAVSWork = 0;
-  static WebDAV? _webDAV;
+  static Timer? _webDAVConnectSyncTimer;
+  static int _lastTimeWebDAVAction = 0;
+  static final ValueNotifier<WebDAV?> _webDAV = ValueNotifier(null);
 
-  static Future<void> setWebDAV() async {
-    _webDAVSyncFirstTimer?.cancel();
-    final String? url = await SecurePrefs.webDAVUrl.read();
-    final String? user = await SecurePrefs.webDAVUser.read();
-    final String? password = await SecurePrefs.webDAVPassword.read();
-    if (url == null || user == null || password == null) return;
+  static Future<void> connectWebDAV() async {
+    _webDAVConnectSyncTimer?.cancel();
+    _webDAV.value = null;
+    final account = await _readWebDAVAccount();
+    if (account.url == null || account.user == null || account.password == null || account.url!.isEmpty) return;
     try {
-      _webDAV = null;
-      _webDAV = await WebDAV.connect(url, user, password);
+      _webDAV.value = await WebDAV.connect(account.url!, account.user!, account.password!);
       if (await PrefsEnum.isAutoWebDAVSync.get()) {
-        _webDAVSyncFirstTimer = Timer(const Duration(seconds: 4), () => _webDavAction(.sync));
+        _webDAVConnectSyncTimer = Timer(const Duration(seconds: 2), () => _webDAVAction(.sync));
       }
     } catch (e) {
-      LogService('setWebDAV.connect failed.', errorObject: e, classType: PageBackupPage).w();
+      LogService('connectWebDAV failed.', errorObject: e, classType: PageBackupPage).w();
     }
   }
 
-  static Future<void> _webDavAction(DBActions action) async {
+  static Future<void> _webDAVAction(_DriftAction action) async {
     try {
-      if (_webDAV == null) throw Exception('WebDav 尚未被初始化');
-      if (DateTime.now().millisecondsSinceEpoch - _lastTimeWebDAVSWork <= 8000) {
-        LogService('太過頻繁的 WebDav 操作', classType: PageBackupPage).d();
+      if (_webDAV.value == null) throw Exception('WebDAV 尚未被初始化');
+      if (UnitUtils.nowUnixTime - _lastTimeWebDAVAction <= 2000) {
+        LogService('太過頻繁的 WebDAV 操作', classType: PageBackupPage).d();
         return;
       }
-      _lastTimeWebDAVSWork = DateTime.now().millisecondsSinceEpoch;
-      switch (action) {
-        case DBActions.pushForce:
-          await DriftServices.pushForce(_webDAV!.upload);
-        case DBActions.push:
-          await DriftServices.pushMerge(_webDAV!.download, _webDAV!.upload);
-        case DBActions.pullForce:
-          await DriftServices.pullForce(_webDAV!.download);
-        case DBActions.pull:
-          await DriftServices.pullMerge(_webDAV!.download);
-        case DBActions.sync:
-          await DriftServices.syncMerge(_webDAV!.download, _webDAV!.upload);
-      }
-      LogService('_webDavAction success.', classType: PageBackupPage).d();
+      _lastTimeWebDAVAction = UnitUtils.nowUnixTime;
+      final WebDAV webDAV = _webDAV.value!;
+      await switch (action) {
+        .pushForce => DriftServices.pushForce(webDAV.upload),
+        .push => DriftServices.pushMerge(webDAV.download, webDAV.upload),
+        .pullForce => DriftServices.pullForce(webDAV.download),
+        .pull => DriftServices.pullMerge(webDAV.download),
+        .sync => DriftServices.syncMerge(webDAV.download, webDAV.upload),
+      };
+      LogService('_webDAVAction finished.', classType: PageBackupPage).d();
     } catch (e) {
-      LogService('_webDavAction failed.', errorObject: e, classType: PageBackupPage).w();
+      LogService('_webDAVAction failed.', errorObject: e, classType: PageBackupPage).w();
     }
   }
 
-  static Future<void> _localAction(DBActions action, String filePath) async {
+  static Future<void> _localAction(_DriftAction action, String filePath) async {
     try {
       Future<bool> upload(file) => DriftServices.uploadLocal(file, filePath);
       Future<File?> download() => DriftServices.downloadLocal(filePath);
-      switch (action) {
-        case DBActions.pushForce:
-          await DriftServices.pushForce(upload);
-        case DBActions.push:
-          await DriftServices.pushMerge(download, upload);
-        case DBActions.pullForce:
-          await DriftServices.pullForce(download);
-        case DBActions.pull:
-          await DriftServices.pullMerge(download);
-        case DBActions.sync:
-          await DriftServices.syncMerge(download, upload);
-      }
-      LogService('_localAction success.', classType: PageBackupPage).d();
+      await switch (action) {
+        .pushForce => DriftServices.pushForce(upload),
+        .push => DriftServices.pushMerge(download, upload),
+        .pullForce => DriftServices.pullForce(download),
+        .pull => DriftServices.pullMerge(download),
+        .sync => DriftServices.syncMerge(download, upload),
+      };
+      LogService('_localAction finished.', classType: PageBackupPage).d();
     } catch (e) {
       LogService('_localAction failed.', errorObject: e, classType: PageBackupPage).w();
     }
@@ -102,10 +115,6 @@ class _PageBackupPageState extends State<PageBackupPage> {
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   final List<String> _logs = [];
   late final StreamSubscription<LogService> _logSubscription;
-  bool _isConnected = PageBackupPage._webDAV != null;
-  String? _url;
-  String? _user;
-  String? _password;
 
   @override
   void initState() {
@@ -113,7 +122,6 @@ class _PageBackupPageState extends State<PageBackupPage> {
     _logSubscription = LogService.stream.where((e) => e.level >= .debug).listen((data) {
       setState(() => _logs.insert(0, data.logString));
     });
-    unawaited(_initLoad());
   }
 
   @override
@@ -122,44 +130,17 @@ class _PageBackupPageState extends State<PageBackupPage> {
     _logSubscription.cancel();
   }
 
-  Future<void> _initLoad() async {
-    _url = await SecurePrefs.webDAVUrl.read();
-    _user = await SecurePrefs.webDAVUser.read();
-    _password = await SecurePrefs.webDAVPassword.read();
-    _formKey.currentState?.patchValue({
-      'url': _url,
-      'user': _user,
-      'password': _password,
-    });
-  }
-
-  Future<void> _pressSetNewWebDAV() async {
-    if (_formKey.currentState?.saveAndValidate() != true) return;
-    _url = _formKey.currentState?.value['url'];
-    _user = _formKey.currentState?.value['user'] ?? '';
-    _password = _formKey.currentState?.value['password'] ?? '';
-    await Future.value([
-      SecurePrefs.webDAVUrl.write(_url!),
-      SecurePrefs.webDAVUser.write(_user!),
-      SecurePrefs.webDAVPassword.write(_password!),
-    ]);
-    await PageBackupPage.setWebDAV();
-    setState(() {
-      _isConnected = PageBackupPage._webDAV != null;
-    });
-  }
-
-  Future<void> _pressSaveNew() async {
+  Future<void> _pressLocalCopy() async {
     final Directory? directory = await getDownloadsDirectory();
     final String? directoryPath = await FilePicker.platform.getDirectoryPath(initialDirectory:directory?.path);
     if (directoryPath == null) {
       await Utils.showToast('取消');
       return;
     }
-    await PageBackupPage._localAction(.pushForce, p.join(directoryPath, 'pushForce_${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}.sqlite'));
+    await PageBackupPage._localAction(.pushForce, p.join(directoryPath, 'ReceiptFold_${UnitUtils.nowUnixTime.toRadixString(36)}.sqlite'));
   }
 
-  Future<void> _pressLocalOther(DBActions action) async {
+  Future<void> _pressLocalAction(_DriftAction action) async {
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: .custom,
       allowedExtensions: const ['sqlite'],
@@ -175,6 +156,69 @@ class _PageBackupPageState extends State<PageBackupPage> {
     }
   }
 
+  Future<void> _pressSetWebDAV() async {
+    final account = await _readWebDAVAccount();
+    await OverlayShow.bottomSheet(
+      context: context,
+      noCancelButton: true,
+      title: ListTile(
+        title: Text('連線設定'),
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back),
+        ),
+        trailing: ElevatedButton(
+          child: Text('保存並嘗試連線'),
+          onPressed: () async {
+            if (_formKey.currentState?.saveAndValidate() != true) return;
+            Navigator.pop(context);
+            await SecurePrefs.webDAVAccount.write(jsonEncode({
+              'url': _formKey.currentState?.value['url'] ?? '',
+              'user': _formKey.currentState?.value['user'] ?? '',
+              'password': _formKey.currentState?.value['password'] ?? '',
+            }));
+            await PageBackupPage.connectWebDAV();
+          },
+        ),
+      ),
+      content: FormBuilder(
+        key: _formKey,
+        child: Column(
+          children: [
+            ListTile(
+              minTileHeight: 0,
+              subtitle: Text('URL'),
+            ),
+            MyTextField(
+              name: 'url',
+              initialValue: account.url,
+              required: false,
+            ),
+            ListTile(
+              minTileHeight: 0,
+              subtitle: Text('User'),
+            ),
+            MyTextField(
+              name: 'user',
+              initialValue: account.user,
+              required: false,
+            ),
+            ListTile(
+              minTileHeight: 0,
+              subtitle: Text('Password'),
+            ),
+            MyTextField(
+              name: 'password',
+              initialValue: account.password,
+              type: .password,
+              required: false,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -187,137 +231,103 @@ class _PageBackupPageState extends State<PageBackupPage> {
             padding: const .fromLTRB(16.0, 0.0, 16.0, 16.0),
             children: [
               ExpandableCard(
-                iconData: Icons.snippet_folder,
+                iconData: Icons.devices,
                 text: '本地動作',
                 expandedChild: Column(
                   children: [
                     ListTile(
                       leading: const Icon(Icons.upload),
                       title: Text('另存新檔'),
-                      onTap: _pressSaveNew,
+                      onTap: _pressLocalCopy,
                     ),
                     ListTile(
                       leading: const Icon(Icons.upload_outlined),
                       title: Text('推送'),
-                      onTap: () => _pressLocalOther(.push),
+                      onTap: () => _pressLocalAction(.push),
                     ),
                     if (context.readPrefs.get(.isAppDeveloperMode)) ListTile(
                       leading: const Icon(Icons.download),
                       title: Text('強拉取'),
-                      onTap: () => _pressLocalOther(.pullForce),
+                      onTap: () => _pressLocalAction(.pullForce),
                     ),
                     ListTile(
                       leading: const Icon(Icons.download_outlined),
                       title: Text('拉取'),
-                      onTap: () => _pressLocalOther(.pull),
+                      onTap: () => _pressLocalAction(.pull),
                     ),
                     ListTile(
                       leading: const Icon(Icons.sync),
                       title: Text('同步'),
-                      onTap: () => _pressLocalOther(.sync),
+                      onTap: () => _pressLocalAction(.sync),
                     ),
                   ],
                 ),
               ),
               ExpandableCard(
                 iconData: Icons.cloud_sync,
-                text: 'WebDAV 動作',
-                expandedChild: Column(
-                  children: [
-                    ListTile(
-                      leading: _isConnected
-                          ? Icon(Icons.cloud_outlined, color: Colors.green)
-                          : Icon(Icons.cloud_off, color: Colors.grey),
-                      title: Text(_isConnected ? '已連線' : '未連線'),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.upload),
-                      title: Text('強推送'),
-                      onTap: _isConnected ? () => PageBackupPage._webDavAction(.pushForce) : null,
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.upload_outlined),
-                      title: Text('推送'),
-                      onTap: _isConnected ? () => PageBackupPage._webDavAction(.push) : null,
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.download),
-                      title: Text('強拉取'),
-                      onTap: _isConnected ? () => PageBackupPage._webDavAction(.pullForce) : null,
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.download_outlined),
-                      title: Text('拉取'),
-                      onTap: _isConnected ? () => PageBackupPage._webDavAction(.pull) : null,
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.sync),
-                      title: Text('同步'),
-                      onTap: _isConnected ? () => PageBackupPage._webDavAction(.sync) : null,
-                    ),
-                    ListTileSwitch(
-                      text: '啟用定期同步',
-                      initialValue: context.readPrefs.get(.isAutoWebDAVSync),
-                      enabled: _isConnected,
-                      onToggle: (value) async {
-                        await context.readPrefs.update(.isAutoWebDAVSync, value, false);
-                        setState(() {});
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              ExpandableCard(
-                iconData: Icons.add_to_drive,
-                text: 'WebDAV 參數',
-                expandedChild:  FormBuilder(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      ListTile(
-                        minTileHeight: 0,
-                        subtitle: Text('URL'),
-                      ),
-                      MyTextField(
-                        name: 'url',
-                        initialValue: _url,
-                      ),
-                      ListTile(
-                        minTileHeight: 0,
-                        subtitle: Text('User'),
-                      ),
-                      MyTextField(
-                        name: 'user',
-                        initialValue: _user,
-                        required: false,
-                      ),
-                      ListTile(
-                        minTileHeight: 0,
-                        subtitle: Text('Password'),
-                      ),
-                      MyTextField(
-                        name: 'password',
-                        initialValue: _password,
-                        type: .password,
-                        required: false,
-                      ),
-                      ElevatedButton(
-                        onPressed: _pressSetNewWebDAV,
-                        child: Text('保存並嘗試連線'),
-                      ),
-                    ],
-                  ),
+                text: 'WebDAV',
+                expandedChild: ValueListenableBuilder(
+                  valueListenable: PageBackupPage._webDAV,
+                  builder: (context, webDAV, child) {
+                    final bool isConnected = webDAV != null;
+                    return Column(
+                      children: [
+                        ListTile(
+                          leading: isConnected
+                              ? const Icon(Icons.cloud_outlined, color: Colors.green)
+                              : const Icon(Icons.cloud_off, color: Colors.grey),
+                          title: Text('連線設定'),
+                          onTap: _pressSetWebDAV,
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.upload),
+                          title: Text('強推送'),
+                          enabled: isConnected,
+                          onTap: () => PageBackupPage._webDAVAction(.pushForce),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.upload_outlined),
+                          title: Text('推送'),
+                          enabled: isConnected,
+                          onTap: () => PageBackupPage._webDAVAction(.push),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.download),
+                          title: Text('強拉取'),
+                          enabled: isConnected,
+                          onTap: () => PageBackupPage._webDAVAction(.pullForce),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.download_outlined),
+                          title: Text('拉取'),
+                          enabled: isConnected,
+                          onTap: () => PageBackupPage._webDAVAction(.pull),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.sync),
+                          title: Text('同步'),
+                          enabled: isConnected,
+                          onTap: () => PageBackupPage._webDAVAction(.sync),
+                        ),
+                        ListTileSwitch(
+                          iconData: Icons.motion_photos_auto,
+                          text: '啟用定期同步',
+                          initialValue: context.readPrefs.get(.isAutoWebDAVSync),
+                          enabled: isConnected,
+                          onToggle: (value) async {
+                            await context.readPrefs.update(.isAutoWebDAVSync, value, false);
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
               ExpandableCard(
                 iconData: Icons.terminal,
                 text: '即時日誌',
-                expandedChild: Column(
-                  children: [
-                    for (final String log in _logs)
-                      SelectableText(log),
-                  ],
-                ),
+                expandedChild: SelectableText(_logs.join('\n')),
               ),
             ],
           ),

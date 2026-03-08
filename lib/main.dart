@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -42,7 +43,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     WatashiLocale.register([LocaleOption.dictDelegate]);
-    PageBackupPage.setWebDAV();
+    Timer(const Duration(seconds: 2), PageBackupPage.connectWebDAV);
   }
 
   @override

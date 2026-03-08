@@ -43,12 +43,10 @@ class _PageTermsViewState extends State<PageTermsView> {
                   : Scrollbar(
                 thumbVisibility: true,
                 child: Card(
-                  margin: const EdgeInsets.all(8.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SingleChildScrollView(
-                      child: Text(_termsText!),
-                    ),
+                  margin: const .all(8.0),
+                  child: SingleChildScrollView(
+                    padding: const .all(8.0),
+                    child: Text(_termsText!),
                   ),
                 ),
               ),

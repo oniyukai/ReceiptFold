@@ -10,7 +10,6 @@ extension StaticString on DictKey {
     // Language
     localeLanguageEn = 'English',
     localeLanguageJa = '日本語',
-    localeLanguageZhHans = '简体中文',
     localeLanguageZhHant = '繁體中文',
     // Url
     sourceCodeLink = 'https://github.com/oniyukai/ReceiptFold',

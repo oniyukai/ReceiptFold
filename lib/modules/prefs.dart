@@ -59,7 +59,7 @@ enum PrefsEnum {
           (fromRUN) => fromRUN.name,
           PlatformLoginState.values.fromName,
       ),
-      isAppDeveloperMode => PrefDef._same(false),
+      isAppDeveloperMode => PrefDef._same(kDebugMode),
       selectedColor => PrefDef<ColorOption, String>._(
           () => .sys,
           (fromRUN) => fromRUN.name,

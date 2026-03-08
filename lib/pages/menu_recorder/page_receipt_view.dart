@@ -73,7 +73,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   // < ---------- 適用於所有狀態的前端接口
   VoidCallback _switchReceiptOrigin(ReceiptOrigin selected) => () {
     if (selected == _header.receiptOrigin) return;
-    _header.receiptOrigin = selected;
+    setState(() => _header.receiptOrigin = selected);
     _updateInDatabase(false);
   };
 

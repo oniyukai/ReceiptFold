@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:receipt_fold/locale/app_language.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -53,11 +55,12 @@ final class Utils {
   }
 
   /// 一個簡易的Toast訊息提示
-  static Future<bool?> showToast(String msg, [bool longTime = false]) => Fluttertoast.showToast(
+  static Future<void> showToast(String msg, [bool longTime = false]) =>
+      Platform.isAndroid || Platform.isIOS ? Fluttertoast.showToast(
     msg: msg,
     toastLength: longTime ? .LENGTH_LONG : .LENGTH_SHORT,
     timeInSecForIosWeb: longTime ? 4 : 2,
-  );
+  ) : OverlayShow.toast(Text(msg), seconds: longTime ? 4 : 2);
 
   /// 在預設瀏覽器開啟網站
   static Future<void> openUrlInBrowser(String url) async {

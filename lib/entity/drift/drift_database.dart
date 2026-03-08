@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
@@ -35,7 +36,7 @@ final dateTimeConverter = BasicTypeConverter<DateTime, int>(
 );
 
 mixin ModifiedMixin on Table {
-  late final modified = integer().clientDefault(() => DateTime.now().millisecondsSinceEpoch).map(dateTimeConverter)();
+  late final modified = integer().clientDefault(() => UnitUtils.nowUnixTime).map(dateTimeConverter)();
 }
 
 const globalUuidV7 = UuidV7();
@@ -47,7 +48,7 @@ mixin UuidMixin on Table {
 abstract class SyncableDao extends DatabaseAccessor<MyDriftDatabase> {
   SyncableDao(super.attachedDatabase);
 
-  Future<void> selfTidy() => SynchronousFuture(null);
+  Future<void> selfTidy() async {}
 
   /// 完成將新內容合併的處理, 如果自身是空庫, 要能夠實現覆蓋結果
   Future<void> mergeFrom(MyDriftDatabase otherDb);
@@ -81,7 +82,6 @@ class MyDriftDatabase extends _$MyDriftDatabase {
   Future<void> selfTidy() async {
     await transaction(() => Future.wait(daoSet.map((dao) => dao.selfTidy())));
     await customStatement('VACUUM');
-    await customStatement('ANALYZE');
   }
 }
 
@@ -93,7 +93,7 @@ typedef Upload = Future<bool> Function(File);
 /// 請在錯誤時 throw 中斷, 僅當對應無檔案時為 null 表示.
 typedef Download = Future<File?> Function();
 
-String get _timestamp => DateTime.now().millisecondsSinceEpoch.toRadixString(36);
+String get _timestamp => UnitUtils.nowUnixTime.toRadixString(36);
 
 Future<File> _copyFileToTemp(File sourceFile, [String? newFileName]) async {
   final Directory tempDir = await getTemporaryDirectory();
@@ -148,6 +148,7 @@ final class DriftServices {
     LogService('pushMerge...', classType: DriftServices).d();
     final File? downloadFile = await download();
     if (downloadFile == null || !await downloadFile.exists()) return await pushForce(upload);
+    await appDb.selfTidy();
     bool success = false;
     try {
       final MyDriftDatabase downloadDb = _openFileDb(downloadFile);
@@ -215,24 +216,19 @@ class WebDAV {
   final webdav.Client client;
   final String remoteDir;
   final String remoteFileName;
-  late final String remotePath = p.join(remoteDir, remoteFileName);
+  late final String remotePath = p.posix.join(remoteDir, remoteFileName);
 
   WebDAV._(this.client, this.remoteDir, this.remoteFileName);
 
   static Future<WebDAV> connect(String url, String user, String password, {
-    String remoteDir = '/ReceiptFoldSync',
+    String remoteDir = 'ReceiptFoldSync',
     String remoteFileName = 'drift.sqlite.gz',
   }) async {
-    // if (url.isEmpty) throw Exception('WebDAV.init: url cannot be empty.');
-    final client = webdav.newClient(url, user: user, password: password);
-    client.setHeaders({'content-type': 'application/octet-stream'});
-    await client.ping();
-    try {
-      await client.mkdirAll(remoteDir);
-    } catch (e) {
-      LogService('client.mkdirAll($remoteDir)', errorObject: e, classType: WebDAV).t();
-    }
-    return WebDAV._(client, remoteDir, remoteFileName);
+    final WebDAV self = WebDAV._(webdav.newClient(url, user: user, password: password), remoteDir, remoteFileName);
+    self.client.setHeaders({'content-type': 'application/octet-stream'});
+    await self.client.ping();
+    await self.client.mkdirAll(remoteDir);
+    return self;
   }
 
   /// [converter] 可以傳入 [gzip.decoder] 來壓縮, 或是傳入 [gzip.encoder] 解壓縮.
@@ -266,7 +262,7 @@ class WebDAV {
     final Directory tempDir = await getTemporaryDirectory();
     final File downloadFile = File(p.join(tempDir.path, 'WebDAV_download_$_timestamp.temp'));
     try {
-      await client.read2File(remotePath, downloadFile.path);
+      await client.read2File(remoteFile.path!, downloadFile.path);
       return await (fileTransform ?? (file) => convertFile(file, gzip.decoder))(downloadFile);
     } finally {
       if (await downloadFile.exists()) await downloadFile.delete();

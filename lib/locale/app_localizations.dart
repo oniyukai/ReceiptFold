@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/map_en.dart';
 import 'package:receipt_fold/locale/map_ja.dart';
-import 'package:receipt_fold/locale/map_zh_hans.dart';
 import 'package:receipt_fold/locale/map_zh_hant.dart';
 import 'package:watashi_locale/dictionary_delegate.dart';
 
@@ -10,7 +9,6 @@ enum LocaleOption {
   sys(null, []),
   en(Locale('en'), [mapEn, mapZhHant]),
   ja(Locale('ja'), [mapJa, mapZhHant]),
-  zhHans(Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans', countryCode: 'CN'), [mapZhHans, mapZhHant]),
   zhHant(Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant', countryCode: 'TW'), [mapZhHant]);
 
   final Locale? _locale;
@@ -24,7 +22,6 @@ enum LocaleOption {
     sys: DictKey.preferencesDefault.s,
     en: StaticString.localeLanguageEn,
     ja: StaticString.localeLanguageJa,
-    zhHans: StaticString.localeLanguageZhHans,
     zhHant: StaticString.localeLanguageZhHant,
   };
 
