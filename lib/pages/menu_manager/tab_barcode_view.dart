@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
-import 'package:receipt_fold/entity/drift/drift_database.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_member_view.dart';

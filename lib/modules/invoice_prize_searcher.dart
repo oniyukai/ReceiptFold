@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';
 import 'package:receipt_fold/common/utils.dart';
-import 'package:receipt_fold/entity/drift/drift_database.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/entity/invoice_period.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:flutter/material.dart' as material;

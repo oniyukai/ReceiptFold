@@ -104,13 +104,13 @@ enum KVStoreKey {
 class KeyValueStoreDao extends SyncableDao {
   KeyValueStoreDao(super.attachedDatabase);
 
-  $KeyValueStoresTable get _table => attachedDatabase.keyValueStores;
+  $KeyValueStoresTable get _stores => attachedDatabase.keyValueStores;
 
   Stream<Map<KVStoreKey, dynamic>> stream(Iterable<KVStoreKey> keys) {
     final keyConverterMap = {
       for (final key in keys) key: key._getConverter(),
     };
-    return (_table.select()
+    return (_stores.select()
       ..where((tbl) => tbl.key.isIn(keyConverterMap.keys.map((k) => k.name).toSet()))
       ..orderBy([(tbl) => OrderingTerm(expression: tbl.key)])
     )
@@ -129,7 +129,7 @@ class KeyValueStoreDao extends SyncableDao {
   }
 
   Future<R?> get<R>(KVStoreKey key) async {
-    final KeyValueStore? row = await (_table.select()
+    final KeyValueStore? row = await (_stores.select()
       ..where((tbl) => tbl.key.equals(key.name))
     ).getSingleOrNull();
     final KVConverter<R> converter = key._getConverter<R>();
@@ -144,7 +144,7 @@ class KeyValueStoreDao extends SyncableDao {
 
   /// 如果設定 [value] 為 null 預期會變成預設值, 這代表要設定跟隨預設, 如果要執行還原預設請參照 [deleteRow]
   Future<int> upsert<R>(KVStoreKey key, R? value) {
-    return _table.insertOnConflictUpdate(
+    return _stores.insertOnConflictUpdate(
       KeyValueStoresCompanion.insert(
         key: key.name,
         value: Value(key._getConverter().toS(value)),
@@ -153,17 +153,17 @@ class KeyValueStoreDao extends SyncableDao {
     );
   }
 
-  Future<int> deleteRow(KVStoreKey key) => _table.deleteWhere((tbl) => tbl.key.equals(key.name));
+  Future<int> deleteRow(KVStoreKey key) => _stores.deleteWhere((tbl) => tbl.key.equals(key.name));
 
   @override
   Future<void> selfTidy() {
     final Set<String> knownKeys = KVStoreKey.values.map((e) => e.name).toSet();
-    return _table.deleteWhere((tbl) => tbl.key.isNotIn(knownKeys));
+    return _stores.deleteWhere((tbl) => tbl.key.isNotIn(knownKeys));
   }
 
   @override
   Future<void> mergeFrom(MyDriftDatabase otherDb) async {
-    final List<KeyValueStore> rows = await _table.select().get();
+    final List<KeyValueStore> rows = await _stores.select().get();
     final Map<String, KeyValueStore> rowsMap = {
       for (final KeyValueStore row in rows)
         row.key: row,
@@ -178,7 +178,7 @@ class KeyValueStoreDao extends SyncableDao {
     ).get();
     await batch((batch) {
       batch.insertAll(
-        _table,
+        _stores,
         otherRows.where((otherRow) {
           final KeyValueStore? row = rowsMap[otherRow.key];
           return row == null || otherRow.modified.isAfter(row.modified);

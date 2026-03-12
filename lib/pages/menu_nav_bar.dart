@@ -93,7 +93,7 @@ class _MenuNavBarState extends State<MenuNavBar> {
       selectedIndex: state.currentIndex,
       onDestinationSelected: state.updateIndex,
       labelType: .all,
-      groupAlignment: 1.0,
+      groupAlignment: 0.0,
       destinations: [
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.article),
