@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/app_theme.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
-import 'package:receipt_fold/modules/ob_services.dart';
 import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/app_localizations.dart';
@@ -16,9 +15,9 @@ import 'package:watashi_locale/watashi_locale.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setEnabledSystemUIMode(.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(MyAppTheme.systemOverlayStyle);
-  await Future.wait([PrefsProvider.init(), OBServices.init()]);
+  await Future.wait([PrefsProvider.init()]);
   runApp(
     MultiProvider(
       providers: [

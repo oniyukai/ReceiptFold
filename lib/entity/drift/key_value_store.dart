@@ -83,7 +83,7 @@ enum KVStoreKey {
   memberBarcodeList,
   invoiceWinningNumberList;
 
-  static final Map<KVStoreKey, KVConverter> _converterCache = {};
+  static final _converterCache = <KVStoreKey, KVConverter>{};
 
   KVConverter<R> _getConverter<R>() => _converterCache.putIfAbsent(this, () {
     final converter = switch (this) {
@@ -107,21 +107,20 @@ class KeyValueStoreDao extends SyncableDao {
   $KeyValueStoresTable get _stores => attachedDatabase.keyValueStores;
 
   Stream<Map<KVStoreKey, dynamic>> stream(Iterable<KVStoreKey> keys) {
-    final keyConverterMap = {
-      for (final key in keys) key: key._getConverter(),
-    };
+    final keyConverterMap = Map.fromEntries(keys.map((key) => MapEntry(key, key._getConverter())));
+    final keyNames = keyConverterMap.keys.map((key) => key.name);
     return (_stores.select()
-      ..where((tbl) => tbl.key.isIn(keyConverterMap.keys.map((k) => k.name).toSet()))
+      ..where((tbl) => tbl.key.isIn(keyNames))
       ..orderBy([(tbl) => OrderingTerm(expression: tbl.key)])
     )
         .watch()
         .distinct(const ListEquality().equals)
-        .map(((rows) {
-      final Map<KVStoreKey, dynamic> resultMap = {};
-      for (final KeyValueStore row in rows) {
-        final KVStoreKey key = KVStoreKey.values.fromName(row.key)!;
+        .map(((kvStores) {
+      final resultMap = <KVStoreKey, dynamic>{};
+      for (final kvStore in kvStores) {
+        final key = KVStoreKey.values.fromName(kvStore.key)!;
         final converter = keyConverterMap[key]!;
-        resultMap[key] = converter.toR(row.value) ?? converter.defaultValue;
+        resultMap[key] = converter.toR(kvStore.value) ?? converter.defaultValue;
       }
       keyConverterMap.forEach((key, converter) => resultMap[key] ??= converter.defaultValue);
       return resultMap;
@@ -129,62 +128,59 @@ class KeyValueStoreDao extends SyncableDao {
   }
 
   Future<R?> get<R>(KVStoreKey key) async {
-    final KeyValueStore? row = await (_stores.select()
+    final kvStore = await (_stores.select()
       ..where((tbl) => tbl.key.equals(key.name))
     ).getSingleOrNull();
-    final KVConverter<R> converter = key._getConverter<R>();
-    return converter.toR(row?.value) ?? converter.defaultValue;
+    final converter = key._getConverter<R>();
+    return converter.toR(kvStore?.value) ?? converter.defaultValue;
   }
 
   Future<R> getExistDefault<R>(KVStoreKey key) async {
-    final R? value = await get<R>(key);
+    final value = await get<R>(key);
     assert(value != null, '$key.${key._getConverter<R>()}.defaultValue cannot be null.');
     return value!;
   }
 
   /// 如果設定 [value] 為 null 預期會變成預設值, 這代表要設定跟隨預設, 如果要執行還原預設請參照 [deleteRow]
-  Future<int> upsert<R>(KVStoreKey key, R? value) {
-    return _stores.insertOnConflictUpdate(
-      KeyValueStoresCompanion.insert(
-        key: key.name,
-        value: Value(key._getConverter().toS(value)),
-        modified: Value(.now()),
-      ),
-    );
+  Future<void> upsert<R>(KVStoreKey key, R? value) {
+    return transaction(() async {
+      await _stores.insertOnConflictUpdate(
+        KeyValueStoresCompanion.insert(
+          key: key.name,
+          value: Value(key._getConverter().toS(value)),
+          modified: Value(.now()),
+        ),
+      );
+    });
   }
 
-  Future<int> deleteRow(KVStoreKey key) => _stores.deleteWhere((tbl) => tbl.key.equals(key.name));
+  Future<int> deleteRow(KVStoreKey key) => transaction(() => _stores.deleteWhere((tbl) => tbl.key.equals(key.name)));
 
   @override
   Future<void> selfTidy() {
-    final Set<String> knownKeys = KVStoreKey.values.map((e) => e.name).toSet();
+    final knownKeys = KVStoreKey.values.map((e) => e.name);
     return _stores.deleteWhere((tbl) => tbl.key.isNotIn(knownKeys));
   }
 
   @override
   Future<void> mergeFrom(MyDriftDatabase otherDb) async {
-    final List<KeyValueStore> rows = await _stores.select().get();
-    final Map<String, KeyValueStore> rowsMap = {
-      for (final KeyValueStore row in rows)
-        row.key: row,
-    };
-    final Set<String> allowUpdateKeys = {
-      ...rowsMap.keys,
+    final keyModifiedMap = Map.fromEntries(await (_stores.selectOnly()
+      ..addColumns([_stores.key, _stores.modified])
+    ).map((row) => MapEntry(row.read(_stores.key)!, row.read(_stores.modified)!))
+        .get());
+    final allowUpdateKeys = <String>{
+      ...keyModifiedMap.keys,
       ...KVStoreKey.values.map((e) => e.name),
     };
     if (allowUpdateKeys.isEmpty) return;
-    final List<KeyValueStore> otherRows = await (otherDb.keyValueStores.select()
-      ..where((tbl) => tbl.key.isIn(allowUpdateKeys))
-    ).get();
+    final otherKVStores = await Future.wait(allowUpdateKeys.slices(chunkSize)
+        .map((chunk) => (otherDb.keyValueStores.select()..where((tbl) => tbl.key.isIn(chunk))).get())
+    ).then((value) => value.expand((e) => e));
     await batch((batch) {
-      batch.insertAll(
-        _stores,
-        otherRows.where((otherRow) {
-          final KeyValueStore? row = rowsMap[otherRow.key];
-          return row == null || otherRow.modified.isAfter(row.modified);
-        }),
-        mode: .insertOrReplace,
-      );
+      batch.insertAllOnConflictUpdate(_stores, otherKVStores.where((otherKVStore) {
+        final modified = keyModifiedMap[otherKVStore.key];
+        return modified == null || otherKVStore.modified.isAfter(dateTimeConverter.toR(modified));
+      }));
     });
   }
 }

@@ -57,7 +57,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
             Navigator.pop(context);
             _args!.items.removeAt(_args.index);
             await DriftServices.appDb.keyValueStoreDao.upsert(.memberBarcodeList, _args.items);
-            await updataHomeScreenMember();
+            await updateHomeScreenMember();
           },
         ),
       ],
@@ -89,7 +89,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
       items = _args.items;
     }
     await DriftServices.appDb.keyValueStoreDao.upsert(.memberBarcodeList, items);
-    await updataHomeScreenMember();
+    await updateHomeScreenMember();
   }
 
   @override

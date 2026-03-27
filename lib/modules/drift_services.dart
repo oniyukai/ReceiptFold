@@ -9,7 +9,9 @@ import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:path/path.dart' as p;
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
-/// 請確定 [Upload].call([File]) 過程如果不穩定斷連能夠不覆蓋到正常還沒被取代掉的目的地,  [File] 不要手動刪除.
+/// 請確定 [Upload].call([File]) 過程如果不穩定斷連能夠不覆蓋到正常還沒被取代掉的目的地.
+///
+/// 傳入的 [File] 實作時不要手動刪除.
 typedef Upload = Future<bool> Function(File);
 
 /// 請確定 [Download].call() 的 [File] 能夠被刪除的暫存檔, 直接給原檔路徑會被刪.

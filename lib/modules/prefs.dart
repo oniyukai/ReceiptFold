@@ -49,7 +49,7 @@ enum PrefsEnum {
   isAutoWebDAVSync,
   ;
 
-  static final Map<PrefsEnum, PrefDef> _prefDefCache = {};
+  static final _prefDefCache = <PrefsEnum, PrefDef>{};
 
   PrefDef get _getPrefDef => _prefDefCache.putIfAbsent(this, () {
     final prefDef = switch (this) {
@@ -88,7 +88,7 @@ enum PrefsEnum {
   /// 不依賴BuildContext, 不即時請謹慎使用
   T get<T>() {
     final prefDef = _getPrefDef;
-    final Object? fromSTO = PrefsProvider._instance.get(name);
+    final fromSTO = PrefsProvider._instance.get(name);
     if (prefDef.isSTO(fromSTO) && fromSTO != null) return prefDef.toRUN(fromSTO) as T;
     return prefDef.defaultValue as T;
   }
@@ -117,12 +117,12 @@ class PrefsProvider extends ChangeNotifier {
     );
   }
 
-  final Map<PrefsEnum, OneNotifier<Object>> _prefsNotifierMap = {};
+  final _prefsNotifierMap = <PrefsEnum, OneNotifier<Object>>{};
 
   PrefsProvider() {
-    for (final PrefsEnum key in PrefsEnum.values) {
+    for (final key in PrefsEnum.values) {
       final prefDef = key._getPrefDef;
-      final Object? fromSTO = _instance.get(key.name);
+      final fromSTO = _instance.get(key.name);
       _prefsNotifierMap[key] = prefDef.isSTO(fromSTO) && fromSTO != null
           ? OneNotifier(prefDef.toRUN(fromSTO))
           : OneNotifier(prefDef.defaultValue);
@@ -135,13 +135,13 @@ class PrefsProvider extends ChangeNotifier {
 
   /// 依賴BuildContext
   T get<T>(PrefsEnum key) {
-    final Object value = _prefsNotifierMap[key]!.value;
+    final value = _prefsNotifierMap[key]!.value;
     assert(key._getPrefDef.isRUN(value));
     return value as T;
   }
 
   Future<void> update(PrefsEnum key, Object value, [bool notify = true]) async {
-    final Object fromSTO = key._getPrefDef.toSTO(value);
+    final fromSTO = key._getPrefDef.toSTO(value);
     if (fromSTO is bool) {
       await _instance.setBool(key.name, fromSTO);
     } else if (fromSTO is int) {

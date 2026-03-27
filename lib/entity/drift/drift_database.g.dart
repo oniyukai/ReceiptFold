@@ -289,7 +289,7 @@ class $ReceiptsTable extends Receipts with TableInfo<$ReceiptsTable, Receipt> {
     additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 36),
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => globalUuidV7.generate(),
+    clientDefault: () => UuidMixin.v7.generate(),
   );
   @override
   late final GeneratedColumnWithTypeConverter<OriginStatus, int> originStatus =
@@ -1475,7 +1475,7 @@ class $ReceiptProductsTable extends ReceiptProducts
     additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 36),
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => globalUuidV7.generate(),
+    clientDefault: () => UuidMixin.v7.generate(),
   );
   static const VerificationMeta _receiptUuidMeta = const VerificationMeta(
     'receiptUuid',
@@ -1981,6 +1981,16 @@ class $DeletedUuidsTable extends DeletedUuids
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $DeletedUuidsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, int> modified =
+      GeneratedColumn<int>(
+        'modified',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        clientDefault: () => UnitUtils.nowUnixTime,
+      ).withConverter<DateTime>($DeletedUuidsTable.$convertermodified);
   static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
   @override
   late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
@@ -1992,7 +2002,7 @@ class $DeletedUuidsTable extends DeletedUuids
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [uuid];
+  List<GeneratedColumn> get $columns => [modified, uuid];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2022,6 +2032,12 @@ class $DeletedUuidsTable extends DeletedUuids
   DeletedUuid map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return DeletedUuid(
+      modified: $DeletedUuidsTable.$convertermodified.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}modified'],
+        )!,
+      ),
       uuid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}uuid'],
@@ -2033,20 +2049,28 @@ class $DeletedUuidsTable extends DeletedUuids
   $DeletedUuidsTable createAlias(String alias) {
     return $DeletedUuidsTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<DateTime, int> $convertermodified = dateTimeConverter;
 }
 
 class DeletedUuid extends DataClass implements Insertable<DeletedUuid> {
+  final DateTime modified;
   final String uuid;
-  const DeletedUuid({required this.uuid});
+  const DeletedUuid({required this.modified, required this.uuid});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['modified'] = Variable<int>(
+        $DeletedUuidsTable.$convertermodified.toSql(modified),
+      );
+    }
     map['uuid'] = Variable<String>(uuid);
     return map;
   }
 
   DeletedUuidsCompanion toCompanion(bool nullToAbsent) {
-    return DeletedUuidsCompanion(uuid: Value(uuid));
+    return DeletedUuidsCompanion(modified: Value(modified), uuid: Value(uuid));
   }
 
   factory DeletedUuid.fromJson(
@@ -2054,58 +2078,81 @@ class DeletedUuid extends DataClass implements Insertable<DeletedUuid> {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return DeletedUuid(uuid: serializer.fromJson<String>(json['uuid']));
+    return DeletedUuid(
+      modified: serializer.fromJson<DateTime>(json['modified']),
+      uuid: serializer.fromJson<String>(json['uuid']),
+    );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{'uuid': serializer.toJson<String>(uuid)};
+    return <String, dynamic>{
+      'modified': serializer.toJson<DateTime>(modified),
+      'uuid': serializer.toJson<String>(uuid),
+    };
   }
 
-  DeletedUuid copyWith({String? uuid}) => DeletedUuid(uuid: uuid ?? this.uuid);
+  DeletedUuid copyWith({DateTime? modified, String? uuid}) =>
+      DeletedUuid(modified: modified ?? this.modified, uuid: uuid ?? this.uuid);
   DeletedUuid copyWithCompanion(DeletedUuidsCompanion data) {
-    return DeletedUuid(uuid: data.uuid.present ? data.uuid.value : this.uuid);
+    return DeletedUuid(
+      modified: data.modified.present ? data.modified.value : this.modified,
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+    );
   }
 
   @override
   String toString() {
     return (StringBuffer('DeletedUuid(')
+          ..write('modified: $modified, ')
           ..write('uuid: $uuid')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => uuid.hashCode;
+  int get hashCode => Object.hash(modified, uuid);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is DeletedUuid && other.uuid == this.uuid);
+      (other is DeletedUuid &&
+          other.modified == this.modified &&
+          other.uuid == this.uuid);
 }
 
 class DeletedUuidsCompanion extends UpdateCompanion<DeletedUuid> {
+  final Value<DateTime> modified;
   final Value<String> uuid;
   final Value<int> rowid;
   const DeletedUuidsCompanion({
+    this.modified = const Value.absent(),
     this.uuid = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DeletedUuidsCompanion.insert({
+    this.modified = const Value.absent(),
     required String uuid,
     this.rowid = const Value.absent(),
   }) : uuid = Value(uuid);
   static Insertable<DeletedUuid> custom({
+    Expression<int>? modified,
     Expression<String>? uuid,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (modified != null) 'modified': modified,
       if (uuid != null) 'uuid': uuid,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  DeletedUuidsCompanion copyWith({Value<String>? uuid, Value<int>? rowid}) {
+  DeletedUuidsCompanion copyWith({
+    Value<DateTime>? modified,
+    Value<String>? uuid,
+    Value<int>? rowid,
+  }) {
     return DeletedUuidsCompanion(
+      modified: modified ?? this.modified,
       uuid: uuid ?? this.uuid,
       rowid: rowid ?? this.rowid,
     );
@@ -2114,6 +2161,11 @@ class DeletedUuidsCompanion extends UpdateCompanion<DeletedUuid> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (modified.present) {
+      map['modified'] = Variable<int>(
+        $DeletedUuidsTable.$convertermodified.toSql(modified.value),
+      );
+    }
     if (uuid.present) {
       map['uuid'] = Variable<String>(uuid.value);
     }
@@ -2126,6 +2178,7 @@ class DeletedUuidsCompanion extends UpdateCompanion<DeletedUuid> {
   @override
   String toString() {
     return (StringBuffer('DeletedUuidsCompanion(')
+          ..write('modified: $modified, ')
           ..write('uuid: $uuid, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -3355,9 +3408,17 @@ typedef $$ReceiptProductsTableProcessedTableManager =
       PrefetchHooks Function({bool receiptUuid})
     >;
 typedef $$DeletedUuidsTableCreateCompanionBuilder =
-    DeletedUuidsCompanion Function({required String uuid, Value<int> rowid});
+    DeletedUuidsCompanion Function({
+      Value<DateTime> modified,
+      required String uuid,
+      Value<int> rowid,
+    });
 typedef $$DeletedUuidsTableUpdateCompanionBuilder =
-    DeletedUuidsCompanion Function({Value<String> uuid, Value<int> rowid});
+    DeletedUuidsCompanion Function({
+      Value<DateTime> modified,
+      Value<String> uuid,
+      Value<int> rowid,
+    });
 
 class $$DeletedUuidsTableFilterComposer
     extends Composer<_$MyDriftDatabase, $DeletedUuidsTable> {
@@ -3368,6 +3429,12 @@ class $$DeletedUuidsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<DateTime, DateTime, int> get modified =>
+      $composableBuilder(
+        column: $table.modified,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
   ColumnFilters<String> get uuid => $composableBuilder(
     column: $table.uuid,
     builder: (column) => ColumnFilters(column),
@@ -3383,6 +3450,11 @@ class $$DeletedUuidsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<int> get modified => $composableBuilder(
+    column: $table.modified,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get uuid => $composableBuilder(
     column: $table.uuid,
     builder: (column) => ColumnOrderings(column),
@@ -3398,6 +3470,9 @@ class $$DeletedUuidsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<DateTime, int> get modified =>
+      $composableBuilder(column: $table.modified, builder: (column) => column);
+
   GeneratedColumn<String> get uuid =>
       $composableBuilder(column: $table.uuid, builder: (column) => column);
 }
@@ -3435,14 +3510,24 @@ class $$DeletedUuidsTableTableManager
               $$DeletedUuidsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<DateTime> modified = const Value.absent(),
                 Value<String> uuid = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => DeletedUuidsCompanion(uuid: uuid, rowid: rowid),
+              }) => DeletedUuidsCompanion(
+                modified: modified,
+                uuid: uuid,
+                rowid: rowid,
+              ),
           createCompanionCallback:
               ({
+                Value<DateTime> modified = const Value.absent(),
                 required String uuid,
                 Value<int> rowid = const Value.absent(),
-              }) => DeletedUuidsCompanion.insert(uuid: uuid, rowid: rowid),
+              }) => DeletedUuidsCompanion.insert(
+                modified: modified,
+                uuid: uuid,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),

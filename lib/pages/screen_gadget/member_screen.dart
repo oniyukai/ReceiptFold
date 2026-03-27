@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
@@ -12,7 +13,8 @@ const String _homeWidgetMemberItemIndex = 'HomeWidgetMemberItemIndex';
 const String _homeWidgetMemberItemLength = 'HomeWidgetMemberItemLength';
 const int _maxItemLength = 6;
 
-Future<void> updataHomeScreenMember() async {
+Future<void> updateHomeScreenMember() async {
+  if (!Platform.isAndroid && !Platform.isIOS) return;
   final List<MemberBarcodeItem> memberItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.memberBarcodeList);
   final itemLength = min(memberItems.length, _maxItemLength);
   await HomeWidget.saveWidgetData<int>(_homeWidgetMemberItemLength, itemLength);

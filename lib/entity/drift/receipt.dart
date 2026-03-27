@@ -4,11 +4,11 @@ import 'package:receipt_fold/entity/drift/drift_database.dart';
 
 enum OriginStatus {
   platformUnconfirmed(16),
-  platformConfirmed(32), // 已确认 或 無效
-  platformInvalidated(48), // 已确认 或 無效
-  platformDonated(64), //  // 已确认 或 且捐贈
-  platformConfirmedNotDonated(80), // 已确认且不捐贈後 已開獎
-  platformExpired(96), // 兌換期已過 可能還能查到雲端但已經不重要了
+  platformConfirmed(32),
+  platformInvalidated(48),
+  platformDonated(64),
+  platformConfirmedNotDonated(80),
+  platformExpired(96),
   manualScan(112),
   manualEntry(128);
 
@@ -16,12 +16,22 @@ enum OriginStatus {
 
   const OriginStatus(this.sqlValue);
 
+  String get locale => switch (this) {
+    .platformUnconfirmed => '平台 未確認',
+    .platformConfirmed => '平台 確認有效',
+    .platformInvalidated => '平台 確認無效',
+    .platformDonated => '平台 確認捐贈',
+    .platformConfirmedNotDonated => '平台 有效已開獎',
+    .platformExpired => '平台 過期', // todo: 考慮更改這個
+    .manualScan => '本地 掃描',
+    .manualEntry => '本地 手動',
+  };
+
+  static final List<OriginStatus> _sorted = values.toList()..sort((a, b) => a.sqlValue.compareTo(b.sqlValue));
+
   static final converter = BasicTypeConverter<OriginStatus, int>(
     toS: (fromR) => fromR.sqlValue,
-    toR: (fromS) {
-      final List<OriginStatus> sorted = values.toList()..sort((a, b) => a.sqlValue.compareTo(b.sqlValue));
-      return sorted.firstWhereOrNull((status) => status.sqlValue >= fromS) ?? sorted.last;
-    },
+    toR: (fromS) => _sorted.firstWhereOrNull((status) => status.sqlValue >= fromS) ?? _sorted.last,
   );
 }
 
@@ -67,7 +77,7 @@ class ReceiptProducts extends Table with ModifiedMixin, UuidMixin {
 }
 
 /// 所有被刪除row的 [Receipts], [ReceiptProducts] 的 [uuid] 都要被登記進來
-class DeletedUuids extends Table {
+class DeletedUuids extends Table with ModifiedMixin {
   late final uuid = text().withLength(max: 36)();
 
   @override
@@ -81,14 +91,244 @@ class ReceiptDao extends SyncableDao {
   $ReceiptProductsTable get _products => attachedDatabase.receiptProducts;
   $DeletedUuidsTable get _deletedUuids => attachedDatabase.deletedUuids;
 
+  Stream<Map<Receipt, List<ReceiptProduct>>> queryStream({
+    DateTime? issuedStart,
+    DateTime? issuedEnd,
+    OrderingMode order = .asc,})
+  {
+    final statement = _receipts.select().join([
+      leftOuterJoin(_products, _products.receiptUuid.equalsExp(_receipts.uuid)),
+    ]);
+    if (issuedStart != null) {
+      statement.where(_receipts.issuedAt.isBiggerOrEqualValue(dateTimeConverter.toS(issuedStart)));
+    }
+    if (issuedEnd != null) {
+      statement.where(_receipts.issuedAt.isSmallerOrEqualValue(dateTimeConverter.toS(issuedEnd)));
+    }
+    statement.orderBy([
+      OrderingTerm(expression: _receipts.issuedAt, mode: order),
+      OrderingTerm(expression: _receipts.uuid, mode: order),
+      // 產品按照List index順序
+      OrderingTerm(expression: _products.sequence, mode: OrderingMode.asc),
+      OrderingTerm(expression: _products.uuid, mode: OrderingMode.asc),
+    ]);
+
+    return statement.watch().map((rows) {
+      final groupedData = <Receipt, List<ReceiptProduct>>{};
+      for (final row in rows) {
+        final receipt = row.readTable(_receipts);
+        final product = row.readTableOrNull(_products);
+        final productList = groupedData.putIfAbsent(receipt, () => []);
+        if (product != null) productList.add(product);
+      }
+      return groupedData;
+    }).distinct(const DeepCollectionEquality().equals);
+  }
+
+  /// [products] 之中的 sequence 與 totalAmount 會被忽略並自動處理
+  Future<Receipt> upsert(Receipt receipt, List<ReceiptProduct> products) async {
+    final oldReceipt = (_receipts.select()
+      ..where((tbl) => tbl.uuid.equals(receipt.uuid))
+    ).getSingleOrNull();
+    final oldProducts = (_products.select()
+      ..where((tbl) => tbl.receiptUuid.equals(receipt.uuid))
+    ).get();
+    final productUuids = products.map((e) => e.uuid).toSet();
+    final oldProductMap = Map.fromEntries((await oldProducts).map((old) => MapEntry(old.uuid, old)));
+    final productDelUuids = oldProductMap.keys.whereNot((id) => productUuids.contains(id)).toList();
+
+    bool isReceiptModified = await oldReceipt != receipt;
+    double totalAmount = 0.0;
+    for (int i = 0; i < products.length; i += 1) {
+      ReceiptProduct product = products[i];
+      product = product.copyWith(
+        receiptUuid: receipt.uuid,
+        sequence: i + 1,
+        amount: product.unitPrice * product.quantity,
+      );
+      totalAmount += product.amount;
+      final isProductModified = oldProductMap[product.uuid] != product;
+      if (isProductModified) isReceiptModified = true;
+      products[i] = product.copyWith(modified: isProductModified ? .now() : null);
+    }
+    receipt = receipt.copyWith(
+      modified: isReceiptModified ? .now() : null,
+      totalAmount: totalAmount,
+    );
+
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(_deletedUuids, productDelUuids.map((id) => DeletedUuidsCompanion.insert(uuid: id)));
+      productDelUuids.slices(chunkSize).forEach((chunk) => batch.deleteWhere(_products, (tbl) => tbl.uuid.isIn(chunk)));
+      batch.insertAllOnConflictUpdate(_receipts, [receipt]);
+      batch.insertAllOnConflictUpdate(_products, products);
+    });
+    return receipt;
+  }
+
+  Future<void> remove(Receipt receipt) async {
+    final uuidsInsertDeleted = <String>[
+      receipt.uuid,
+      ...await (_products.selectOnly()
+        ..addColumns([_products.uuid])
+        ..where(_products.receiptUuid.equals(receipt.uuid))
+      ).map((row) => row.read(_products.uuid)!)
+          .get()
+    ];
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(_deletedUuids, uuidsInsertDeleted.map((id) => DeletedUuidsCompanion.insert(uuid: id)));
+      batch.deleteWhere(_products, (tbl) => tbl.receiptUuid.equals(receipt.uuid));
+      batch.deleteWhere(_receipts, (tbl) => tbl.uuid.equals(receipt.uuid));
+    });
+  }
+
   @override
-  Future<void> selfTidy() {
-    // TODO: implement selfTidy
-    return super.selfTidy();
+  Future<void> selfTidy() async {
+    final deletedUuidsQuery = _deletedUuids.selectOnly()..addColumns([_deletedUuids.uuid]);
+
+    // 找尋來自雲端但是時間與號碼相同的 舊receiptUuid
+    final platformDupReceiptIdsQuery = _receipts.selectOnly()
+      ..addColumns([_receipts.uuid])
+      ..where(
+        _receipts.invoiceNumber.isNotNull() &
+        _receipts.originStatus.isSmallerOrEqualValue(OriginStatus.platformExpired.sqlValue) &
+        existsQuery(
+          _receipts.select()
+            ..where((tbl) => (
+                tbl.invoiceNumber.equalsExp(_receipts.invoiceNumber) &
+                tbl.issuedAt.equalsExp(_receipts.issuedAt)
+            ))
+            ..where((tbl) => ( // 篩選出modified不是最大, 都是最大則篩選建構時間不是最新
+                tbl.modified.isBiggerThan(_receipts.modified) |
+                (tbl.modified.equalsExp(_receipts.modified) & tbl.uuid.isBiggerThan(_receipts.uuid))
+            )),
+        ),
+      );
+
+    final productAddToDeletedIds = (_products.selectOnly()
+      ..addColumns([_products.uuid])
+      ..where(_products.uuid.isNotInQuery(deletedUuidsQuery))
+      ..where(_products.receiptUuid.isInQuery(deletedUuidsQuery) | _products.receiptUuid.isInQuery(platformDupReceiptIdsQuery))
+    ).map((row) => row.read(_products.uuid)!)
+        .get();
+    final platformDupReceiptIds = platformDupReceiptIdsQuery.map((row) => row.read(_receipts.uuid)!).get();
+
+    // 清理待刪除與應刪除項目
+    await batch((batch) async {
+      batch.insertAllOnConflictUpdate(
+        _deletedUuids,
+        {...await productAddToDeletedIds, ...await platformDupReceiptIds,}
+            .map((id) => DeletedUuidsCompanion.insert(uuid: id)),
+      );
+      batch.deleteWhere(_products, (tbl) => (
+          tbl.uuid.isInQuery(deletedUuidsQuery) |
+          tbl.receiptUuid.isInQuery(deletedUuidsQuery) |
+          tbl.receiptUuid.isNotInQuery(_receipts.selectOnly()..addColumns([_receipts.uuid])) // 清除不在delIds的孤兒
+      ));
+      batch.deleteWhere(_receipts, (tbl) => tbl.uuid.isInQuery(deletedUuidsQuery));
+    });
+
+    // 重新計算總和
+    final productAmounts = await (_products.selectOnly()
+      ..addColumns([_products.receiptUuid, _products.amount])
+    ).map((row) => (
+    receiptUuid: row.read(_products.receiptUuid)!,
+    amount: row.read(_products.amount)!,))
+        .get();
+    final receiptTotalMap = <String, double>{};
+    for (final productAmount in productAmounts) {
+      receiptTotalMap[productAmount.receiptUuid] = productAmount.amount + (receiptTotalMap[productAmount.receiptUuid] ?? 0.0);
+    }
+    await batch((batch) {
+      batch.update(
+        _receipts,
+        const ReceiptsCompanion(totalAmount: Value(0.0)),
+        where: (tbl) => (
+            tbl.totalAmount.isNotValue(0.0) &
+            notExistsQuery(_products.select()..where((productTbl) => productTbl.receiptUuid.equalsExp(tbl.uuid)))
+        ),
+      );
+      for (final entry in receiptTotalMap.entries) {
+        batch.update(
+          _receipts,
+          ReceiptsCompanion(totalAmount: Value(entry.value)),
+          where: (tbl) => tbl.uuid.equals(entry.key) & tbl.totalAmount.isNotValue(entry.value),
+        );
+      }
+    });
   }
 
   @override
   Future<void> mergeFrom(MyDriftDatabase otherDb) async {
-    // TODO: implement mergeFrom
+    final otherDeletedUuidsQuery = otherDb.deletedUuids.selectOnly()..addColumns([otherDb.deletedUuids.uuid]);
+
+    final selfReceiptEntries = (_receipts.selectOnly()
+      ..addColumns([_receipts.uuid, _receipts.modified])
+    ).map((row) => MapEntry(row.read(_receipts.uuid)!, row.read(_receipts.modified)!))
+        .get();
+    final otherReceiptEntries = (otherDb.receipts.selectOnly()
+      ..addColumns([otherDb.receipts.uuid, otherDb.receipts.modified])
+      ..where(otherDb.receipts.uuid.isNotInQuery(otherDeletedUuidsQuery))
+    ).map((row) => (
+    uuid: row.read(otherDb.receipts.uuid)!,
+    modified: row.read(otherDb.receipts.modified)!,))
+        .get();
+
+    final selfProductEntries = (_products.selectOnly()
+      ..addColumns([_products.uuid, _products.modified])
+    ).map((row) => MapEntry(row.read(_products.uuid)!, row.read(_products.modified)!))
+        .get();
+    final otherProductEntries = (otherDb.receiptProducts.selectOnly()
+      ..addColumns([otherDb.receiptProducts.uuid, otherDb.receiptProducts.receiptUuid, otherDb.receiptProducts.modified])
+      ..where(otherDb.receiptProducts.uuid.isNotInQuery(otherDeletedUuidsQuery))
+      ..where(otherDb.receiptProducts.receiptUuid.isNotInQuery(otherDeletedUuidsQuery))
+      ..where(otherDb.receiptProducts.receiptUuid.isInQuery(otherDb.receipts.selectOnly()..addColumns([otherDb.receipts.uuid])))
+    ).map((row) => (
+    uuid: row.read(otherDb.receiptProducts.uuid)!,
+    receiptUuid: row.read(otherDb.receiptProducts.receiptUuid)!,
+    modified: row.read(otherDb.receiptProducts.modified)!,))
+        .get();
+
+    final selfDeletedUuids = (await (_deletedUuids.selectOnly()
+      ..addColumns([_deletedUuids.uuid])
+    ).map((row) => row.read(_deletedUuids.uuid)!)
+        .get()).toSet();
+
+    final selfReceiptMap = Map.fromEntries(await selfReceiptEntries);
+    final otherReceiptUuids = (await otherReceiptEntries).where((other) {
+      if (selfDeletedUuids.contains(other.uuid)) return false;
+      final selfModified = selfReceiptMap[other.uuid];
+      if (selfModified == null) return true;
+      return other.modified > selfModified;
+    }).map((other) => other.uuid);
+
+    final selfProductMap = Map.fromEntries(await selfProductEntries);
+    final otherProductUuids = (await otherProductEntries).where((other) {
+      if (selfDeletedUuids.contains(other.uuid) ||
+          selfDeletedUuids.contains(other.receiptUuid)) {
+        return false;
+      }
+      final selfModified = selfProductMap[other.uuid];
+      if (selfModified == null) return true;
+      return other.modified > selfModified;
+    }).map((other) => other.uuid);
+
+    final inSelfUuids = <String>{...selfReceiptMap.keys, ...selfProductMap.keys};
+    final otherReceipts = Future.wait(otherReceiptUuids.slices(chunkSize)
+        .map((chunk) => (otherDb.receipts.select()..where((tbl) => tbl.uuid.isIn(chunk))).get())
+    ).then((value) => value.expand((e) => e));
+    final otherProducts = Future.wait(otherProductUuids.slices(chunkSize)
+        .map((chunk) => (otherDb.receiptProducts.select()..where((tbl) => tbl.uuid.isIn(chunk))).get())
+    ).then((value) => value.expand((e) => e));
+    final otherDeletedUuids = Future.wait(inSelfUuids.slices(chunkSize)
+        .map((chunk) => (otherDb.deletedUuids.select()..where((tbl) => tbl.uuid.isIn(chunk))).get())
+    ).then((value) => value.expand((e) => e));
+
+    await batch((batch) async {
+      batch.insertAllOnConflictUpdate(_receipts, await otherReceipts);
+      batch.insertAllOnConflictUpdate(_products, await otherProducts);
+      batch.insertAll(_deletedUuids, await otherDeletedUuids, mode: .insertOrIgnore);
+    });
+    await selfTidy();
   }
 }
+

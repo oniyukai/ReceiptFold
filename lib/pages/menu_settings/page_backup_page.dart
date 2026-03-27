@@ -51,6 +51,7 @@ class PageBackupPage extends StatefulWidget {
 
   static Timer? _webDAVConnectSyncTimer;
   static int _lastTimeWebDAVAction = 0;
+  static bool _singleActionLocked = false;
   static final ValueNotifier<WebDAV?> _webDAV = ValueNotifier(null);
 
   static Future<void> connectWebDAV() async {
@@ -69,12 +70,16 @@ class PageBackupPage extends StatefulWidget {
   }
 
   static Future<void> _webDAVAction(_DriftAction action) async {
+    if (_singleActionLocked) {
+      LogService('現在已有其他資料庫操作, 取消執行.', classType: PageBackupPage).d();
+      return;
+    } else if (UnitUtils.nowUnixTime - _lastTimeWebDAVAction <= 2000) {
+      LogService('太過頻繁的 WebDAV 操作, 取消執行.', classType: PageBackupPage).d();
+      return;
+    }
+    _singleActionLocked = true;
     try {
-      if (_webDAV.value == null) throw Exception('WebDAV 尚未被初始化');
-      if (UnitUtils.nowUnixTime - _lastTimeWebDAVAction <= 2000) {
-        LogService('太過頻繁的 WebDAV 操作', classType: PageBackupPage).d();
-        return;
-      }
+      if (_webDAV.value == null) throw Exception('WebDAV 尚未被初始化!');
       _lastTimeWebDAVAction = UnitUtils.nowUnixTime;
       final WebDAV webDAV = _webDAV.value!;
       await switch (action) {
@@ -87,10 +92,17 @@ class PageBackupPage extends StatefulWidget {
       LogService('_webDAVAction finished.', classType: PageBackupPage).d();
     } catch (e) {
       LogService('_webDAVAction failed.', errorObject: e, classType: PageBackupPage).w();
+    } finally {
+      _singleActionLocked = false;
     }
   }
 
   static Future<void> _localAction(_DriftAction action, String filePath) async {
+    if (_singleActionLocked) {
+      LogService('現在已有其他資料庫操作, 取消執行.', classType: PageBackupPage).d();
+      return;
+    }
+    _singleActionLocked = true;
     try {
       Future<bool> upload(file) => DriftServices.uploadLocal(file, filePath);
       Future<File?> download() => DriftServices.downloadLocal(filePath);
@@ -104,6 +116,8 @@ class PageBackupPage extends StatefulWidget {
       LogService('_localAction finished.', classType: PageBackupPage).d();
     } catch (e) {
       LogService('_localAction failed.', errorObject: e, classType: PageBackupPage).w();
+    } finally {
+      _singleActionLocked = false;
     }
   }
 

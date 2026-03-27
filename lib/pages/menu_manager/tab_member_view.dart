@@ -57,7 +57,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     itemBuilder: (item) => _MemberItemCard(item: item),
     saveOnTap: (items) async {
       await DriftServices.appDb.keyValueStoreDao.upsert(.memberBarcodeList, items);
-      await updataHomeScreenMember();
+      await updateHomeScreenMember();
     }
   );
 
@@ -71,7 +71,7 @@ class _TabMemberViewState extends State<TabMemberView> {
         onPressed: () async {
           Navigator.pop(context);
           await DriftServices.appDb.keyValueStoreDao.upsert(.memberBarcodeList, null);
-          await updataHomeScreenMember();
+          await updateHomeScreenMember();
           setState(() {});
         },
       ),

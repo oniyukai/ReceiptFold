@@ -9,6 +9,9 @@ import 'package:uuid/v7.dart';
 
 part 'drift_database.g.dart';
 
+/// 給分批查詢 isIn 用的
+const int chunkSize = 900;
+
 class BasicTypeConverter<R, S> extends TypeConverter<R, S> {
   final S Function(R fromR) _toS;
   final R Function(S fromS) _toR;
@@ -33,18 +36,22 @@ mixin ModifiedMixin on Table {
   late final modified = integer().clientDefault(() => UnitUtils.nowUnixTime).map(dateTimeConverter)();
 }
 
-const globalUuidV7 = UuidV7();
 mixin UuidMixin on Table {
-  late final uuid = text().clientDefault(() => globalUuidV7.generate()).withLength(max: 36)();
+  static const v7 = UuidV7();
+
+  late final uuid = text().clientDefault(() => UuidMixin.v7.generate()).withLength(max: 36)();
 }
 
 /// 保持一個 [Table] 不出現在另一個 [SyncableDao] 中
 abstract class SyncableDao extends DatabaseAccessor<MyDriftDatabase> {
   SyncableDao(super.attachedDatabase);
 
+  /// 實現不需要另外包 [transaction], 也別手動呼叫
   Future<void> selfTidy() async {}
 
   /// 完成將新內容合併的處理, 如果自身是空庫, 要能夠實現覆蓋結果
+  ///
+  /// 實現不需要另外包 [transaction], 也別手動呼叫
   Future<void> mergeFrom(MyDriftDatabase otherDb);
 }
 

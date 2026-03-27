@@ -4,11 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
+import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/invoice_period.dart';
-import 'package:receipt_fold/entity/objectbox/objectbox.g.dart';
-import 'package:receipt_fold/entity/objectbox/receipt.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/ob_services.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
 import 'package:receipt_fold/pages/widget/my_menu_button.dart';
 
@@ -24,20 +23,19 @@ class MainRecorderView extends StatefulWidget {
 
 class PeriodData {
   final InvoicePeriod period;
-  final List<ReceiptHeader> oddMonthHeaders = [];
-  final List<ReceiptHeader> evenMonthHeaders = [];
-  List<ReceiptHeader> headers = [];
+  final oddMonthReceiptMap = <Receipt, List<ReceiptProduct>>{};
+  final evenMonthReceiptMap = <Receipt, List<ReceiptProduct>>{};
   double oddMonthTotalAmount = 0;
   double evenMonthTotalAmount = 0;
   bool isLoading = true;
-  StreamSubscription<Query<ReceiptHeader>>? _headerSubscription;
+  StreamSubscription<Map<Receipt, List<ReceiptProduct>>>? _receiptSubscription;
 
   double get totalAmount => oddMonthTotalAmount + evenMonthTotalAmount;
 
   PeriodData(this.period);
 
   void dispose() {
-    _headerSubscription?.cancel();
+    _receiptSubscription?.cancel();
   }
 }
 
@@ -87,54 +85,45 @@ class MainRecorderViewModel extends ChangeNotifier {
     }
   }
 
-  PeriodData _loadReceiptsByIndex(int index) {
-    final cachePeriodData = _periodDataCache[index];
-    if (cachePeriodData != null) return cachePeriodData;
-
-    final period = _getInvoicePeriodByIndex(index);
-    final periodData = PeriodData(period);
-    _periodDataCache[index] = periodData;
-    final query = OBServices.receiptDao
-        .headerTimeFilter(
-          period.startDateTime.millisecondsSinceEpoch,
-          period.endDateTime.millisecondsSinceEpoch
-        )
-        .order(ReceiptHeader_.invoiceInstantDate, flags: Order.descending);
-    periodData._headerSubscription = query.watch(triggerImmediately: true).listen((newReceiptsQuery) {
+  PeriodData _loadReceiptsByIndex(int index) => _periodDataCache.putIfAbsent(index, () {
+    final periodData = PeriodData(_getInvoicePeriodByIndex(index));
+    periodData._receiptSubscription = DriftServices.appDb.receiptDao.queryStream(
+      issuedStart: periodData.period.startDateTime,
+      issuedEnd: periodData.period.endDateTime,
+    ).listen((receiptEntries) {
       if (!_periodDataCache.containsKey(index)) {
         periodData.dispose();
         return;
       }
-      periodData.headers = newReceiptsQuery.find();
-      periodData.oddMonthHeaders.clear();
-      periodData.evenMonthHeaders.clear();
+      periodData.oddMonthReceiptMap.clear();
+      periodData.evenMonthReceiptMap.clear();
       periodData.oddMonthTotalAmount = 0;
       periodData.evenMonthTotalAmount = 0;
-      for (final header in periodData.headers) {
-        if (header.invoiceDateTime.month % 2 != 0) {
-          periodData.oddMonthHeaders.add(header);
-          periodData.oddMonthTotalAmount += header.totalAmount;
+      for (final entry in receiptEntries.entries) {
+        if (entry.key.issuedAt.month % 2 != 0) {
+          periodData.oddMonthReceiptMap[entry.key] = entry.value;
+          periodData.oddMonthTotalAmount += entry.key.totalAmount;
         } else {
-          periodData.evenMonthHeaders.add(header);
-          periodData.evenMonthTotalAmount += header.totalAmount;
+          periodData.evenMonthReceiptMap[entry.key] = entry.value;
+          periodData.evenMonthTotalAmount += entry.key.totalAmount;
         }
       }
       periodData.isLoading = false;
       if (index == _currentPageIndex) notifyListeners();
     });
     return periodData;
-  }
+  });
 
   /// 根據 PageView 的索引計算對應的 InvoicePeriod
   InvoicePeriod _getInvoicePeriodByIndex(int index) {
     InvoicePeriod targetPeriod = _todayPeriod;
     final relativeIndex = index - MainRecorderView._initialPageIndex;
     if (relativeIndex > 0) {
-      for (int i = 0; i < relativeIndex; i++) {
+      for (int i = 0; i < relativeIndex; i += 1) {
         targetPeriod = targetPeriod.next;
       }
     } else if (relativeIndex < 0) {
-      for (int i = 0; i > relativeIndex; i--) {
+      for (int i = 0; i > relativeIndex; i -= 1) {
         targetPeriod = targetPeriod.previous;
       }
     }
@@ -242,7 +231,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                           Text(Utils.multilingualFiller(
                             DictKey.recorderPeriodTransactionsAndAmount.s,
                             [
-                              (StaticString.fillObjectNumber, '${periodData.headers.length}'),
+                              (StaticString.fillObjectNumber, '${periodData.oddMonthReceiptMap.length + periodData.evenMonthReceiptMap.length}'),
                               (StaticString.fillObjectAmount, Utils.amountToDescription(periodData.totalAmount))
                             ]
                           )),
@@ -278,13 +267,13 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                           DictKey.recorderMonthTransactionsAndAmount.s,
                                           [
                                             (StaticString.fillObjectMonth, UnitUtils.singleMonthText(periodData.period.endDateTime)),
-                                            (StaticString.fillObjectNumber, '${periodData.evenMonthHeaders.length}'),
+                                            (StaticString.fillObjectNumber, '${periodData.evenMonthReceiptMap.length}'),
                                             (StaticString.fillObjectAmount, Utils.amountToDescription(periodData.evenMonthTotalAmount))
                                           ]
                                         )),
                                       ),
                                     ),
-                                    ...periodData.evenMonthHeaders.map((value) => ReceiptItemTile(header: value)),
+                                    ...periodData.evenMonthReceiptMap.entries.map((e) => ReceiptItemTile(receiptEntry: e)),
                                   ],
                                 ),
                               ),
@@ -298,13 +287,13 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                           DictKey.recorderMonthTransactionsAndAmount.s,
                                           [
                                             (StaticString.fillObjectMonth, UnitUtils.singleMonthText(periodData.period.startDateTime)),
-                                            (StaticString.fillObjectNumber, '${periodData.oddMonthHeaders.length}'),
+                                            (StaticString.fillObjectNumber, '${periodData.oddMonthReceiptMap.length}'),
                                             (StaticString.fillObjectAmount, Utils.amountToDescription(periodData.oddMonthTotalAmount))
                                           ]
                                         )),
                                       ),
                                     ),
-                                    ...periodData.oddMonthHeaders.map((value) => ReceiptItemTile(header: value)),
+                                    ...periodData.oddMonthReceiptMap.entries.map((e) => ReceiptItemTile(receiptEntry: e)),
                                   ],
                                 ),
                               ),
@@ -326,23 +315,23 @@ class _MainRecorderViewState extends State<MainRecorderView> {
 
 
 class ReceiptItemTile extends StatelessWidget {
-  final ReceiptHeader header;
+  final MapEntry<Receipt, List<ReceiptProduct>> receiptEntry;
 
   const ReceiptItemTile({
     super.key,
-    required this.header,
+    required this.receiptEntry,
   });
 
   @override
   Widget build(context) {
-    final DateTime dateTime = header.invoiceDateTime;
+    final DateTime dateTime = receiptEntry.key.issuedAt;
     final String shortWeekday = DateFormat.E(DictKey.languageTag).format(dateTime);
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       visualDensity: VisualDensity.compact,
       onTap: () => MyRouter.of<PageReceiptView>().toPass(PageReceiptViewArgs(
-        header: header,
+        receiptEntry: receiptEntry,
       )),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       leading: Column(
@@ -360,7 +349,7 @@ class ReceiptItemTile extends StatelessWidget {
         ],
       ),
       title: Text(
-        header.sellerName ?? header.sellerAddress ?? '',
+        receiptEntry.key.sellerName ?? receiptEntry.key.sellerAddress ?? '',
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Row(
@@ -373,7 +362,7 @@ class ReceiptItemTile extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               child: Text(
-                header.receiptOrigin.locale,
+                receiptEntry.key.originStatus.locale,
                 style: TextStyle(
                   color: colorScheme.onSurfaceVariant,
                   fontSize: textTheme.bodySmall?.fontSize,
@@ -384,7 +373,7 @@ class ReceiptItemTile extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              header.invoiceNumber ?? '',
+              receiptEntry.key.invoiceNumber ?? '',
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: textTheme.bodyMedium?.fontSize,
@@ -399,11 +388,11 @@ class ReceiptItemTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '\$${Utils.amountToDescription(header.totalAmount)}',
+            '\$${Utils.amountToDescription(receiptEntry.key.totalAmount)}',
             style: textTheme.bodyLarge,
           ),
-          if (header.prizeInformation != null) Text(
-            '${header.prizeInformation}',
+          if (receiptEntry.key.prizeName != null) Text(
+            '${receiptEntry.key.prizeName}',
             style: textTheme.bodyMedium,
           ),
         ],

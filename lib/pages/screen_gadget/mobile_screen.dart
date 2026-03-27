@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
@@ -10,6 +11,7 @@ const String _androidName = 'HomeWidgetMobile';
 const String _homeWidgetMobilePath = 'HomeWidgetMobilePath';
 
 Future<void> updateHomeScreenMobile() async {
+  if (!Platform.isAndroid && !Platform.isIOS) return;
   await HomeWidget.renderFlutterWidget(
     HomeScreenMobileSample(
       items: await DriftServices.appDb.keyValueStoreDao.getExistDefault(.mobileBarcodeList),
