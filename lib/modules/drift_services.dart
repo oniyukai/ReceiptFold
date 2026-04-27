@@ -26,9 +26,7 @@ Future<File> _copyFileToTemp(File sourceFile, [String? newFileName]) async {
   return sourceFile.copy(p.join(tempDir.path, newFileName ?? 'copyFileToTemp_$_timestamp.temp'));
 }
 
-final class DriftServices {
-  const DriftServices._();
-
+abstract final class DriftServices {
   static late final MyDriftDatabase appDb;
 
   static MyDriftDatabase _openFileDb(File file) => MyDriftDatabase(

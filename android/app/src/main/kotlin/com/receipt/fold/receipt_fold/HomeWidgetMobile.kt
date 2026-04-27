@@ -1,7 +1,7 @@
 package com.receipt.fold.receipt_fold
-import HomeWidgetGlanceState
-import HomeWidgetGlanceStateDefinition
-import HomeWidgetGlanceWidgetReceiver
+import es.antonborri.home_widget.HomeWidgetGlanceState
+import es.antonborri.home_widget.HomeWidgetGlanceStateDefinition
+import es.antonborri.home_widget.HomeWidgetGlanceWidgetReceiver
 import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.compose.runtime.Composable

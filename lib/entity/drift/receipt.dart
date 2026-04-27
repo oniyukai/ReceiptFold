@@ -31,7 +31,7 @@ enum OriginStatus {
 
   static final converter = BasicTypeConverter<OriginStatus, int>(
     toS: (fromR) => fromR.sqlValue,
-    toR: (fromS) => _sorted.firstWhereOrNull((status) => status.sqlValue >= fromS) ?? _sorted.last,
+    toR: (fromS) => _sorted.lastWhereOrNull((status) => fromS >= status.sqlValue) ?? _sorted.first,
   );
 }
 
@@ -132,9 +132,9 @@ class ReceiptDao extends SyncableDao {
     ).getSingleOrNull();
     final oldProducts = (_products.select()
       ..where((tbl) => tbl.receiptUuid.equals(receipt.uuid))
-    ).get();
+    ).map((e) => MapEntry(e.uuid, e)).get();
     final productUuids = products.map((e) => e.uuid).toSet();
-    final oldProductMap = Map.fromEntries((await oldProducts).map((old) => MapEntry(old.uuid, old)));
+    final oldProductMap = Map.fromEntries(await oldProducts);
     final productDelUuids = oldProductMap.keys.whereNot((id) => productUuids.contains(id)).toList();
 
     bool isReceiptModified = await oldReceipt != receipt;
@@ -190,7 +190,7 @@ class ReceiptDao extends SyncableDao {
       ..addColumns([_receipts.uuid])
       ..where(
         _receipts.invoiceNumber.isNotNull() &
-        _receipts.originStatus.isSmallerOrEqualValue(OriginStatus.platformExpired.sqlValue) &
+        _receipts.originStatus.isSmallerThanValue(OriginStatus.manualScan.sqlValue) &
         existsQuery(
           _receipts.select()
             ..where((tbl) => (
@@ -212,8 +212,8 @@ class ReceiptDao extends SyncableDao {
         .get();
     final platformDupReceiptIds = platformDupReceiptIdsQuery.map((row) => row.read(_receipts.uuid)!).get();
 
-    // 清理待刪除與應刪除項目
     await batch((batch) async {
+      // 清理待刪除與應刪除項目
       batch.insertAllOnConflictUpdate(
         _deletedUuids,
         {...await productAddToDeletedIds, ...await platformDupReceiptIds,}
@@ -222,38 +222,23 @@ class ReceiptDao extends SyncableDao {
       batch.deleteWhere(_products, (tbl) => (
           tbl.uuid.isInQuery(deletedUuidsQuery) |
           tbl.receiptUuid.isInQuery(deletedUuidsQuery) |
-          tbl.receiptUuid.isNotInQuery(_receipts.selectOnly()..addColumns([_receipts.uuid])) // 清除不在delIds的孤兒
+          tbl.receiptUuid.isNotInQuery(_receipts.selectOnly()..addColumns([_receipts.uuid])) // 清除不在delIds的孤兒, 這不用加到delIdsTbl
       ));
       batch.deleteWhere(_receipts, (tbl) => tbl.uuid.isInQuery(deletedUuidsQuery));
-    });
 
-    // 重新計算總和
-    final productAmounts = await (_products.selectOnly()
-      ..addColumns([_products.receiptUuid, _products.amount])
-    ).map((row) => (
-    receiptUuid: row.read(_products.receiptUuid)!,
-    amount: row.read(_products.amount)!,))
-        .get();
-    final receiptTotalMap = <String, double>{};
-    for (final productAmount in productAmounts) {
-      receiptTotalMap[productAmount.receiptUuid] = productAmount.amount + (receiptTotalMap[productAmount.receiptUuid] ?? 0.0);
-    }
-    await batch((batch) {
+      // 重新計算總和
+      final sumSubquery = coalesce<double>([
+        subqueryExpression<double>(_products.selectOnly()
+          ..addColumns([_products.amount.sum()])
+          ..where(_products.receiptUuid.equalsExp(_receipts.uuid)),
+        ),
+        const Constant(0.0),
+      ]);
       batch.update(
         _receipts,
-        const ReceiptsCompanion(totalAmount: Value(0.0)),
-        where: (tbl) => (
-            tbl.totalAmount.isNotValue(0.0) &
-            notExistsQuery(_products.select()..where((productTbl) => productTbl.receiptUuid.equalsExp(tbl.uuid)))
-        ),
+        ReceiptsCompanion.custom(totalAmount: sumSubquery),
+        where: (tbl) => tbl.totalAmount.equalsExp(sumSubquery).not(),
       );
-      for (final entry in receiptTotalMap.entries) {
-        batch.update(
-          _receipts,
-          ReceiptsCompanion(totalAmount: Value(entry.value)),
-          where: (tbl) => tbl.uuid.equals(entry.key) & tbl.totalAmount.isNotValue(entry.value),
-        );
-      }
     });
   }
 
@@ -331,4 +316,3 @@ class ReceiptDao extends SyncableDao {
     await selfTidy();
   }
 }
-

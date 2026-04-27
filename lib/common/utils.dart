@@ -15,9 +15,7 @@ extension EnumFromName<T extends Enum> on Iterable<T> {
   T? fromName(String? n) => firstWhereOrNull((value) => value.name == n);
 }
 
-final class UnitUtils {
-  const UnitUtils._();
-
+abstract final class UnitUtils {
   static int get nowUnixTime => DateTime.now().millisecondsSinceEpoch;
 
   /// 顯示當地單月表示, 如 "7月"
@@ -36,9 +34,7 @@ final class UnitUtils {
   }
 }
 
-final class Utils {
-  const Utils._();
-
+abstract final class Utils {
   /// true:為直屏狀態 false:為橫屏狀態
   static bool isPortrait(BuildContext context) =>
       MediaQuery.of(context).orientation == .portrait;

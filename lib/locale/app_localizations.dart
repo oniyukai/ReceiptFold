@@ -3,7 +3,7 @@ import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/map_en.dart';
 import 'package:receipt_fold/locale/map_ja.dart';
 import 'package:receipt_fold/locale/map_zh_hant.dart';
-import 'package:watashi_locale/dictionary_delegate.dart';
+import 'package:watashi_locale/watashi_locale.dart';
 
 enum LocaleOption {
   sys(null, []),

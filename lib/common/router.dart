@@ -146,9 +146,7 @@ class _RouteConfigScope extends InheritedWidget {
   bool updateShouldNotify(oldWidget) => false;
 }
 
-final class MyRouter {
-  const MyRouter._();
-
+abstract final class MyRouter {
   static final delegate = MyRouterDelegate();
   static final parser = MyRouteParser();
 

@@ -103,9 +103,7 @@ class LogService {
   }
 }
 
-final class _LogFileListener {
-  const _LogFileListener._();
-
+abstract final class _LogFileListener {
   static IOSink? _ioSink;
   static Timer? _flushTimer;
   static Future<void> _ioTask = Future.value();

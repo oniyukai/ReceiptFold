@@ -54,7 +54,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     uuid: UuidMixin.v7.generate(),
   );
 
-  bool get _isCloudPlatform => _receipt.originStatus.sqlValue <= OriginStatus.platformExpired.sqlValue;
+  bool get _isCloudPlatform => _receipt.originStatus.sqlValue < OriginStatus.manualScan.sqlValue;
 
   // < ---------- 適用於所有狀態的前端接口
   Future<void> _normalStringTileModify({

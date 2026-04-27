@@ -43,7 +43,7 @@ class _PageAboutViewState extends State<PageAboutView> {
                 subtitle: Text(StaticString.appVersionTag),
               ),
               ListTile(
-                title: Text('除錯日誌'), // todo: 除錯日誌功能
+                title: Text('除錯日誌'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => MyRouter.routeTo(PageLogsView),
               ),

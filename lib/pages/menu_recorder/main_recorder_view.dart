@@ -90,6 +90,7 @@ class MainRecorderViewModel extends ChangeNotifier {
     periodData._receiptSubscription = DriftServices.appDb.receiptDao.queryStream(
       issuedStart: periodData.period.startDateTime,
       issuedEnd: periodData.period.endDateTime,
+      order: .desc,
     ).listen((receiptEntries) {
       if (!_periodDataCache.containsKey(index)) {
         periodData.dispose();

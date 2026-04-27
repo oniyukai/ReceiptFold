@@ -91,7 +91,7 @@ class PageBackupPage extends StatefulWidget {
       };
       LogService('_webDAVAction finished.', classType: PageBackupPage).d();
     } catch (e) {
-      LogService('_webDAVAction failed.', errorObject: e, classType: PageBackupPage).w();
+      LogService('_webDAVAction failed.', errorObject: e, classType: PageBackupPage).e();
     } finally {
       _singleActionLocked = false;
     }
@@ -115,7 +115,7 @@ class PageBackupPage extends StatefulWidget {
       };
       LogService('_localAction finished.', classType: PageBackupPage).d();
     } catch (e) {
-      LogService('_localAction failed.', errorObject: e, classType: PageBackupPage).w();
+      LogService('_localAction failed.', errorObject: e, classType: PageBackupPage).e();
     } finally {
       _singleActionLocked = false;
     }
