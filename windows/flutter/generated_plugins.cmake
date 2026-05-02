@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_windows
   dynamic_color
+  flutter_inappwebview_windows
   flutter_secure_storage_windows
   screen_brightness_windows
   share_plus

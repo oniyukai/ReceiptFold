@@ -486,6 +486,17 @@ class $ReceiptsTable extends Receipts with TableInfo<$ReceiptsTable, Receipt> {
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _invoiceJsonAwardMeta = const VerificationMeta(
+    'invoiceJsonAward',
+  );
+  @override
+  late final GeneratedColumn<String> invoiceJsonAward = GeneratedColumn<String>(
+    'invoice_json_award',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     modified,
@@ -508,6 +519,7 @@ class $ReceiptsTable extends Receipts with TableInfo<$ReceiptsTable, Receipt> {
     invoiceJsonSummary,
     invoiceJsonData,
     invoiceJsonDetail,
+    invoiceJsonAward,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -661,6 +673,15 @@ class $ReceiptsTable extends Receipts with TableInfo<$ReceiptsTable, Receipt> {
         ),
       );
     }
+    if (data.containsKey('invoice_json_award')) {
+      context.handle(
+        _invoiceJsonAwardMeta,
+        invoiceJsonAward.isAcceptableOrUnknown(
+          data['invoice_json_award']!,
+          _invoiceJsonAwardMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -756,6 +777,10 @@ class $ReceiptsTable extends Receipts with TableInfo<$ReceiptsTable, Receipt> {
         DriftSqlType.string,
         data['${effectivePrefix}invoice_json_detail'],
       ),
+      invoiceJsonAward: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}invoice_json_award'],
+      ),
     );
   }
 
@@ -791,6 +816,7 @@ class Receipt extends DataClass implements Insertable<Receipt> {
   final String? invoiceJsonSummary;
   final String? invoiceJsonData;
   final String? invoiceJsonDetail;
+  final String? invoiceJsonAward;
   const Receipt({
     required this.modified,
     required this.uuid,
@@ -812,6 +838,7 @@ class Receipt extends DataClass implements Insertable<Receipt> {
     this.invoiceJsonSummary,
     this.invoiceJsonData,
     this.invoiceJsonDetail,
+    this.invoiceJsonAward,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -878,6 +905,9 @@ class Receipt extends DataClass implements Insertable<Receipt> {
     if (!nullToAbsent || invoiceJsonDetail != null) {
       map['invoice_json_detail'] = Variable<String>(invoiceJsonDetail);
     }
+    if (!nullToAbsent || invoiceJsonAward != null) {
+      map['invoice_json_award'] = Variable<String>(invoiceJsonAward);
+    }
     return map;
   }
 
@@ -933,6 +963,9 @@ class Receipt extends DataClass implements Insertable<Receipt> {
       invoiceJsonDetail: invoiceJsonDetail == null && nullToAbsent
           ? const Value.absent()
           : Value(invoiceJsonDetail),
+      invoiceJsonAward: invoiceJsonAward == null && nullToAbsent
+          ? const Value.absent()
+          : Value(invoiceJsonAward),
     );
   }
 
@@ -966,6 +999,7 @@ class Receipt extends DataClass implements Insertable<Receipt> {
       invoiceJsonDetail: serializer.fromJson<String?>(
         json['invoiceJsonDetail'],
       ),
+      invoiceJsonAward: serializer.fromJson<String?>(json['invoiceJsonAward']),
     );
   }
   @override
@@ -992,6 +1026,7 @@ class Receipt extends DataClass implements Insertable<Receipt> {
       'invoiceJsonSummary': serializer.toJson<String?>(invoiceJsonSummary),
       'invoiceJsonData': serializer.toJson<String?>(invoiceJsonData),
       'invoiceJsonDetail': serializer.toJson<String?>(invoiceJsonDetail),
+      'invoiceJsonAward': serializer.toJson<String?>(invoiceJsonAward),
     };
   }
 
@@ -1016,6 +1051,7 @@ class Receipt extends DataClass implements Insertable<Receipt> {
     Value<String?> invoiceJsonSummary = const Value.absent(),
     Value<String?> invoiceJsonData = const Value.absent(),
     Value<String?> invoiceJsonDetail = const Value.absent(),
+    Value<String?> invoiceJsonAward = const Value.absent(),
   }) => Receipt(
     modified: modified ?? this.modified,
     uuid: uuid ?? this.uuid,
@@ -1047,6 +1083,9 @@ class Receipt extends DataClass implements Insertable<Receipt> {
     invoiceJsonDetail: invoiceJsonDetail.present
         ? invoiceJsonDetail.value
         : this.invoiceJsonDetail,
+    invoiceJsonAward: invoiceJsonAward.present
+        ? invoiceJsonAward.value
+        : this.invoiceJsonAward,
   );
   Receipt copyWithCompanion(ReceiptsCompanion data) {
     return Receipt(
@@ -1100,6 +1139,9 @@ class Receipt extends DataClass implements Insertable<Receipt> {
       invoiceJsonDetail: data.invoiceJsonDetail.present
           ? data.invoiceJsonDetail.value
           : this.invoiceJsonDetail,
+      invoiceJsonAward: data.invoiceJsonAward.present
+          ? data.invoiceJsonAward.value
+          : this.invoiceJsonAward,
     );
   }
 
@@ -1125,13 +1167,14 @@ class Receipt extends DataClass implements Insertable<Receipt> {
           ..write('prizeAmount: $prizeAmount, ')
           ..write('invoiceJsonSummary: $invoiceJsonSummary, ')
           ..write('invoiceJsonData: $invoiceJsonData, ')
-          ..write('invoiceJsonDetail: $invoiceJsonDetail')
+          ..write('invoiceJsonDetail: $invoiceJsonDetail, ')
+          ..write('invoiceJsonAward: $invoiceJsonAward')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     modified,
     uuid,
     originStatus,
@@ -1152,7 +1195,8 @@ class Receipt extends DataClass implements Insertable<Receipt> {
     invoiceJsonSummary,
     invoiceJsonData,
     invoiceJsonDetail,
-  );
+    invoiceJsonAward,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1176,7 +1220,8 @@ class Receipt extends DataClass implements Insertable<Receipt> {
           other.prizeAmount == this.prizeAmount &&
           other.invoiceJsonSummary == this.invoiceJsonSummary &&
           other.invoiceJsonData == this.invoiceJsonData &&
-          other.invoiceJsonDetail == this.invoiceJsonDetail);
+          other.invoiceJsonDetail == this.invoiceJsonDetail &&
+          other.invoiceJsonAward == this.invoiceJsonAward);
 }
 
 class ReceiptsCompanion extends UpdateCompanion<Receipt> {
@@ -1200,6 +1245,7 @@ class ReceiptsCompanion extends UpdateCompanion<Receipt> {
   final Value<String?> invoiceJsonSummary;
   final Value<String?> invoiceJsonData;
   final Value<String?> invoiceJsonDetail;
+  final Value<String?> invoiceJsonAward;
   final Value<int> rowid;
   const ReceiptsCompanion({
     this.modified = const Value.absent(),
@@ -1222,6 +1268,7 @@ class ReceiptsCompanion extends UpdateCompanion<Receipt> {
     this.invoiceJsonSummary = const Value.absent(),
     this.invoiceJsonData = const Value.absent(),
     this.invoiceJsonDetail = const Value.absent(),
+    this.invoiceJsonAward = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ReceiptsCompanion.insert({
@@ -1245,6 +1292,7 @@ class ReceiptsCompanion extends UpdateCompanion<Receipt> {
     this.invoiceJsonSummary = const Value.absent(),
     this.invoiceJsonData = const Value.absent(),
     this.invoiceJsonDetail = const Value.absent(),
+    this.invoiceJsonAward = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : originStatus = Value(originStatus),
        issuedAt = Value(issuedAt),
@@ -1270,6 +1318,7 @@ class ReceiptsCompanion extends UpdateCompanion<Receipt> {
     Expression<String>? invoiceJsonSummary,
     Expression<String>? invoiceJsonData,
     Expression<String>? invoiceJsonDetail,
+    Expression<String>? invoiceJsonAward,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1294,6 +1343,7 @@ class ReceiptsCompanion extends UpdateCompanion<Receipt> {
         'invoice_json_summary': invoiceJsonSummary,
       if (invoiceJsonData != null) 'invoice_json_data': invoiceJsonData,
       if (invoiceJsonDetail != null) 'invoice_json_detail': invoiceJsonDetail,
+      if (invoiceJsonAward != null) 'invoice_json_award': invoiceJsonAward,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1319,6 +1369,7 @@ class ReceiptsCompanion extends UpdateCompanion<Receipt> {
     Value<String?>? invoiceJsonSummary,
     Value<String?>? invoiceJsonData,
     Value<String?>? invoiceJsonDetail,
+    Value<String?>? invoiceJsonAward,
     Value<int>? rowid,
   }) {
     return ReceiptsCompanion(
@@ -1342,6 +1393,7 @@ class ReceiptsCompanion extends UpdateCompanion<Receipt> {
       invoiceJsonSummary: invoiceJsonSummary ?? this.invoiceJsonSummary,
       invoiceJsonData: invoiceJsonData ?? this.invoiceJsonData,
       invoiceJsonDetail: invoiceJsonDetail ?? this.invoiceJsonDetail,
+      invoiceJsonAward: invoiceJsonAward ?? this.invoiceJsonAward,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1415,6 +1467,9 @@ class ReceiptsCompanion extends UpdateCompanion<Receipt> {
     if (invoiceJsonDetail.present) {
       map['invoice_json_detail'] = Variable<String>(invoiceJsonDetail.value);
     }
+    if (invoiceJsonAward.present) {
+      map['invoice_json_award'] = Variable<String>(invoiceJsonAward.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1444,6 +1499,7 @@ class ReceiptsCompanion extends UpdateCompanion<Receipt> {
           ..write('invoiceJsonSummary: $invoiceJsonSummary, ')
           ..write('invoiceJsonData: $invoiceJsonData, ')
           ..write('invoiceJsonDetail: $invoiceJsonDetail, ')
+          ..write('invoiceJsonAward: $invoiceJsonAward, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2408,6 +2464,7 @@ typedef $$ReceiptsTableCreateCompanionBuilder =
       Value<String?> invoiceJsonSummary,
       Value<String?> invoiceJsonData,
       Value<String?> invoiceJsonDetail,
+      Value<String?> invoiceJsonAward,
       Value<int> rowid,
     });
 typedef $$ReceiptsTableUpdateCompanionBuilder =
@@ -2432,6 +2489,7 @@ typedef $$ReceiptsTableUpdateCompanionBuilder =
       Value<String?> invoiceJsonSummary,
       Value<String?> invoiceJsonData,
       Value<String?> invoiceJsonDetail,
+      Value<String?> invoiceJsonAward,
       Value<int> rowid,
     });
 
@@ -2576,6 +2634,11 @@ class $$ReceiptsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get invoiceJsonAward => $composableBuilder(
+    column: $table.invoiceJsonAward,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> receiptProductsRefs(
     Expression<bool> Function($$ReceiptProductsTableFilterComposer f) f,
   ) {
@@ -2710,6 +2773,11 @@ class $$ReceiptsTableOrderingComposer
     column: $table.invoiceJsonDetail,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get invoiceJsonAward => $composableBuilder(
+    column: $table.invoiceJsonAward,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ReceiptsTableAnnotationComposer
@@ -2812,6 +2880,11 @@ class $$ReceiptsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get invoiceJsonAward => $composableBuilder(
+    column: $table.invoiceJsonAward,
+    builder: (column) => column,
+  );
+
   Expression<T> receiptProductsRefs<T extends Object>(
     Expression<T> Function($$ReceiptProductsTableAnnotationComposer a) f,
   ) {
@@ -2886,6 +2959,7 @@ class $$ReceiptsTableTableManager
                 Value<String?> invoiceJsonSummary = const Value.absent(),
                 Value<String?> invoiceJsonData = const Value.absent(),
                 Value<String?> invoiceJsonDetail = const Value.absent(),
+                Value<String?> invoiceJsonAward = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ReceiptsCompanion(
                 modified: modified,
@@ -2908,6 +2982,7 @@ class $$ReceiptsTableTableManager
                 invoiceJsonSummary: invoiceJsonSummary,
                 invoiceJsonData: invoiceJsonData,
                 invoiceJsonDetail: invoiceJsonDetail,
+                invoiceJsonAward: invoiceJsonAward,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2932,6 +3007,7 @@ class $$ReceiptsTableTableManager
                 Value<String?> invoiceJsonSummary = const Value.absent(),
                 Value<String?> invoiceJsonData = const Value.absent(),
                 Value<String?> invoiceJsonDetail = const Value.absent(),
+                Value<String?> invoiceJsonAward = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ReceiptsCompanion.insert(
                 modified: modified,
@@ -2954,6 +3030,7 @@ class $$ReceiptsTableTableManager
                 invoiceJsonSummary: invoiceJsonSummary,
                 invoiceJsonData: invoiceJsonData,
                 invoiceJsonDetail: invoiceJsonDetail,
+                invoiceJsonAward: invoiceJsonAward,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

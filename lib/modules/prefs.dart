@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/app_theme.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_localizations.dart';
-import 'package:receipt_fold/pages/menu_settings/page_platform_form.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PrefDef<RUN extends Object, STO extends Object> {
@@ -37,7 +36,6 @@ class PrefDef<RUN extends Object, STO extends Object> {
 
 enum PrefsEnum {
   isAgreedAllTerms,
-  invoicePlatformLoginState,
   isAppDeveloperMode,
 
   selectedColor,
@@ -54,11 +52,6 @@ enum PrefsEnum {
   PrefDef get _getPrefDef => _prefDefCache.putIfAbsent(this, () {
     final prefDef = switch (this) {
       isAgreedAllTerms => PrefDef._same(false),
-      invoicePlatformLoginState => PrefDef<PlatformLoginState, String>._(
-          () => .notSet,
-          (fromRUN) => fromRUN.name,
-          PlatformLoginState.values.fromName,
-      ),
       isAppDeveloperMode => PrefDef._same(kDebugMode),
       selectedColor => PrefDef<ColorOption, String>._(
           () => .sys,
@@ -113,7 +106,7 @@ class PrefsProvider extends ChangeNotifier {
 
   static Future<void> init() async {
     _instance = await SharedPreferencesWithCache.create(
-        cacheOptions: .new(allowList: PrefsEnum.values.map((e) => e.name).toSet())
+      cacheOptions: SharedPreferencesWithCacheOptions(allowList: PrefsEnum.values.map((e) => e.name).toSet()),
     );
   }
 

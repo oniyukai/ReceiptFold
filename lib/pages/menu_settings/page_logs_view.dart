@@ -233,7 +233,7 @@ class _PageLogsViewState extends State<PageLogsView> {
         child: Scrollbar(
           child: ListView(
             children: [
-              if (_formattedLogs == null) CircularProgressIndicator(),
+              if (_formattedLogs == null) const CircularProgressIndicator(),
               if (_formattedLogs != null) SelectableText(_formattedLogs!.join()),
             ],
           ),

@@ -4,13 +4,14 @@ import 'package:receipt_fold/entity/drift/drift_database.dart';
 
 enum OriginStatus {
   platformUnconfirmed(16),
-  platformConfirmed(32),
-  platformInvalidated(48),
-  platformDonated(64),
+  platformInvalidated(32),
+  platformDonated(48),
+  platformConfirmed(64),
   platformConfirmedNotDonated(80),
   platformExpired(96),
-  manualScan(112),
-  manualEntry(128);
+  manualImport(112),
+  manualScan(128),
+  manualEntry(144);
 
   final int sqlValue;
 
@@ -18,11 +19,12 @@ enum OriginStatus {
 
   String get locale => switch (this) {
     .platformUnconfirmed => '平台 未確認',
-    .platformConfirmed => '平台 確認有效',
     .platformInvalidated => '平台 確認無效',
     .platformDonated => '平台 確認捐贈',
+    .platformConfirmed => '平台 確認有效',
     .platformConfirmedNotDonated => '平台 有效已開獎',
-    .platformExpired => '平台 過期', // todo: 考慮更改這個
+    .platformExpired => '平台 過期或未知狀態',
+    .manualImport => '本地 匯入',
     .manualScan => '本地 掃描',
     .manualEntry => '本地 手動',
   };
@@ -59,6 +61,7 @@ class Receipts extends Table with ModifiedMixin, UuidMixin {
   late final invoiceJsonSummary = text().nullable()();
   late final invoiceJsonData = text().nullable()();
   late final invoiceJsonDetail = text().nullable()();
+  late final invoiceJsonAward = text().nullable()();
 
   @override
   Set<Column> get primaryKey => {uuid};

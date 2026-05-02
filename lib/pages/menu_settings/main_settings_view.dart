@@ -6,11 +6,11 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/app_localizations.dart';
+import 'package:receipt_fold/pages/menu_recorder/page_platform_view.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/menu_settings/page_about_view.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
-import 'package:receipt_fold/pages/menu_settings/page_platform_form.dart';
 
 class MainSettingsView extends StatefulWidget {
   const MainSettingsView({super.key});
@@ -99,8 +99,8 @@ class _MainSettingsPageState extends State<MainSettingsView> {
               ListTileText(
                 text: '發票平台',
                 trailing: const Icon(Icons.chevron_right),
-                iconData: Icons.manage_accounts,
-                onTap: () => pagePlatformForm(context),
+                iconData: Icons.account_balance,
+                onTap: () => MyRouter.routeTo(PagePlatformView),
               ),
               ListTileText(
                 text: '備份與同步',

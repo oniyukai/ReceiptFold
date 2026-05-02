@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
+import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 
@@ -81,7 +82,8 @@ class KVConverter<R> extends BasicTypeConverter<R?, String?> {
 enum KVStoreKey {
   mobileBarcodeList,
   memberBarcodeList,
-  invoiceWinningNumberList;
+  invoiceWinningNumberList,
+  invoiceCarrierList;
 
   static final _converterCache = <KVStoreKey, KVConverter>{};
 
@@ -95,6 +97,9 @@ enum KVStoreKey {
       ),
       .invoiceWinningNumberList => KVConverter.listCustom<InvoiceWinningNumber>(
         jsonEncode, InvoiceWinningNumber.fromString, const [],
+      ),
+      .invoiceCarrierList => KVConverter.listCustom<InvoiceCarrier>(
+        jsonEncode, InvoiceCarrier.fromString, const [],
       ),
     };
     return converter;

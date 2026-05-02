@@ -19,7 +19,7 @@ class InvoicePrizeSearcher {
     if (PrefsEnum.isAppDeveloperMode.defaultValue()) material.debugPrint(message);
   }
 
-  bool _matcheSpecifiedTimeInterval(int unixMilliseconds) {
+  bool _matchSpecifiedTimeInterval(int unixMilliseconds) {
     final int currentUnixMilliseconds = UnitUtils.nowUnixTime;
     final int differenceInMilliseconds = (unixMilliseconds - currentUnixMilliseconds).abs();
     const int targetDifferenceInSeconds = 1000;
@@ -35,7 +35,7 @@ class InvoicePrizeSearcher {
       final InvoiceWinningNumber result = history[historyWhere];
       if (result.prizes != null && result.prizes!.isNotEmpty) return result;
       // 如果上次查詢未冷卻完畢不再查詢網頁
-      if (!_matcheSpecifiedTimeInterval(result.lastWebQueryTime)) return null;
+      if (!_matchSpecifiedTimeInterval(result.lastWebQueryTime)) return null;
     }
 
     final Map<InvoiceEntityPrize, List<String>> prizes = {};

@@ -42,7 +42,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     WatashiLocale.register([LocaleOption.dictDelegate]);
-    Timer(const Duration(seconds: 2), PageBackupPage.connectWebDAV);
+    Timer(const Duration(seconds: 1), PageBackupPage.connectWebDAV);
   }
 
   @override

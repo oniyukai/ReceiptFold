@@ -46,7 +46,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   final _formKey = GlobalKey<FormBuilderState>();
   late final PageReceiptViewArgs _args = widget.getArgs(context)!;
   late List<ReceiptProduct> _products = _args.receiptEntry?.value ?? [];
-  late Receipt _receipt =_args.receiptEntry?.key ?? Receipt(
+  late Receipt _receipt = _args.receiptEntry?.key ?? Receipt(
     issuedAt: _args.period!.startDateTime,
     originStatus: .manualEntry,
     totalAmount: 0.0,

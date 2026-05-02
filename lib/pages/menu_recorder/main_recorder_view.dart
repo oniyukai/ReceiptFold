@@ -8,6 +8,7 @@ import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/invoice_period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
+import 'package:receipt_fold/pages/menu_recorder/page_platform_view.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
 import 'package:receipt_fold/pages/widget/my_menu_button.dart';
 
@@ -180,7 +181,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                     MyMenuItem(
                       text: DictKey.recorderMenuSyncPlatformLabel.s,
                       iconData: Icons.sync,
-                      onTap: (){}, // todo: 同步政府平台功能
+                      onTap: () => MyRouter.routeTo(PagePlatformView),
                     ),
                     MyMenuItem(
                       text: DictKey.recorderMenuLabelPrizeVerification.s,

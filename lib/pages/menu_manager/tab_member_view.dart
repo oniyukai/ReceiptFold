@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:receipt_fold/common/router.dart';
@@ -21,8 +22,35 @@ class TabMemberView extends StatefulWidget {
 
 class _TabMemberViewState extends State<TabMemberView> {
   final ScrollController _scrollController = ScrollController();
-  List<MobileBarcodeItem> _mobileItems = [];
-  List<MemberBarcodeItem> _memberItems = [];
+  late final StreamSubscription<Map<KVStoreKey, dynamic>> _kVStoreSubscription;
+  List<MobileBarcodeItem> _mobileItems = const [];
+  List<MemberBarcodeItem> _memberItems = const [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _kVStoreSubscription = DriftServices.appDb.keyValueStoreDao.stream(const [.mobileBarcodeList, .memberBarcodeList]).listen(
+          (data) => setState(() {
+        _mobileItems = data[KVStoreKey.mobileBarcodeList];
+        _memberItems = data[KVStoreKey.memberBarcodeList];
+        _isLoading = false;
+        _errorMessage = null;
+      }),
+      onError: (e) => setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      }),
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _kVStoreSubscription.cancel();
+    _scrollController.dispose();
+  }
 
   Future<void> _sortMobileItems() => OverlayShow.sortDialog(
     context: context,
@@ -82,18 +110,13 @@ class _TabMemberViewState extends State<TabMemberView> {
   Widget build(context) {
     return Scrollbar(
       controller: _scrollController,
-      child: StreamBuilder<Map<KVStoreKey, dynamic>>( // todo: Stream換個方式
-        stream: DriftServices.appDb.keyValueStoreDao.stream(const [.mobileBarcodeList, .memberBarcodeList]),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      child: Builder(
+        builder: (context) {
+          if (_isLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text(snapshot.error.toString()));
-          } else if (!snapshot.hasData || snapshot.data == null) {
-            return Center(child: Text('snapshot.hasData:${snapshot.hasData}\nsnapshot.data:snapshot.data'));
+          } else if (_errorMessage != null) {
+            return Center(child: Text(_errorMessage!));
           }
-          _mobileItems = snapshot.data![KVStoreKey.mobileBarcodeList];
-          _memberItems = snapshot.data![KVStoreKey.memberBarcodeList];
           return ListView(
             padding: const EdgeInsets.all(8.0),
             children: [

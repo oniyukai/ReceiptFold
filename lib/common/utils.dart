@@ -17,6 +17,7 @@ extension EnumFromName<T extends Enum> on Iterable<T> {
 
 abstract final class UnitUtils {
   static int get nowUnixTime => DateTime.now().millisecondsSinceEpoch;
+  static String get unixRadix36 => nowUnixTime.toRadixString(36);
 
   /// 顯示當地單月表示, 如 "7月"
   static String singleMonthText(DateTime dateTime) =>

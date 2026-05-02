@@ -19,11 +19,9 @@ typedef Upload = Future<bool> Function(File);
 /// 請在錯誤時 throw 中斷, 僅當對應無檔案時為 null 表示.
 typedef Download = Future<File?> Function();
 
-String get _timestamp => UnitUtils.nowUnixTime.toRadixString(36);
-
 Future<File> _copyFileToTemp(File sourceFile, [String? newFileName]) async {
   final Directory tempDir = await getTemporaryDirectory();
-  return sourceFile.copy(p.join(tempDir.path, newFileName ?? 'copyFileToTemp_$_timestamp.temp'));
+  return sourceFile.copy(p.join(tempDir.path, newFileName ?? 'copyFileToTemp_${UnitUtils.unixRadix36}.temp'));
 }
 
 abstract final class DriftServices {
@@ -56,7 +54,7 @@ abstract final class DriftServices {
     LogService('pushForce...', classType: DriftServices).d();
     await appDb.selfTidy();
     final Directory tempDir = await getTemporaryDirectory();
-    final File appDbCopyFile = File(p.join(tempDir.path, 'pushForce_$_timestamp.sqlite'));
+    final File appDbCopyFile = File(p.join(tempDir.path, 'pushForce_${UnitUtils.unixRadix36}.sqlite'));
     bool success = false;
     try {
       await appDb.customStatement("VACUUM INTO '${appDbCopyFile.path}'");
@@ -158,7 +156,7 @@ class WebDAV {
   /// [converter] 可以傳入 [gzip.decoder] 來壓縮, 或是傳入 [gzip.encoder] 解壓縮.
   static Future<File> convertFile(File sourceFile, Converter<List<int>, List<int>> converter) async {
     final Directory tempDir = await getTemporaryDirectory();
-    final File file = File(p.join(tempDir.path, 'WebDAV_convertFile_$_timestamp.temp'));
+    final File file = File(p.join(tempDir.path, 'WebDAV_convertFile_${UnitUtils.unixRadix36}.temp'));
     final Stream<List<int>> input = sourceFile.openRead();
     final IOSink output = file.openWrite();
     bool success = false;
@@ -184,7 +182,7 @@ class WebDAV {
     }
     if (remoteFile.isDir == true) throw Exception('$this.download: ${remoteFile.path} cannot be directory.');
     final Directory tempDir = await getTemporaryDirectory();
-    final File downloadFile = File(p.join(tempDir.path, 'WebDAV_download_$_timestamp.temp'));
+    final File downloadFile = File(p.join(tempDir.path, 'WebDAV_download_${UnitUtils.unixRadix36}.temp'));
     try {
       await client.read2File(remoteFile.path!, downloadFile.path);
       return await (fileTransform ?? (file) => convertFile(file, gzip.decoder))(downloadFile);
