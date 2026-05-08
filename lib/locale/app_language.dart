@@ -151,8 +151,6 @@ enum DictKey {
   receiptViewOriginalContentLabel,
   receiptViewModifyLabel,
   receiptHeaderSellerNameLabel,
-  receiptHeaderInvoicePeriodLabel,
-  receiptHeaderTimestampLabel,
   receiptHeaderInvoiceNumberLabel,
   receiptHeaderInvoiceStatusLabel,
   receiptHeaderCarrierNameLabel,

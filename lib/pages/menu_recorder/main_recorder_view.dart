@@ -43,7 +43,7 @@ class PeriodData {
 
 class MainRecorderViewModel extends ChangeNotifier {
   /// 快取半徑，表示當前頁面左右各快取多少頁
-  static const int _cacheRadius = 2;
+  static const int _cacheRadius = 1;
 
   final InvoicePeriod _todayPeriod;
   final Map<int, PeriodData> _periodDataCache = {};
@@ -51,7 +51,7 @@ class MainRecorderViewModel extends ChangeNotifier {
 
   int get currentPageIndex => _currentPageIndex;
 
-  MainRecorderViewModel() : _todayPeriod = InvoicePeriod.fromUnixTime(UnitUtils.nowUnixTime);
+  MainRecorderViewModel() : _todayPeriod = InvoicePeriod(.now());
 
   PeriodData getPeriodData(int index) => _periodDataCache[index] ?? _loadReceiptsByIndex(index);
 
@@ -89,8 +89,8 @@ class MainRecorderViewModel extends ChangeNotifier {
   PeriodData _loadReceiptsByIndex(int index) => _periodDataCache.putIfAbsent(index, () {
     final periodData = PeriodData(_getInvoicePeriodByIndex(index));
     periodData._receiptSubscription = DriftServices.appDb.receiptDao.queryStream(
-      issuedStart: periodData.period.startDateTime,
-      issuedEnd: periodData.period.endDateTime,
+      issuedStart: periodData.period.start,
+      issuedEnd: periodData.period.end,
       order: .desc,
     ).listen((receiptEntries) {
       if (!_periodDataCache.containsKey(index)) {
@@ -168,7 +168,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
           final currentPeriodData = model.getPeriodData(model.currentPageIndex);
           return Scaffold(
             appBar: AppBar(
-              title: Text(currentPeriodData.period.toString()),
+              title: Text(currentPeriodData.period.stringLocal),
               actions: [
                 IconButton(
                   onPressed: () => MyRouter.of<PageReceiptView>().toPass(PageReceiptViewArgs(
@@ -268,7 +268,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                         child: Text(Utils.multilingualFiller(
                                           DictKey.recorderMonthTransactionsAndAmount.s,
                                           [
-                                            (StaticString.fillObjectMonth, UnitUtils.singleMonthText(periodData.period.endDateTime)),
+                                            (StaticString.fillObjectMonth, UnitUtils.singleMonthText(periodData.period.end)),
                                             (StaticString.fillObjectNumber, '${periodData.evenMonthReceiptMap.length}'),
                                             (StaticString.fillObjectAmount, Utils.amountToDescription(periodData.evenMonthTotalAmount))
                                           ]
@@ -288,7 +288,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                         child: Text(Utils.multilingualFiller(
                                           DictKey.recorderMonthTransactionsAndAmount.s,
                                           [
-                                            (StaticString.fillObjectMonth, UnitUtils.singleMonthText(periodData.period.startDateTime)),
+                                            (StaticString.fillObjectMonth, UnitUtils.singleMonthText(periodData.period.start)),
                                             (StaticString.fillObjectNumber, '${periodData.oddMonthReceiptMap.length}'),
                                             (StaticString.fillObjectAmount, Utils.amountToDescription(periodData.oddMonthTotalAmount))
                                           ]

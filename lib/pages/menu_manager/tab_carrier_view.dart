@@ -17,10 +17,10 @@ class _TabCarrierViewState extends State<TabCarrierView> {
     debugPrint('\n--- 測試對獎功能 ---');
 
     final allTextTime = {
-      DateTime(2025, 5, 15).millisecondsSinceEpoch,
-      DateTime(2017, 9, 9).millisecondsSinceEpoch,
-      DateTime(2020, 11, 15).millisecondsSinceEpoch,
-      DateTime(2010, 1, 1).millisecondsSinceEpoch,
+      DateTime(2025, 5, 15),
+      DateTime(2017, 9, 9),
+      DateTime(2020, 11, 15),
+      DateTime(2010, 1, 1),
     };
     final allTextNumber = const {
       '47406327',
@@ -37,7 +37,7 @@ class _TabCarrierViewState extends State<TabCarrierView> {
     };
 
     for (final time in allTextTime) {
-      final winningNum = await scraper.findInvoiceWinningNumber(InvoicePeriod.fromUnixTime(time));
+      final winningNum = await scraper.findInvoiceWinningNumber(InvoicePeriod(time));
       scraper.dispose();
       if (winningNum == null) {
         debugPrint('查無獎金對照: $time');

@@ -6,7 +6,9 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/modules/invoice_platform_api.dart';
+import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/modules/secure_prefs.dart';
+import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
@@ -26,9 +28,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
   final InvoicePlatformApi _api = InvoicePlatformApi();
   final List<String> _logs = [];
   late final StreamSubscription<LogService> _logSubscription;
-  String? _cdsMc;
 
-  bool get _apiReady => _api.isInitialized && _cdsMc != null;
+  bool get _apiReady => _api.isInitialized;
 
   @override
   void initState() {
@@ -117,20 +118,20 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     final account = await _readPlatformAccount();
     try {
       await _api.fillLoginForm(account.phone, account.password);
-      LogService('fillLoginForm finished.', instance: _api).d();
     } catch (e) {
       LogService('fillLoginForm failed.', errorObject: e, instance: _api).w();
     }
   }
 
-  Future<bool> _pressFetchConsolidation() async {
+  Future<bool> _pressFetchCarrierList() async {
     assert(_apiReady);
     if (_singleActionLocked.value) {
       LogService('現在已有其他雲端平台操作, 取消執行.', instance: this).d();
       return false;
     }
+    _singleActionLocked.value = true;
     try {
-      final List<InvoiceCarrier> carriers = await _api.fetchCarrierConsolidation(_cdsMc!);
+      final List<InvoiceCarrier> carriers = await _api.fetchCarrierList();
       final carriersMap = <String, InvoiceCarrier>{
         for (final InvoiceCarrier carrier in carriers) carrier.carrierId2: carrier,
       };
@@ -143,7 +144,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
             ..status = carrier.status
             ..carrierType = carrier.carrierType ?? oldCarrier.carrierType
             ..carrierTypeName = carrier.carrierTypeName ?? oldCarrier.carrierTypeName
-            ..consolidationJson = carrier.consolidationJson ?? oldCarrier.consolidationJson;
+            ..fetchJson = carrier.fetchJson ?? oldCarrier.fetchJson;
           carriersMap.remove(oldCarrier.carrierId2);
         } else if (oldCarrier.status == .platform) {
           oldCarrier.status = .platformExpired;
@@ -153,10 +154,10 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         ...carriersMap.values,
         ...oldCarriers,
       ]);
-      LogService('_pressFetchConsolidation finished.', instance: this).d();
+      LogService('_pressFetchCarrierList finished.', instance: this).d();
       return true;
     } catch (e) {
-      LogService('_pressFetchConsolidation failed.', errorObject: e, instance: this).e();
+      LogService('_pressFetchCarrierList failed.', errorObject: e, instance: this).e();
       return false;
     } finally {
       _singleActionLocked.value = false;
@@ -169,8 +170,13 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       LogService('現在已有其他雲端平台操作, 取消執行.', instance: this).d();
       return false;
     }
+    _singleActionLocked.value = true;
     try {
-      await _api.fetchAwardList(_cdsMc!); // todo: 寫回 Drift
+      await DriftServices.appDb.receiptDao.upsertMany(
+        receiptMap: await _api.fetchAwardList(),
+        scopeStart: .platformUnconfirmed,
+        scopeEnd: .platformExpired,
+      );
       LogService('_pressFetchAwardList finished.', instance: this).d();
       return true;
     } catch (e) {
@@ -189,7 +195,11 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     }
     _singleActionLocked.value = true;
     try {
-      await _api.fetchInvoiceList(_cdsMc!); // todo: 寫回 Drift
+      await DriftServices.appDb.receiptDao.upsertMany(
+        receiptMap: await _api.fetchInvoiceList(context.readPrefs.get(.invoiceQueryMonths)),
+        scopeStart: .platformUnconfirmed,
+        scopeEnd: .platformExpired,
+      );
       LogService('_pressFetchInvoiceList finished.', instance: this).d();
       return true;
     } catch (e) {
@@ -236,7 +246,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                       title: Text('執行全部'),
                       enabled: _apiReady,
                       onTap: () async {
-                        await _pressFetchConsolidation() &&
+                        await _pressFetchCarrierList() &&
                             await _pressFetchAwardList() &&
                             await _pressFetchInvoiceList();
                       },
@@ -245,7 +255,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                       leading: const Icon(Icons.payment),
                       title: Text('調取載具'),
                       enabled: _apiReady,
-                      onTap: _pressFetchConsolidation,
+                      onTap: _pressFetchCarrierList,
                     ),
                     ListTile(
                       leading: const Icon(Icons.money),
@@ -258,6 +268,16 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                       title: Text('調取發票'),
                       enabled: _apiReady,
                       onTap: _pressFetchInvoiceList,
+                    ),
+                    ListTilePicker<int>(
+                      iconData: Icons.calendar_month,
+                      text: '查詢發票距離',
+                      selectedOption: context.readPrefs.get(.invoiceQueryMonths),
+                      optionMap: Map.fromEntries(List.generate(7, (i) => MapEntry(i + 2, '${i + 2} 月'))),
+                      onChanged: (value) async {
+                        await context.readPrefs.update(.invoiceQueryMonths, value, false);
+                        setState(() {});
+                      },
                     ),
                   ],
                 ),
@@ -302,7 +322,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                       if (headers?.containsKey('Authorization') == true) {
                         _api.auth = headers!['Authorization'];
                         if (request.url.toString().contains('service-mc')) {
-                          _cdsMc = headers['x-cds-btc'] ?? _cdsMc;
+                          _api.cdsMc = headers['x-cds-btc'];
                         }
                         setState(() {});
                       }

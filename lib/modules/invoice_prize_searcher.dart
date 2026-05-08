@@ -28,7 +28,7 @@ class InvoicePrizeSearcher {
   }
 
   Future<InvoiceWinningNumber?> findInvoiceWinningNumber(InvoicePeriod invoicePeriod) async {
-    final String period = invoicePeriod.getROCPeriod;
+    final String period = invoicePeriod.queryROC;
     final List<InvoiceWinningNumber> history = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.invoiceWinningNumberList);
     final int historyWhere = history.indexWhere((item) => item.period == period);
     if (historyWhere >= 0) {

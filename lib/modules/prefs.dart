@@ -45,6 +45,8 @@ enum PrefsEnum {
   isScanScreenRotation,
   isShowScreenRotation,
   isAutoWebDAVSync,
+
+  invoiceQueryMonths,
   ;
 
   static final _prefDefCache = <PrefsEnum, PrefDef>{};
@@ -72,6 +74,7 @@ enum PrefsEnum {
       isScanScreenRotation => PrefDef._same(false),
       isShowScreenRotation => PrefDef._same(false),
       isAutoWebDAVSync => PrefDef._same(false),
+      invoiceQueryMonths => PrefDef._same(2),
     };
     return prefDef;
   });

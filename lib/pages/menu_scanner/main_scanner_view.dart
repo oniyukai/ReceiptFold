@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/invoice_period.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
@@ -36,7 +35,7 @@ class _MainScannerViewState extends State<MainScannerView> with SingleTickerProv
   Future<void> _loadPeriodNumber() async {
     late final InvoiceWinningNumber? thisWinningNumber;
     late final InvoiceWinningNumber? lastWinningNumber;
-    final nowInvoicePeriod = InvoicePeriod.fromUnixTime(UnitUtils.nowUnixTime);
+    final nowInvoicePeriod = InvoicePeriod(.now());
     final last1InvoicePeriod = nowInvoicePeriod.previous;
     final last2InvoicePeriod = last1InvoicePeriod.previous;
     final last3InvoicePeriod = last2InvoicePeriod.previous;

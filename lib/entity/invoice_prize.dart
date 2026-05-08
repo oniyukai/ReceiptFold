@@ -32,7 +32,7 @@ enum InvoiceEntityPrize {
 }
 
 class InvoiceWinningNumber {
-  final String period; // 期數描述，例如：11405
+  final String period; // 台北時間民國期數描述，例如: "11405"
   final int lastWebQueryTime;
   final Map<InvoiceEntityPrize, List<String>>? prizes; // 獎項: 獎號列表
 

@@ -118,8 +118,6 @@ const LocaleInstance mapZhHant = {
   .receiptViewOriginalContentLabel: '原先內容',
   .receiptViewModifyLabel: '修改',
   .receiptHeaderSellerNameLabel: '賣家名稱 / 交易名稱',
-  .receiptHeaderInvoicePeriodLabel: '發票期別',
-  .receiptHeaderTimestampLabel: '時間戳記',
   .receiptHeaderInvoiceNumberLabel: '發票號碼',
   .receiptHeaderInvoiceStatusLabel: '發票狀態',
   .receiptHeaderCarrierNameLabel: '載具名稱',

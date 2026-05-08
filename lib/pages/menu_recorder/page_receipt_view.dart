@@ -47,7 +47,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   late final PageReceiptViewArgs _args = widget.getArgs(context)!;
   late List<ReceiptProduct> _products = _args.receiptEntry?.value ?? [];
   late Receipt _receipt = _args.receiptEntry?.key ?? Receipt(
-    issuedAt: _args.period!.startDateTime,
+    issuedAt: _args.period!.start,
     originStatus: .manualEntry,
     totalAmount: 0.0,
     modified: .now(),
@@ -385,9 +385,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               ),
               _ReceiptInfoTile(
                 titleText: UnitUtils.fullTimeText(_receipt.issuedAt),
-                subtitleText: '${DictKey.receiptHeaderInvoicePeriodLabel.s}('
-                    '${InvoicePeriod.fromUnixTime(_receipt.issuedAt.millisecondsSinceEpoch)})\n'
-                    '${DictKey.receiptHeaderTimestampLabel.s}',
+                subtitleText: '發票期別 (${InvoicePeriod(_receipt.issuedAt).stringROC})',
                 onTap: _isCloudPlatform ? null : _selectDateTime,
               ),
               _RowExpandedTile(

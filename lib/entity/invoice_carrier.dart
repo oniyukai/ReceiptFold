@@ -17,7 +17,7 @@ class InvoiceCarrier {
   CarrierStatus status;
   String? carrierType;
   String? carrierTypeName;
-  String? consolidationJson;
+  String? fetchJson;
 
   InvoiceCarrier({
     required this.carrierId2,
@@ -25,7 +25,7 @@ class InvoiceCarrier {
     required this.status,
     this.carrierType,
     this.carrierTypeName,
-    this.consolidationJson,
+    this.fetchJson,
   });
 
   Map<String, dynamic> toJson() => {
@@ -34,7 +34,7 @@ class InvoiceCarrier {
     'status': status,
     if (carrierType?.isNotEmpty == true) 'carrierType': carrierType,
     if (carrierTypeName?.isNotEmpty == true) 'carrierTypeName': carrierTypeName,
-    if (consolidationJson?.isNotEmpty == true) 'consolidationJson': consolidationJson,
+    if (fetchJson?.isNotEmpty == true) 'fetchJson': fetchJson,
   };
 
   factory InvoiceCarrier.fromString(String jsonString) {
@@ -43,7 +43,7 @@ class InvoiceCarrier {
     CarrierStatus? status;
     String? carrierType;
     String? carrierTypeName;
-    String? consolidationJson;
+    String? fetchJson;
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
       carrierId2 = json['carrierId2'];
@@ -51,7 +51,7 @@ class InvoiceCarrier {
       status = CarrierStatus.values.fromName(json['status']);
       carrierType = json['carrierType'];
       carrierTypeName = json['carrierTypeName'];
-      consolidationJson = json['consolidationJson'];
+      fetchJson = json['fetchJson'];
     } catch (e) {
       debugPrint('$InvoiceCarrier.fromString: $e');
     }
@@ -61,7 +61,7 @@ class InvoiceCarrier {
       status: status ?? .manual,
       carrierType: carrierType?.isNotEmpty == true ? carrierType : null,
       carrierTypeName: carrierTypeName?.isNotEmpty == true ? carrierTypeName : null,
-      consolidationJson: consolidationJson?.isNotEmpty == true ? consolidationJson : null,
+      fetchJson: fetchJson?.isNotEmpty == true ? fetchJson : null,
     );
   }
 }

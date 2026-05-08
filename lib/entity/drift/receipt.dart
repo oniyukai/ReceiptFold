@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
+import 'package:receipt_fold/entity/invoice_period.dart';
 
 enum OriginStatus {
   platformUnconfirmed(16),
@@ -28,6 +29,8 @@ enum OriginStatus {
     .manualScan => '本地 掃描',
     .manualEntry => '本地 手動',
   };
+
+  int toJson() => sqlValue;
 
   static final List<OriginStatus> _sorted = values.toList()..sort((a, b) => a.sqlValue.compareTo(b.sqlValue));
 
@@ -112,8 +115,8 @@ class ReceiptDao extends SyncableDao {
       OrderingTerm(expression: _receipts.issuedAt, mode: order),
       OrderingTerm(expression: _receipts.uuid, mode: order),
       // 產品按照List index順序
-      OrderingTerm(expression: _products.sequence, mode: OrderingMode.asc),
-      OrderingTerm(expression: _products.uuid, mode: OrderingMode.asc),
+      OrderingTerm(expression: _products.sequence, mode: .asc),
+      OrderingTerm(expression: _products.uuid, mode: .asc),
     ]);
 
     return statement.watch().map((rows) {
@@ -140,7 +143,7 @@ class ReceiptDao extends SyncableDao {
     final oldProductMap = Map.fromEntries(await oldProducts);
     final productDelUuids = oldProductMap.keys.whereNot((id) => productUuids.contains(id)).toList();
 
-    bool isReceiptModified = await oldReceipt != receipt;
+    bool isReceiptModified = productDelUuids.isNotEmpty || await oldReceipt != receipt;
     double totalAmount = 0.0;
     for (int i = 0; i < products.length; i += 1) {
       ReceiptProduct product = products[i];
@@ -166,6 +169,55 @@ class ReceiptDao extends SyncableDao {
       batch.insertAllOnConflictUpdate(_products, products);
     });
     return receipt;
+  }
+
+  /// 專門給 API調取 與 CSV匯入 的接口, 與 [upsert] 一樣會自動處理 sequence, totalAmount.
+  ///
+  /// 這並非是單純查 uuid 並更新, 會嘗試替換掉 invoiceNumber, issuedAt 都相同的項目, 否則新增.
+  Future<void> upsertMany({
+    required Map<Receipt, List<ReceiptProduct>> receiptMap,
+    required OriginStatus scopeStart,
+    required OriginStatus scopeEnd,})
+  async {
+    assert(scopeStart.sqlValue <= scopeEnd.sqlValue);
+    final allowUpsertMap = <String, MapEntry<Receipt, List<ReceiptProduct>>>{
+      for (final entry in receiptMap.entries)
+        if ((entry.key.invoiceNumber?.length ?? 0) >= 3)
+          '${InvoicePeriod(entry.key.issuedAt).queryROC}${entry.key.invoiceNumber}': entry,
+    };
+
+    final oldReceiptMap = <Receipt, List<ReceiptProduct>>{};
+    await Future.wait(allowUpsertMap.values.map((e) => e.key.invoiceNumber!).slices(chunkSize).map((chunk) {
+      final statement = _receipts.select().join([
+        leftOuterJoin(_products, _products.receiptUuid.equalsExp(_receipts.uuid)),
+      ])..orderBy([
+        OrderingTerm(expression: _receipts.issuedAt),
+        OrderingTerm(expression: _receipts.uuid),
+        OrderingTerm(expression: _products.sequence),
+        OrderingTerm(expression: _products.uuid),
+      ])..where(_receipts.invoiceNumber.isIn(chunk));
+      if (scopeStart != OriginStatus._sorted.first) {
+        statement.where(_receipts.originStatus.isBiggerOrEqualValue(scopeStart.sqlValue));
+      }
+      if (scopeEnd != OriginStatus._sorted.last) {
+        for (int i = 0; i < OriginStatus._sorted.length; i += 1) {
+          if (scopeEnd.sqlValue >= OriginStatus._sorted[i].sqlValue) {
+            statement.where(_receipts.originStatus.isSmallerThanValue(OriginStatus._sorted[i + 1].sqlValue));
+            break;
+          }
+        }
+      }
+      return statement.get().then((rows) {
+        for (final row in rows) {
+          final receipt = row.readTable(_receipts);
+          final product = row.readTableOrNull(_products);
+          final productList = oldReceiptMap.putIfAbsent(receipt, () => []);
+          if (product != null) productList.add(product);
+        }
+      });
+    }));
+
+    throw UnimplementedError(); // todo
   }
 
   Future<void> remove(Receipt receipt) async {

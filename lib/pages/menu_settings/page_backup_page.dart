@@ -75,14 +75,13 @@ class PageBackupPage extends StatefulWidget {
     if (_singleActionLocked.value) {
       LogService('現在已有其他資料庫操作, 取消執行.', classType: PageBackupPage).d();
       return;
-    } else if (UnitUtils.nowUnixTime - _lastTimeWebDAVAction <= 2000) {
+    } else if (UnitUtils.nowUnixTime - _lastTimeWebDAVAction < 2000) {
       LogService('太過頻繁的 WebDAV 操作, 取消執行.', classType: PageBackupPage).d();
       return;
     }
     _singleActionLocked.value = true;
     try {
       if (_webDAV.value == null) throw Exception('WebDAV 尚未被初始化!');
-      _lastTimeWebDAVAction = UnitUtils.nowUnixTime;
       final WebDAV webDAV = _webDAV.value!;
       await switch (action) {
         .pushForce => DriftServices.pushForce(webDAV.upload),
@@ -95,6 +94,7 @@ class PageBackupPage extends StatefulWidget {
     } catch (e) {
       LogService('_webDAVAction failed.', errorObject: e, classType: PageBackupPage).e();
     } finally {
+      _lastTimeWebDAVAction = UnitUtils.nowUnixTime;
       _singleActionLocked.value = false;
     }
   }

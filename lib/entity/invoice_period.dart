@@ -2,65 +2,47 @@ import 'package:intl/intl.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
+/// 必須要同一個實例中能夠接受同一時刻雙期別制度下可能不同的結果
 class InvoicePeriod {
-  final int year; // 西元年
-  final int startMonth; // 1, 3, 5, 7, 9, 11
+  late final DateTime _localTime;
 
-  InvoicePeriod(this.year, this.startMonth) {
-    assert(startMonth % 2 != 0 && startMonth >= 1 && startMonth <= 11, 'startMonth 必須是 1 到 11 之間的奇數月份。');
+  InvoicePeriod(DateTime dateTime) {
+    _localTime = dateTime.toLocal();
   }
 
   /// 獲取該期别的開始日期 (該月1日)
-  DateTime get startDateTime => DateTime(year, startMonth, 1);
+  DateTime get start => DateTime(_localTime.year, _localTime.month % 2 + _localTime.month - 1, 1);
 
   /// 獲取該期别的結束日期 (下兩個月的前一天，並包含當天所有時間)
-  DateTime get endDateTime => DateTime(year, startMonth + 2, 0, 23, 59, 59, 999);
+  DateTime get end => DateTime(_localTime.year, _localTime.month % 2 + _localTime.month + 1, 0, 23, 59, 59, 999);
 
-  /// 獲取期别(民國年)，例如 "11305"
-  String get getROCPeriod =>
-      '${(year-1911).toString().padLeft(3, '0')}${startMonth.toString().padLeft(2, '0')}';
+  /// 台北時間民國年雙月描述, 如 "113-05/06"
+  String get stringROC {
+    final DateTime taipeiTime = _localTime.toUtc().add(const Duration(hours: 8));
+    final String startMonth = (taipeiTime.month % 2 + taipeiTime.month - 1).toString().padLeft(2, '0');
+    final String endMonth = (taipeiTime.month % 2 + taipeiTime.month).toString().padLeft(2, '0');
+    return '${taipeiTime.year -1911}-$startMonth/$endMonth';
+  }
 
-  /// 以當地年雙月表示, 如 "2025年 7月, 8月"
-  @override
-  String toString() {
+  /// 台北時間民國年雙月描述, 如 "11305"
+  String get queryROC {
+    final DateTime taipeiTime = _localTime.toUtc().add(const Duration(hours: 8));
+    final String startMonth = (taipeiTime.month % 2 + taipeiTime.month - 1).toString().padLeft(2, '0');
+    return '${(taipeiTime.year - 1911).toString().padLeft(3, '0')}$startMonth';
+  }
+
+  /// 當地年雙月描述, 如 "2025年 7月, 8月"
+  String get stringLocal {
     final DateFormat yearFormatter = DateFormat.y(DictKey.languageTag);
-    final String yearPart = yearFormatter.format(startDateTime);
-    final String month1Name = UnitUtils.singleMonthText(startDateTime);
-    final String month2Name = UnitUtils.singleMonthText(endDateTime);
+    final String yearPart = yearFormatter.format(start);
+    final String month1Name = UnitUtils.singleMonthText(start);
+    final String month2Name = UnitUtils.singleMonthText(end);
     return '$yearPart $month1Name, $month2Name';
   }
 
-  /// 根據給定的[unixMilliseconds]，計算它所屬的發票期别
-  factory InvoicePeriod.fromUnixTime(int unixMilliseconds) {
-    final DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(unixMilliseconds);
-    final int month = (dateTime.month%2 == 0) ? dateTime.month-1 : dateTime.month;
-    return InvoicePeriod(dateTime.year, month);
-  }
-
   /// 獲取下一期
-  InvoicePeriod get next {
-    final int newStartMonth = startMonth + 2;
-    return newStartMonth > 11
-        ? InvoicePeriod(year + 1, 1)
-        : InvoicePeriod(year, newStartMonth);
-  }
+  InvoicePeriod get next => InvoicePeriod(end.add(const Duration(days: 1)));
 
   /// 獲取上一期
-  InvoicePeriod get previous {
-    final int newStartMonth = startMonth - 2;
-    return newStartMonth < 1
-        ? InvoicePeriod(year - 1, 11)
-        : InvoicePeriod(year, newStartMonth);
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is InvoicePeriod &&
-      runtimeType == other.runtimeType &&
-      year == other.year &&
-      startMonth == other.startMonth;
-
-  @override
-  int get hashCode => year.hashCode ^ startMonth.hashCode;
+  InvoicePeriod get previous => InvoicePeriod(start.subtract(const Duration(days: 1)));
 }
