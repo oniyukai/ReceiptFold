@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:csv/csv.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:intl/intl.dart';
@@ -10,13 +11,12 @@ import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 
 class InvoicePlatformApi {
   InAppWebViewController? _controller;
-  String? _auth, _cdsMc;
+  String? _auth;
 
   set controller(InAppWebViewController value) => _controller = value;
   set auth(String? value) => _auth = value ?? _auth;
-  set cdsMc(String? value) => _cdsMc = value ?? _cdsMc;
 
-  bool get isInitialized => _controller != null && _auth != null && _cdsMc != null;
+  bool get isInitialized => _controller != null && _auth != null;
 
   String? _noEmptyString(String? s) => s?.trim().isNotEmpty == true ? s : null;
 
@@ -33,7 +33,7 @@ class InvoicePlatformApi {
     return null;
   }
 
-  Future<dynamic> _fetch(String url, Map<String, String?> headers, dynamic body) {
+  Future<String> _fetch({required String url, Map<String, String?> headers = const {}, dynamic body,}) {
     if (_controller == null) throw Exception('InAppWebViewController 尚未被附值');
     return _controller!.callAsyncJavaScript(
       functionBody: '''
@@ -45,23 +45,21 @@ class InvoicePlatformApi {
         return await response.text();
       ''',
       arguments: {'url': url, 'headers': headers, 'body': body},
-    ).then((value) => value?.value);
+    ).timeout(const Duration(seconds: 16)).then((value) => (value?.value).toString());
   }
 
   Future<String> _fetchInvoiceResData(String token) {
     return _fetch(
-      'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getCarrierInvoiceData',
-      {'Authorization': _auth, 'x-cds-btc': _cdsMc, 'Content-Type': 'application/json'},
-      token,
-    ).then((res) => res.toString());
+      url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getCarrierInvoiceData',
+      body: token,
+    );
   }
 
   Future<String> _fetchInvoiceResDetail(String token)  {
     return _fetch(
-      'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getCarrierInvoiceDetail?page=0&size=100',
-      {'Authorization': _auth, 'x-cds-btc': _cdsMc, 'Content-Type': 'application/json'},
-      token,
-    ).then((res) => res.toString());
+      url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getCarrierInvoiceDetail?page=0&size=100',
+      body: token,
+    );
   }
 
   Receipt _parseInvoiceResData(String resData, Receipt receipt) {
@@ -84,18 +82,17 @@ class InvoicePlatformApi {
     final products = <ReceiptProduct>[];
     double totalAmount = 0.0;
     for (final jsonDetail in jsonDetails) {
-      final double unitPrice = double.tryParse(jsonDetail['unitPrice'] ?? '') ?? 0.0;
-      final double quantity = double.tryParse(jsonDetail['quantity'] ?? '') ?? 0.0;
-      totalAmount += unitPrice * quantity;
+      final double amount = double.tryParse(jsonDetail['amount'] ?? '') ?? 0.0;
+      totalAmount += amount;
       products.add(ReceiptProduct(
         modified: .now(),
         uuid: UuidMixin.v7.generate(),
         receiptUuid: receipt.uuid,
         sequence: int.tryParse(jsonDetail['sequenceNumber'] ?? '') ?? 0,
         description: jsonDetail['item'] ?? StaticString.nullString,
-        unitPrice: unitPrice,
-        quantity: quantity,
-        amount: unitPrice * quantity,
+        unitPrice: double.tryParse(jsonDetail['unitPrice'] ?? '') ?? 0.0,
+        quantity: double.tryParse(jsonDetail['quantity'] ?? '') ?? 0.0,
+        amount: amount,
       ));
     }
     return MapEntry(receipt.copyWith(totalAmount: totalAmount), products);
@@ -124,15 +121,13 @@ class InvoicePlatformApi {
   Future<List<InvoiceCarrier>> fetchCarrierList() async {
     LogService('fetchCarrierList...', instance: this).d();
     final fListRes = _fetch(
-      'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/getCarrierList',
-      {'Authorization': _auth, 'x-cds-btc': _cdsMc, 'Content-Type': 'application/json'},
-      {},
-    ).then((res) => res.toString());
+      url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/getCarrierList',
+      headers: {'Authorization': _auth},
+    );
     final fConRes = _fetch(
-      'https://service-m.einvoice.nat.gov.tw/btc/portal/api/btc504w/queryCarrierConsolidationInformation?page=0&size=100',
-      {'Authorization': _auth, 'x-cds-btc': _cdsMc, 'Content-Type': 'application/json'},
-      {},
-    ).then((res) => res.toString());
+      url: 'https://service-m.einvoice.nat.gov.tw/btc/portal/api/btc504w/queryCarrierConsolidationInformation?page=0&size=100',
+      headers: {'Authorization': _auth},
+    );
     final carrierMap = <String, InvoiceCarrier>{};
     final contents = [
       ...jsonDecode(await fListRes),
@@ -156,22 +151,20 @@ class InvoicePlatformApi {
   Future<Map<Receipt, List<ReceiptProduct>>> fetchAwardList() async {
     LogService('fetchAwardList...', instance: this).d();
     final List jsonPeriod = jsonDecode(await _fetch(
-      'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getInvPeriodList',
-      {'Authorization': _auth, 'x-cds-btc': _cdsMc, 'Content-Type': 'application/json'},
-      {},
+      url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getInvPeriodList',
     ));
     final periodNames = jsonPeriod.take(3).map((e) => e['awardInvoicePeriod']);
     LogService('getAwardPeriod = $periodNames', instance: this).d();
     final responses = await Future.wait(
       periodNames.map((periodName) => _fetch(
-        'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/btc503wGetSearchCarrierInvoiceListJWT',
-        {'Authorization': _auth, 'x-cds-btc': _cdsMc, 'Content-Type': 'application/json'},
-        {'awardDate': periodName, 'isSearchAll': 'true'},
+        url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/btc503wGetSearchCarrierInvoiceListJWT',
+        headers: {'Authorization': _auth, 'Content-Type': 'application/json'},
+        body: {'awardDate': periodName, 'isSearchAll': 'true'},
       ).then((periodJwt) => _fetch(
-        'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/getCarrierAwardInvoiceList?page=0&size=100',
-        {'Authorization': _auth, 'x-cds-btc': _cdsMc, 'Content-Type': 'application/json'},
-        periodJwt.toString().trim().replaceAll('"', ''),
-      )).then((awardsRes) => awardsRes.toString())),
+        url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/getCarrierAwardInvoiceList?page=0&size=100',
+        headers: {'Authorization': _auth},
+        body: periodJwt.trim().replaceAll('"', ''),
+      ))),
     );
 
     final result = <Receipt, List<ReceiptProduct>>{};
@@ -215,35 +208,30 @@ class InvoicePlatformApi {
     final DateTime nowUtc = .timestamp();
     final DateFormat utcFormat = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-    final jwtResponses = await Future.wait(List.generate(months.clamp(2, 8), (i) {
+    final jwtResponses = await Future.wait(List.generate(months.clamp(1, 8), (i) {
       final DateTime taipeiTime = nowUtc.add(const Duration(hours: 8));
       final DateTime start = DateTime.utc(taipeiTime.year, taipeiTime.month - i, 1).subtract(const Duration(hours: 8));
       final DateTime end = DateTime.utc(taipeiTime.year, taipeiTime.month - i + 1, 1).subtract(const Duration(hours: 8, seconds: 1));
-      LogService('${utcFormat.format(start)}  ${utcFormat.format(end.isAfter(nowUtc) ? nowUtc : end)}', instance: this).d();
       return (startStr: utcFormat.format(start), endStr: utcFormat.format(end.isAfter(nowUtc) ? nowUtc : end));
     }).map((value) => _fetch(
-      'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc502w/getSearchCarrierInvoiceListJWT',
-      {'Authorization': _auth, 'x-cds-btc': _cdsMc, 'Content-Type': 'application/json'},
-      {
+      url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc502w/getSearchCarrierInvoiceListJWT',
+      headers: {'Authorization': _auth, 'Content-Type': 'application/json'},
+      body: {
         'searchStartDate': value.startStr,
         'searchEndDate': value.endStr,
         'invoiceStatus': 'all',
-        'isSearchAll': 'true'
+        'isSearchAll': 'true',
       },
-    ).then((jwtRes) => jwtRes.toString().trim().replaceAll('"', ''))));
+    ).then((jwtRes) => jwtRes.trim().replaceAll('"', ''))));
 
     final jsonsInvoices = [];
     for (final jwtResponse in jwtResponses) { // 這裡就不特別採用並發了, 減輕 API 壓力
       for (int i = 0; i < 4; i += 1) { // 限制每月 400張 發票, 超過需求的人每月在每 400張 前自行觸發即可
         final invoicesRes = await _fetch(
-          'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc502w/searchCarrierInvoice?page=$i&size=100',
-          {
-            'Authorization': _auth,
-            'x-cds-btc': _cdsMc,
-            'Content-Type': 'application/json'
-          },
-          {'token': jwtResponse},
-        ).then((invRes) => invRes.toString());
+          url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc502w/searchCarrierInvoice?page=$i&size=100',
+          headers: {'Authorization': _auth, 'Content-Type': 'application/json'},
+          body: {'token': jwtResponse},
+        );
         if (invoicesRes.trim().isEmpty) break;
         final jsonRes = jsonDecode(invoicesRes);
         jsonsInvoices.add(jsonRes['content']);
@@ -265,7 +253,7 @@ class InvoicePlatformApi {
             originStatus: _analyzeOriginStatus(jsonInvoice['extStatus'], jsonInvoice['donateMark'], jsonInvoice['invoiceStrStatus'])
                 ?? .platformUnconfirmed,
             issuedAt: DateTime.tryParse(jsonInvoice['invoiceDate'] ?? '') ?? .now(),
-            totalAmount: double.tryParse(jsonInvoice['totalAmount']?.toString() ?? '') ?? 0.0, // API 特別回傳的是 int
+            totalAmount: double.tryParse(jsonInvoice['totalAmount'].toString()) ?? 0.0, // API 特別回傳的是 int
             invoiceNumber: _noEmptyString(jsonInvoice['invoiceNumber']),
             carrierName: _noEmptyString(jsonInvoice['carrierName']),
             carrierType: _noEmptyString(jsonInvoice['carrierType']),
@@ -280,5 +268,47 @@ class InvoicePlatformApi {
       result[entry.key] = entry.value;
     }
     return result;
+  }
+
+  Map<Receipt, List<ReceiptProduct>> decodeImportCSV(String csvString) {
+    final invMap = <String, MapEntry<Receipt, List<ReceiptProduct>>>{};
+    for (final csvRow in Csv(fieldDelimiter: '|').decode(csvString)) {
+      final List<String> stringList = csvRow.map((e) => e.toString()).toList();
+      final String? rowType = stringList.firstOrNull;
+      if (rowType == 'M') {
+        final String invoiceNumber = stringList[6];
+        final String dateString = stringList[3];
+        invMap[invoiceNumber] = MapEntry(Receipt(
+          modified: .now(),
+          uuid: UuidMixin.v7.generate(),
+          originStatus: .manualImport,
+          issuedAt: .utc(
+            int.parse(dateString.substring(0, 4)),
+            int.parse(dateString.substring(4, 6)),
+            int.parse(dateString.substring(6, 8)),
+          ).subtract(const Duration(hours: 8)),
+          totalAmount: double.tryParse(stringList[7]) ?? 0.0,
+          carrierId2: _noEmptyString(stringList[2]),
+          sellerTaxId: _noEmptyString(stringList[4]),
+          sellerName: _noEmptyString(stringList[5]),
+          invoiceNumber: _noEmptyString(invoiceNumber),
+        ), []);
+      } else if (rowType == 'D') {
+        final String invoiceNumber = stringList[1];
+        final double amount = double.tryParse(stringList[2]) ?? 0.0;
+        final entry = invMap[invoiceNumber];
+        entry?.value.add(ReceiptProduct(
+          modified: .now(),
+          uuid: UuidMixin.v7.generate(),
+          receiptUuid: entry.key.uuid,
+          sequence: entry.value.length + 1,
+          description: stringList[3],
+          unitPrice: amount,
+          quantity: 1.0,
+          amount: amount,
+        ));
+      }
+    }
+    return Map.fromEntries(invMap.values);
   }
 }

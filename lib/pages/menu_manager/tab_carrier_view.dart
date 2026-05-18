@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:receipt_fold/entity/invoice_period.dart';
+import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 
 class TabCarrierView extends StatefulWidget {
@@ -37,7 +37,7 @@ class _TabCarrierViewState extends State<TabCarrierView> {
     };
 
     for (final time in allTextTime) {
-      final winningNum = await scraper.findInvoiceWinningNumber(InvoicePeriod(time));
+      final winningNum = await scraper.findInvoiceWinningNumber(Period(time));
       scraper.dispose();
       if (winningNum == null) {
         debugPrint('查無獎金對照: $time');

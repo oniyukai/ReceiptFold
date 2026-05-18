@@ -3,7 +3,7 @@ import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/entity/invoice_period.dart';
+import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:receipt_fold/modules/prefs.dart';
@@ -27,8 +27,8 @@ class InvoicePrizeSearcher {
     return differenceInMilliseconds >= targetDifferenceInMilliseconds;
   }
 
-  Future<InvoiceWinningNumber?> findInvoiceWinningNumber(InvoicePeriod invoicePeriod) async {
-    final String period = invoicePeriod.queryROC;
+  Future<InvoiceWinningNumber?> findInvoiceWinningNumber(Period invoicePeriod) async {
+    final String period = invoicePeriod.invQuery;
     final List<InvoiceWinningNumber> history = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.invoiceWinningNumberList);
     final int historyWhere = history.indexWhere((item) => item.period == period);
     if (historyWhere >= 0) {

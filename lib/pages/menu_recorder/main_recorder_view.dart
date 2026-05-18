@@ -5,10 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
-import 'package:receipt_fold/entity/invoice_period.dart';
+import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/pages/menu_recorder/page_platform_view.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
 import 'package:receipt_fold/pages/widget/my_menu_button.dart';
 
@@ -23,7 +22,7 @@ class MainRecorderView extends StatefulWidget {
 
 
 class PeriodData {
-  final InvoicePeriod period;
+  final Period period;
   final oddMonthReceiptMap = <Receipt, List<ReceiptProduct>>{};
   final evenMonthReceiptMap = <Receipt, List<ReceiptProduct>>{};
   double oddMonthTotalAmount = 0;
@@ -45,13 +44,13 @@ class MainRecorderViewModel extends ChangeNotifier {
   /// 快取半徑，表示當前頁面左右各快取多少頁
   static const int _cacheRadius = 1;
 
-  final InvoicePeriod _todayPeriod;
+  final Period _todayPeriod;
   final Map<int, PeriodData> _periodDataCache = {};
   int _currentPageIndex = MainRecorderView._initialPageIndex;
 
   int get currentPageIndex => _currentPageIndex;
 
-  MainRecorderViewModel() : _todayPeriod = InvoicePeriod(.now());
+  MainRecorderViewModel() : _todayPeriod = Period(.now());
 
   PeriodData getPeriodData(int index) => _periodDataCache[index] ?? _loadReceiptsByIndex(index);
 
@@ -117,8 +116,8 @@ class MainRecorderViewModel extends ChangeNotifier {
   });
 
   /// 根據 PageView 的索引計算對應的 InvoicePeriod
-  InvoicePeriod _getInvoicePeriodByIndex(int index) {
-    InvoicePeriod targetPeriod = _todayPeriod;
+  Period _getInvoicePeriodByIndex(int index) {
+    Period targetPeriod = _todayPeriod;
     final relativeIndex = index - MainRecorderView._initialPageIndex;
     if (relativeIndex > 0) {
       for (int i = 0; i < relativeIndex; i += 1) {
@@ -168,7 +167,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
           final currentPeriodData = model.getPeriodData(model.currentPageIndex);
           return Scaffold(
             appBar: AppBar(
-              title: Text(currentPeriodData.period.stringLocal),
+              title: Text(currentPeriodData.period.localString),
               actions: [
                 IconButton(
                   onPressed: () => MyRouter.of<PageReceiptView>().toPass(PageReceiptViewArgs(
@@ -178,11 +177,6 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                 ),
                 MyMenuButton(
                   items: [
-                    MyMenuItem(
-                      text: DictKey.recorderMenuSyncPlatformLabel.s,
-                      iconData: Icons.sync,
-                      onTap: () => MyRouter.routeTo(PagePlatformView),
-                    ),
                     MyMenuItem(
                       text: DictKey.recorderMenuLabelPrizeVerification.s,
                       iconData: Icons.flip,

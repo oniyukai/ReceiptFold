@@ -67,7 +67,7 @@ class PageBackupPage extends StatefulWidget {
       }
     }
     if (_webDAV.value != null && PrefsEnum.isAutoWebDAVSync.get()) {
-      _webDAVConnectSyncTimer = Timer(const Duration(seconds: 3), () => _webDAVAction(.sync));
+      _webDAVConnectSyncTimer = Timer(const Duration(seconds: 4), () => _webDAVAction(.sync));
     }
   }
 
@@ -150,7 +150,7 @@ class _PageBackupPageState extends State<PageBackupPage> {
     final Directory? directory = await getDownloadsDirectory();
     final String? directoryPath = await FilePicker.platform.getDirectoryPath(initialDirectory:directory?.path);
     if (directoryPath == null) {
-      await Utils.showToast('取消');
+      Utils.showToast('取消');
       return;
     }
     await PageBackupPage._localAction(.pushForce, p.join(directoryPath, 'ReceiptFold_${UnitUtils.unixRadix36}.sqlite'));
@@ -162,7 +162,7 @@ class _PageBackupPageState extends State<PageBackupPage> {
       allowedExtensions: const ['sqlite'],
     );
     if (result == null) {
-      await Utils.showToast('取消');
+      Utils.showToast('取消');
       return;
     }
     try {
@@ -346,6 +346,7 @@ class _PageBackupPageState extends State<PageBackupPage> {
               ExpandableCard(
                 iconData: Icons.terminal,
                 text: '即時日誌',
+                initialExpanded: true,
                 expandedChild: ConstrainedBox(
                   constraints: const BoxConstraints(
                     minWidth: double.infinity,

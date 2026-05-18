@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
-enum InvoiceEntityPrize {
+enum InvoiceEntityPrize { // todo: 重構成非硬編碼
   special(10000000),
   grand(2000000),
   first(200000),

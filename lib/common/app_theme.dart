@@ -41,7 +41,7 @@ enum ColorOption {
   };
 }
 
-abstract final class MyAppTheme {
+abstract final class MyAppTheme { // todo: 採用新版樣式
   static late ColorScheme? dynamicColorScheme;
 
   static const systemOverlayStyle = SystemUiOverlayStyle(

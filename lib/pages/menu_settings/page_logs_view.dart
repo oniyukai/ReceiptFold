@@ -178,10 +178,10 @@ class _PageLogsViewState extends State<PageLogsView> {
   Future<void> _pressRefresh() async {
     setState(() => _formattedLogs = null);
     final String contents = await _LogFileListener.readLogs();
-    List<String> formattedLogs = contents.split(_separatorOfLog).reversed.where((s) => s.trim().isNotEmpty).toList();
+    List<String> formattedLogs = contents.split(_separatorOfLog).reversed.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
     if (formattedLogs.length >= 1024) {
       formattedLogs = formattedLogs.sublist(0, 512);
-      await _LogFileListener.replaceLogs('${formattedLogs.reversed.join(_separatorOfLog)}\n');
+      await _LogFileListener.replaceLogs('${formattedLogs.reversed.join('\n$_separatorOfLog\n')}\n$_separatorOfLog\n');
     }
     setState(() => _formattedLogs = formattedLogs);
   }
@@ -234,7 +234,7 @@ class _PageLogsViewState extends State<PageLogsView> {
           child: ListView(
             children: [
               if (_formattedLogs == null) const CircularProgressIndicator(),
-              if (_formattedLogs != null) SelectableText(_formattedLogs!.join()),
+              if (_formattedLogs != null) SelectableText(_formattedLogs!.join('\n')),
             ],
           ),
         ),

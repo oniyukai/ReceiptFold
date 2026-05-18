@@ -3,10 +3,10 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
 /// 必須要同一個實例中能夠接受同一時刻雙期別制度下可能不同的結果
-class InvoicePeriod {
+class Period {
   late final DateTime _localTime;
 
-  InvoicePeriod(DateTime dateTime) {
+  Period(DateTime dateTime) {
     _localTime = dateTime.toLocal();
   }
 
@@ -17,7 +17,7 @@ class InvoicePeriod {
   DateTime get end => DateTime(_localTime.year, _localTime.month % 2 + _localTime.month + 1, 0, 23, 59, 59, 999);
 
   /// 台北時間民國年雙月描述, 如 "113-05/06"
-  String get stringROC {
+  String get invString {
     final DateTime taipeiTime = _localTime.toUtc().add(const Duration(hours: 8));
     final String startMonth = (taipeiTime.month % 2 + taipeiTime.month - 1).toString().padLeft(2, '0');
     final String endMonth = (taipeiTime.month % 2 + taipeiTime.month).toString().padLeft(2, '0');
@@ -25,14 +25,14 @@ class InvoicePeriod {
   }
 
   /// 台北時間民國年雙月描述, 如 "11305"
-  String get queryROC {
+  String get invQuery {
     final DateTime taipeiTime = _localTime.toUtc().add(const Duration(hours: 8));
     final String startMonth = (taipeiTime.month % 2 + taipeiTime.month - 1).toString().padLeft(2, '0');
     return '${(taipeiTime.year - 1911).toString().padLeft(3, '0')}$startMonth';
   }
 
   /// 當地年雙月描述, 如 "2025年 7月, 8月"
-  String get stringLocal {
+  String get localString {
     final DateFormat yearFormatter = DateFormat.y(DictKey.languageTag);
     final String yearPart = yearFormatter.format(start);
     final String month1Name = UnitUtils.singleMonthText(start);
@@ -41,8 +41,8 @@ class InvoicePeriod {
   }
 
   /// 獲取下一期
-  InvoicePeriod get next => InvoicePeriod(end.add(const Duration(days: 1)));
+  Period get next => Period(end.add(const Duration(days: 1)));
 
   /// 獲取上一期
-  InvoicePeriod get previous => InvoicePeriod(start.subtract(const Duration(days: 1)));
+  Period get previous => Period(start.subtract(const Duration(days: 1)));
 }

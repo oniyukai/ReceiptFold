@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
-import 'package:receipt_fold/entity/invoice_period.dart';
+import 'package:receipt_fold/entity/period.dart';
 
 enum OriginStatus {
   platformUnconfirmed(16),
@@ -131,7 +131,7 @@ class ReceiptDao extends SyncableDao {
     }).distinct(const DeepCollectionEquality().equals);
   }
 
-  /// [products] 之中的 sequence 與 totalAmount 會被忽略並自動處理
+  /// [products] 之中的 sequence, totalAmount 會被忽略並自動處理
   Future<Receipt> upsert(Receipt receipt, List<ReceiptProduct> products) async {
     final oldReceipt = (_receipts.select()
       ..where((tbl) => tbl.uuid.equals(receipt.uuid))
@@ -150,7 +150,6 @@ class ReceiptDao extends SyncableDao {
       product = product.copyWith(
         receiptUuid: receipt.uuid,
         sequence: i + 1,
-        amount: product.unitPrice * product.quantity,
       );
       totalAmount += product.amount;
       final isProductModified = oldProductMap[product.uuid] != product;
@@ -171,23 +170,24 @@ class ReceiptDao extends SyncableDao {
     return receipt;
   }
 
-  /// 專門給 API調取 與 CSV匯入 的接口, 與 [upsert] 一樣會自動處理 sequence, totalAmount.
+  /// 專門給 API 調取 與 CSV 匯入 的接口, 與 [upsert] 一樣會自動處理 sequence, totalAmount.
   ///
-  /// 這並非是單純查 uuid 並更新, 會嘗試替換掉 invoiceNumber, issuedAt 都相同的項目, 否則新增.
+  /// 這並非是單純查 uuid 並更新, 會嘗試替換掉 invoiceNumber, [Period] 都相同的項目, 否則新增.
   Future<void> upsertMany({
-    required Map<Receipt, List<ReceiptProduct>> receiptMap,
+    required Map<Receipt, List<ReceiptProduct>> pairMap,
     required OriginStatus scopeStart,
     required OriginStatus scopeEnd,})
   async {
     assert(scopeStart.sqlValue <= scopeEnd.sqlValue);
-    final allowUpsertMap = <String, MapEntry<Receipt, List<ReceiptProduct>>>{
-      for (final entry in receiptMap.entries)
-        if ((entry.key.invoiceNumber?.length ?? 0) >= 3)
-          '${InvoicePeriod(entry.key.issuedAt).queryROC}${entry.key.invoiceNumber}': entry,
+    Map<String, MapEntry<Receipt, List<ReceiptProduct>>> pairMapToUnique(Map<Receipt, List<ReceiptProduct>> map) => {
+      for (final pair in map.entries)
+        if ((pair.key.invoiceNumber?.length ?? 0) >= 3)
+          '${Period(pair.key.issuedAt).invQuery}${pair.key.invoiceNumber}': pair,
     };
 
-    final oldReceiptMap = <Receipt, List<ReceiptProduct>>{};
-    await Future.wait(allowUpsertMap.values.map((e) => e.key.invoiceNumber!).slices(chunkSize).map((chunk) {
+    final uniquePairMap = pairMapToUnique(pairMap);
+    final oldPairMap = <Receipt, List<ReceiptProduct>>{};
+    await Future.wait(uniquePairMap.values.map((e) => e.key.invoiceNumber!).slices(chunkSize).map((chunk) {
       final statement = _receipts.select().join([
         leftOuterJoin(_products, _products.receiptUuid.equalsExp(_receipts.uuid)),
       ])..orderBy([
@@ -199,25 +199,66 @@ class ReceiptDao extends SyncableDao {
       if (scopeStart != OriginStatus._sorted.first) {
         statement.where(_receipts.originStatus.isBiggerOrEqualValue(scopeStart.sqlValue));
       }
-      if (scopeEnd != OriginStatus._sorted.last) {
-        for (int i = 0; i < OriginStatus._sorted.length; i += 1) {
-          if (scopeEnd.sqlValue >= OriginStatus._sorted[i].sqlValue) {
-            statement.where(_receipts.originStatus.isSmallerThanValue(OriginStatus._sorted[i + 1].sqlValue));
-            break;
-          }
-        }
+      final endIndex = OriginStatus._sorted.indexOf(scopeEnd);
+      if (endIndex >= 0 && endIndex < OriginStatus._sorted.length - 1) { // 該算法是為了覆蓋到比 scopeEnd.sqlValue 大一點點的值也算是 scopeEnd 當中
+        statement.where(_receipts.originStatus.isSmallerThanValue(OriginStatus._sorted[endIndex + 1].sqlValue));
       }
       return statement.get().then((rows) {
         for (final row in rows) {
           final receipt = row.readTable(_receipts);
           final product = row.readTableOrNull(_products);
-          final productList = oldReceiptMap.putIfAbsent(receipt, () => []);
+          final productList = oldPairMap.putIfAbsent(receipt, () => []);
           if (product != null) productList.add(product);
         }
       });
     }));
+    final oldUniquePairMap = pairMapToUnique(oldPairMap);
 
-    throw UnimplementedError(); // todo
+    final productDelUuids = <String>[];
+    uniquePairMap.updateAll((invKey, entry) {
+      final oldProducts = oldUniquePairMap[invKey]?.value ?? <ReceiptProduct>[];
+      final oldReceipt = oldUniquePairMap[invKey]?.key;
+      final products = entry.value;
+      Receipt receipt = entry.key.copyWith(
+        uuid: oldReceipt?.uuid,
+        modified: oldReceipt?.modified,
+      );
+      bool isReceiptModified = products.length < oldProducts.length || receipt != oldReceipt;
+
+      double totalAmount = 0.0;
+      for (int i = 0; i < products.length; i += 1) {
+        final oldProduct = i < oldProducts.length ? oldProducts[i] : null;
+        ReceiptProduct product = products[i];
+        product = product.copyWith(
+          uuid: oldProduct?.uuid,
+          modified: oldProduct?.modified,
+          receiptUuid: receipt.uuid,
+          sequence: i + 1,
+        );
+        totalAmount += product.amount;
+        final isProductModified = oldProduct != product;
+        if (isProductModified) isReceiptModified = true;
+        products[i] = product.copyWith(modified: isProductModified ? .now() : null);
+      }
+
+      productDelUuids.addAll(oldProducts.whereNotIndexed((index, _) => index < products.length).map((e) => e.uuid));
+      return MapEntry(
+        receipt.copyWith(
+          modified: isReceiptModified ? .now() : null,
+          totalAmount: totalAmount,
+        ),
+        products,
+      );
+    });
+
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(_deletedUuids, productDelUuids.map((id) => DeletedUuidsCompanion.insert(uuid: id)));
+      productDelUuids.slices(chunkSize).forEach((chunk) => batch.deleteWhere(_products, (tbl) => tbl.uuid.isIn(chunk)));
+      batch.insertAllOnConflictUpdate(_receipts, uniquePairMap.values
+          .map((p) => p.key.toCompanion(true)));
+      batch.insertAllOnConflictUpdate(_products, uniquePairMap.values.map((p) => p.value).expand((ls) => ls)
+          .map((e) => e.toCompanion(true)));
+    });
   }
 
   Future<void> remove(Receipt receipt) async {

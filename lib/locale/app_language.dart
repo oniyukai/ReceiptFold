@@ -138,7 +138,6 @@ enum DictKey {
   // Recorder
   recorderPeriodTransactionsAndAmount,
   recorderMonthTransactionsAndAmount,
-  recorderMenuSyncPlatformLabel,
   recorderMenuLabelPrizeVerification,
   recorderMenuStatisticalAnalysisLabel,
   recorderMenuSearchLabel,

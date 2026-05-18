@@ -58,7 +58,7 @@ abstract final class DriftServices {
     bool success = false;
     try {
       await appDb.customStatement("VACUUM INTO '${appDbCopyFile.path}'");
-      if (!await appDbCopyFile.exists()) throw Exception('Copy AppDb ${appDbCopyFile.path} failed.');
+      if (!await appDbCopyFile.exists()) throw Exception('Copy AppDb to ${appDbCopyFile.path} failed.');
       success = await upload(appDbCopyFile);
       return success ? appDbCopyFile : null;
     } finally {

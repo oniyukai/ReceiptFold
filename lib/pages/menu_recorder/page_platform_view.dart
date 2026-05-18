@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/modules/invoice_platform_api.dart';
@@ -123,6 +126,37 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     }
   }
 
+  Future<void> _pressImportCSV() async {
+    if (_singleActionLocked.value) {
+      LogService('現在已有其他操作, 取消執行.', instance: this).d();
+      return;
+    }
+    _singleActionLocked.value = true;
+    try {
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: .custom,
+        allowedExtensions: const ['csv'],
+      );
+      if (result == null) {
+        Utils.showToast('取消');
+        return;
+      }
+      final File file = File(result.files.single.path!);
+      await DriftServices.appDb.receiptDao.upsertMany(
+        pairMap: _api.decodeImportCSV(await file.readAsString()),
+        scopeStart: .manualImport,
+        scopeEnd: .manualImport,
+      );
+      LogService('_pressImportCSV finished.', instance: this).d();
+      return;
+    } catch (e) {
+      LogService('_pressImportCSV failed.', errorObject: e, instance: this).e();
+      return;
+    } finally {
+      _singleActionLocked.value = false;
+    }
+  }
+
   Future<bool> _pressFetchCarrierList() async {
     assert(_apiReady);
     if (_singleActionLocked.value) {
@@ -173,7 +207,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     _singleActionLocked.value = true;
     try {
       await DriftServices.appDb.receiptDao.upsertMany(
-        receiptMap: await _api.fetchAwardList(),
+        pairMap: await _api.fetchAwardList(),
         scopeStart: .platformUnconfirmed,
         scopeEnd: .platformExpired,
       );
@@ -196,7 +230,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     _singleActionLocked.value = true;
     try {
       await DriftServices.appDb.receiptDao.upsertMany(
-        receiptMap: await _api.fetchInvoiceList(context.readPrefs.get(.invoiceQueryMonths)),
+        pairMap: await _api.fetchInvoiceList(context.readPrefs.get(.invoiceQueryMonths)),
         scopeStart: .platformUnconfirmed,
         scopeEnd: .platformExpired,
       );
@@ -241,6 +275,21 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                       title: Text('填入帳號'),
                       onTap: _pressFillAccount,
                     ),
+                    ListTilePicker<int>(
+                      iconData: Icons.calendar_month,
+                      text: '查詢發票距離',
+                      selectedOption: context.readPrefs.get(.invoiceQueryMonths),
+                      optionMap: Map.fromEntries(List.generate(8, (i) => MapEntry(i + 1, '${i + 1} 月'))),
+                      onChanged: (value) async {
+                        await context.readPrefs.update(.invoiceQueryMonths, value, false);
+                        setState(() {});
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.manage_accounts),
+                      title: Text('從定期 CSV 匯入'),
+                      onTap: _pressImportCSV,
+                    ),
                     ListTile(
                       leading: const Icon(Icons.play_circle),
                       title: Text('執行全部'),
@@ -268,16 +317,6 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                       title: Text('調取發票'),
                       enabled: _apiReady,
                       onTap: _pressFetchInvoiceList,
-                    ),
-                    ListTilePicker<int>(
-                      iconData: Icons.calendar_month,
-                      text: '查詢發票距離',
-                      selectedOption: context.readPrefs.get(.invoiceQueryMonths),
-                      optionMap: Map.fromEntries(List.generate(7, (i) => MapEntry(i + 2, '${i + 2} 月'))),
-                      onChanged: (value) async {
-                        await context.readPrefs.update(.invoiceQueryMonths, value, false);
-                        setState(() {});
-                      },
                     ),
                   ],
                 ),
@@ -318,14 +357,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                       Timer(const Duration(seconds: 2), _pressFillAccount);
                     },
                     shouldInterceptRequest: (controller, request) async {
-                      final headers = request.headers;
-                      if (headers?.containsKey('Authorization') == true) {
-                        _api.auth = headers!['Authorization'];
-                        if (request.url.toString().contains('service-mc')) {
-                          _api.cdsMc = headers['x-cds-btc'];
-                        }
-                        setState(() {});
-                      }
+                      _api.auth = request.headers?['Authorization'];
+                      if (_api.isInitialized) setState(() {});
                       return null;
                     },
                   ),

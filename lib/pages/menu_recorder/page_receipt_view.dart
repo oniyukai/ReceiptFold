@@ -6,7 +6,7 @@ import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
-import 'package:receipt_fold/entity/invoice_period.dart';
+import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
@@ -21,7 +21,7 @@ class PageReceiptView extends StatefulWidget with RouterBridge<PageReceiptViewAr
 }
 
 class PageReceiptViewArgs {
-  final InvoicePeriod? period;
+  final Period? period;
   final MapEntry<Receipt, List<ReceiptProduct>>? receiptEntry;
 
   const PageReceiptViewArgs({
@@ -54,7 +54,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     uuid: UuidMixin.v7.generate(),
   );
 
-  bool get _isCloudPlatform => _receipt.originStatus.sqlValue < OriginStatus.manualScan.sqlValue;
+  bool get _isCloudPlatform => _receipt.originStatus.sqlValue < OriginStatus.manualImport.sqlValue;
 
   // < ---------- 適用於所有狀態的前端接口
   Future<void> _normalStringTileModify({
@@ -357,7 +357,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
             : DictKey.receiptViewRecordReceiptLabel.s
         ),
         actions: [
-          if (_args.isEdit) IconButton(
+          if (_args.isEdit && !_isCloudPlatform) IconButton(
             icon: const Icon(Icons.delete_forever),
             onPressed: _deleteIconPressed,
           ),
@@ -385,7 +385,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               ),
               _ReceiptInfoTile(
                 titleText: UnitUtils.fullTimeText(_receipt.issuedAt),
-                subtitleText: '發票期別 (${InvoicePeriod(_receipt.issuedAt).stringROC})',
+                subtitleText: '發票期別 (${Period(_receipt.issuedAt).invString})',
                 onTap: _isCloudPlatform ? null : _selectDateTime,
               ),
               _RowExpandedTile(

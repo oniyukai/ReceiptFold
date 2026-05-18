@@ -106,7 +106,6 @@ const LocaleInstance mapZhHant = {
   .prizeAdditionalSixthLabel: '增開六獎',
   .recorderPeriodTransactionsAndAmount: '該期有 ${StaticString.fillObjectNumber} 筆, 共 ${StaticString.fillObjectAmount} 元',
   .recorderMonthTransactionsAndAmount: '${StaticString.fillObjectMonth} 有 ${StaticString.fillObjectNumber} 筆, 共 ${StaticString.fillObjectAmount} 元',
-  .recorderMenuSyncPlatformLabel: '同步載具平台',
   .recorderMenuLabelPrizeVerification: '即時對獎',
   .recorderMenuStatisticalAnalysisLabel: '統計分析',
   .recorderMenuSearchLabel: '查詢',

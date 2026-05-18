@@ -1,5 +1,5 @@
 name: receipt_fold
-description: "A new Flutter project."
+description: "An expense tracker for tech-savvy users that lets you capture and manage receipts and invoices with offline access and optional cloud sync."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 version: 0.0.1+1
@@ -47,6 +47,7 @@ dependencies:
   webdav_client: ^1.2.2
   file_picker: ^10.3.10
   flutter_inappwebview: ^6.1.5
+  csv: ^8.0.0
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +70,3 @@ flutter_launcher_icons:
   windows:
     generate: true
   image_path: 'assets/appicon.png'
-
-objectbox:
-  output_dir: entity/objectbox

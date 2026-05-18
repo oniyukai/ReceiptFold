@@ -63,7 +63,7 @@ abstract final class Utils {
   static Future<void> openUrlInBrowser(String url) async {
     final Uri uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: .externalApplication)) {
-      await showToast('Could not launch $url');
+      showToast('Could not launch $url');
     }
   }
 
