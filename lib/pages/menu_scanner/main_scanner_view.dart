@@ -16,8 +16,8 @@ class MainScannerView extends StatefulWidget {
 class _MainScannerViewState extends State<MainScannerView> with SingleTickerProviderStateMixin {
   late final InvoicePrizeSearcher _invoicePrizeSearcher = InvoicePrizeSearcher();
   late final TabController _tabController;
-  late final InvoiceWinningNumber? _thisWinningNumber;
-  late final InvoiceWinningNumber? _lastWinningNumber;
+  late final InvoicePrizeAward? _thisWinningNumber;
+  late final InvoicePrizeAward? _lastWinningNumber;
 
   @override
   void initState() {
@@ -33,23 +33,23 @@ class _MainScannerViewState extends State<MainScannerView> with SingleTickerProv
   }
 
   Future<void> _loadPeriodNumber() async {
-    late final InvoiceWinningNumber? thisWinningNumber;
-    late final InvoiceWinningNumber? lastWinningNumber;
+    late final InvoicePrizeAward? thisWinningNumber;
+    late final InvoicePrizeAward? lastWinningNumber;
     final nowInvoicePeriod = Period(.now());
     final last1InvoicePeriod = nowInvoicePeriod.previous;
     final last2InvoicePeriod = last1InvoicePeriod.previous;
     final last3InvoicePeriod = last2InvoicePeriod.previous;
-    final nowWinningNumber = await _invoicePrizeSearcher.findInvoiceWinningNumber(nowInvoicePeriod);
-    final last1WinningNumber = await _invoicePrizeSearcher.findInvoiceWinningNumber(last1InvoicePeriod);
+    final nowWinningNumber = await _invoicePrizeSearcher.getPrizeAward(nowInvoicePeriod);
+    final last1WinningNumber = await _invoicePrizeSearcher.getPrizeAward(last1InvoicePeriod);
     if (nowWinningNumber != null) {
       thisWinningNumber = nowWinningNumber;
       lastWinningNumber = last1WinningNumber;
     } else if (last1WinningNumber != null) {
       thisWinningNumber = last1WinningNumber;
-      lastWinningNumber = await _invoicePrizeSearcher.findInvoiceWinningNumber(last2InvoicePeriod);
+      lastWinningNumber = await _invoicePrizeSearcher.getPrizeAward(last2InvoicePeriod);
     } else {
-      thisWinningNumber = await _invoicePrizeSearcher.findInvoiceWinningNumber(last2InvoicePeriod);
-      lastWinningNumber = await _invoicePrizeSearcher.findInvoiceWinningNumber(last3InvoicePeriod);
+      thisWinningNumber = await _invoicePrizeSearcher.getPrizeAward(last2InvoicePeriod);
+      lastWinningNumber = await _invoicePrizeSearcher.getPrizeAward(last3InvoicePeriod);
     }
     setState(() {
       _thisWinningNumber = thisWinningNumber;

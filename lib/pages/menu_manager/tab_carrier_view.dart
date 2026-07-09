@@ -37,15 +37,15 @@ class _TabCarrierViewState extends State<TabCarrierView> {
     };
 
     for (final time in allTextTime) {
-      final winningNum = await scraper.findInvoiceWinningNumber(Period(time));
-      scraper.dispose();
+      final winningNum = await scraper.getPrizeAward(Period(time));
+      scraper.close();
       if (winningNum == null) {
         debugPrint('查無獎金對照: $time');
       } else {
         for (final num in allTextNumber) {
-          final result = InvoicePrizeSearcher.checkInvoice(winningNum, num);
-          String text = '期號:${winningNum.period}, 時間:$time, 號碼: $num, ';
-          text += result==null ? '未中獎' : '${result.locale}, 金額:${result.amount}';
+          final result = winningNum.check(num);
+          String text = '期號:${winningNum.invQuery}, 時間:$time, 號碼: $num, ';
+          text += result==null ? '未中獎' : '${result.name}, 金額:${result.amount}';
           debugPrint(text);
         }
       }

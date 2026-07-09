@@ -82,7 +82,7 @@ class KVConverter<R> extends BasicTypeConverter<R?, String?> {
 enum KVStoreKey {
   mobileBarcodeList,
   memberBarcodeList,
-  invoiceWinningNumberList,
+  invoicePrizeAwardList,
   invoiceCarrierList;
 
   static final _converterCache = <KVStoreKey, KVConverter>{};
@@ -95,8 +95,8 @@ enum KVStoreKey {
       .memberBarcodeList => KVConverter.listCustom<MemberBarcodeItem>(
         jsonEncode, MemberBarcodeItem.fromString, const [],
       ),
-      .invoiceWinningNumberList => KVConverter.listCustom<InvoiceWinningNumber>(
-        jsonEncode, InvoiceWinningNumber.fromString, const [],
+      .invoicePrizeAwardList => KVConverter.listCustom<InvoicePrizeAward>(
+        jsonEncode, InvoicePrizeAward.fromString, const [],
       ),
       .invoiceCarrierList => KVConverter.listCustom<InvoiceCarrier>(
         jsonEncode, InvoiceCarrier.fromString, const [],

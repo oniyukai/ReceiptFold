@@ -1,78 +1,87 @@
 import 'dart:convert';
+
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:receipt_fold/common/utils.dart';
+import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
-enum InvoiceEntityPrize { // todo: 重構成非硬編碼
-  special(10000000),
-  grand(2000000),
-  first(200000),
-  second(40000),
-  third(10000),
-  fourth(4000),
-  fifth(1000),
-  sixth(200),
-  additionalSixth(200);
-
+class InvoicePrize {
   final int amount;
+  final String name;
+  final String number;
 
-  const InvoiceEntityPrize(this.amount);
+  InvoicePrize(this.amount, this.name, this.number);
 
-  String get locale => switch (this) {
-    special => DictKey.prizeSpecialLabel,
-    grand => DictKey.prizeGrandLabel,
-    first => DictKey.prizeFirstLabel,
-    second => DictKey.prizeSecondLabel,
-    third => DictKey.prizeThirdLabel,
-    fourth => DictKey.prizeFourthLabel,
-    fifth => DictKey.prizeFifthLabel,
-    sixth => DictKey.prizeSixthLabel,
-    additionalSixth => DictKey.prizeAdditionalSixthLabel,
-  }.s;
+  Map<String, dynamic> toJson() => {
+    'amount': amount,
+    'name': name,
+    'number': number,
+  };
+
+  factory InvoicePrize.fromString(String jsonString) {
+    int? amount;
+    String? name;
+    String? number;
+    try {
+      final Map<String, dynamic> json = jsonDecode(jsonString);
+      amount = json['amount'];
+      name = json['name'];
+      number = json['number'];
+    } catch (e) {
+      debugPrint('$InvoicePrize.fromString: $e');
+    }
+    return InvoicePrize(
+      amount ?? 0,
+      name ?? StaticString.nullString,
+      number ?? StaticString.nullString,
+    );
+  }
 }
 
-class InvoiceWinningNumber {
-  final String period; // 台北時間民國期數描述，例如: "11405"
+class InvoicePrizeAward {
+  final String invQuery; // 台北時間民國期數描述，例如: "11405"
   final int lastWebQueryTime;
-  final Map<InvoiceEntityPrize, List<String>>? prizes; // 獎項: 獎號列表
+  final List<InvoicePrize> prizes;
 
-  InvoiceWinningNumber({
-    required this.period,
+  InvoicePrizeAward({
+    required this.invQuery,
     required this.lastWebQueryTime,
     required this.prizes,
   });
 
+  static final _prizesConverter = KVConverter.listCustom<InvoicePrize>(
+    jsonEncode,
+    InvoicePrize.fromString,
+    const [],
+  );
+
   Map<String, dynamic> toJson() => {
-    'period': period,
+    'invQuery': invQuery,
     'lastWebQueryTime': lastWebQueryTime,
-    if (prizes != null) 'prizes': prizes?.map((key, value) => MapEntry(key.name, value)),
+    'prizes': _prizesConverter.toS(prizes)!,
   };
 
-  factory InvoiceWinningNumber.fromString(String jsonString) {
-    String? period;
+  factory InvoicePrizeAward.fromString(String jsonString) {
+    String? invQuery;
     int? lastWebQueryTime;
-    Map<InvoiceEntityPrize, List<String>>? prizes;
+    List<InvoicePrize>? prizes;
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
-      period = json['period'];
+      invQuery = json['invQuery'];
       lastWebQueryTime = json['lastWebQueryTime'];
-      final Map<String, dynamic>? jsonPrizes = json['prizes'] as Map<String, dynamic>?;
-      if (jsonPrizes != null && jsonPrizes.isNotEmpty) {
-        prizes = {};
-        for (final MapEntry<String, dynamic> entry in jsonPrizes.entries) {
-          final InvoiceEntityPrize? invoiceEntityPrize = InvoiceEntityPrize.values.fromName(entry.key);
-          if (invoiceEntityPrize != null) {
-            prizes[invoiceEntityPrize] = (entry.value as List<dynamic>).cast<String>().toList();
-          }
-        }
-      }
+      prizes = _prizesConverter.toR(json['prizes']);
     } catch (e) {
-      debugPrint('$InvoiceWinningNumber.fromString: $e');
+      debugPrint('$InvoicePrizeAward.fromString: $e');
     }
-    return InvoiceWinningNumber(
-      period: period ?? StaticString.nullString,
+    return InvoicePrizeAward(
+      invQuery: invQuery ?? StaticString.nullString,
       lastWebQueryTime: lastWebQueryTime ?? 0,
-      prizes: prizes,
+      prizes: [...?prizes],
     );
+  }
+
+  InvoicePrize? check(String number) {
+    if (number.length < 3) return null;
+    return prizes.firstWhereOrNull((prize) => number.endsWith(prize.number));
   }
 }

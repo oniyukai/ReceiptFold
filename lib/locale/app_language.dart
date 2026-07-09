@@ -125,16 +125,6 @@ enum DictKey {
   barcodeManagerCodeLabel,
   barcodeManagerNameLabel,
   barcodeManagerPreviousRenderingLabel,
-  // Invoice Awarding Prize
-  prizeSpecialLabel,
-  prizeGrandLabel,
-  prizeFirstLabel,
-  prizeSecondLabel,
-  prizeThirdLabel,
-  prizeFourthLabel,
-  prizeFifthLabel,
-  prizeSixthLabel,
-  prizeAdditionalSixthLabel,
   // Recorder
   recorderPeriodTransactionsAndAmount,
   recorderMonthTransactionsAndAmount,
