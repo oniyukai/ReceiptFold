@@ -24,7 +24,7 @@ class PrefDef<RUN extends Object, STO extends Object> {
       RUN? Function(STO fromSTO)? toRUN,])
     : _defaultValue = defaultValue {
     assert(const [bool, int, double, String, List<String>].contains(STO), 'STO<${STO.runtimeType}> unsupported.');
-    assert(RUN == STO || RUN != STO && toSTO != null && toRUN != null, 'When <$RUN>!=<$STO>: toSTO_ & toRUN_ are required.');
+    assert(RUN == STO || toSTO != null && toRUN != null, 'When <$RUN>!=<$STO>: toSTO_ & toRUN_ are required.');
     _toSTO = toSTO ?? (fromRUN) => fromRUN as STO;
     _toRUN = toRUN != null
         ? (fromSTO) => toRUN(fromSTO) ?? defaultValue()
