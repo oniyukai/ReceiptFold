@@ -15,37 +15,37 @@ dependencies:
   provider: ^6.1.5
   collection: ^1.19.1
   dynamic_color: ^1.8.1
-  audioplayers: ^6.6.0
-  vibration: ^3.1.8
-  fluttertoast: ^9.0.0
+  audioplayers: ^6.8.1
+  vibration: ^3.2.0
+  fluttertoast: ^9.1.0
   intl: ^0.20.2
   url_launcher: ^6.3.2
-  share_plus: ^12.0.2
+  share_plus: ^13.2.0
   shared_preferences: ^2.5.5
-  flutter_secure_storage: ^10.0.0
+  flutter_secure_storage: ^10.3.1
   flutter_vector_icons: ^2.0.0
-  screen_brightness: ^2.1.7
+  screen_brightness: ^2.1.11
   flutter_cache_manager: ^3.4.1
   cached_network_image: ^3.4.1
   barcode: ^2.2.9
-  flutter_svg: ^2.2.4
-  flutter_form_builder: ^10.2.0
+  flutter_svg: ^2.3.0
+  flutter_form_builder: ^10.3.0+2
   form_builder_validators: ^11.3.0
-  home_widget: ^0.9.1
+  home_widget: ^0.9.3
   path: ^1.9.1
-  path_provider: ^2.1.5
-  dio: ^5.9.2
+  path_provider: ^2.1.6
+  dio: ^5.10.0
   html: ^0.15.6
   watashi_locale:
     git:
       url: https://github.com/oniyukai/watashi_locale.git
       ref: main
   uuid: ^4.5.3
-  drift: ^2.32.1
+  drift: ^2.34.1
   drift_flutter: ^0.3.0
   logger: ^2.7.0
   webdav_client: ^1.2.2
-  file_picker: ^10.3.10
+  file_picker: ^12.0.0-beta.7
   flutter_inappwebview: ^6.1.5
   csv: ^8.0.0
 
@@ -54,9 +54,9 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  build_runner: ^2.14.1
+  build_runner: ^2.15.1
   flutter_launcher_icons: ^0.14.4
-  drift_dev: ^2.32.1
+  drift_dev: ^2.34.2+1
 
 flutter:
   uses-material-design: true

@@ -133,7 +133,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     }
     _singleActionLocked.value = true;
     try {
-      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.pickFiles(
         type: .custom,
         allowedExtensions: const ['csv'],
       );

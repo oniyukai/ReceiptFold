@@ -148,7 +148,7 @@ class _PageBackupPageState extends State<PageBackupPage> {
 
   Future<void> _pressLocalCopy() async {
     final Directory? directory = await getDownloadsDirectory();
-    final String? directoryPath = await FilePicker.platform.getDirectoryPath(initialDirectory:directory?.path);
+    final String? directoryPath = await FilePicker.getDirectoryPath(initialDirectory:directory?.path);
     if (directoryPath == null) {
       Utils.showToast('取消');
       return;
@@ -157,7 +157,7 @@ class _PageBackupPageState extends State<PageBackupPage> {
   }
 
   Future<void> _pressLocalAction(_DriftAction action) async {
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final FilePickerResult? result = await FilePicker.pickFiles(
       type: .custom,
       allowedExtensions: const ['sqlite'],
     );

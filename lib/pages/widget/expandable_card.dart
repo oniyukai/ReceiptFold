@@ -85,7 +85,6 @@ class _ExpandableCardState extends State<ExpandableCard>
             ),
           SizeTransition(
             sizeFactor: _expandAnimation,
-            axisAlignment: -1,
             child: (widget.expandedChild == null) ? null : Padding(
               padding: const .fromLTRB(16.0, 4.0, 16.0, 16.0),
               child: widget.expandedChild,

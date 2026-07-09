@@ -27,7 +27,7 @@ class OverlayShow {
             onPressed: () => Navigator.pop(context),
             child: Text(DictKey.cancelLabel.s),
           ),
-          if (actions != null) ...actions,
+          ...?actions,
         ],
       ),
     );
@@ -58,7 +58,7 @@ class OverlayShow {
                   child: Text(DictKey.cancelLabel.s),
                   onPressed: () => Navigator.pop(context),
                 ),
-                if (actions != null) ...actions,
+                ...?actions,
               ],
             ),
             if (actions != null && actions.isNotEmpty && !noCancelButton) const SizedBox(height: 16),
@@ -174,7 +174,7 @@ class _ReorderableTilesState<T> extends State<_ReorderableTiles<T>> {
     _items = List.from(widget.initialItems);
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
+  void _onReorderItem(int oldIndex, int newIndex) {
     if (newIndex > oldIndex) newIndex -= 1;
     setState(() => _items.insert(newIndex, _items.removeAt(oldIndex)));
     widget.onReorderFinished(_items);
@@ -187,7 +187,7 @@ class _ReorderableTilesState<T> extends State<_ReorderableTiles<T>> {
       shrinkWrap: true,
       itemCount: _items.length,
       padding: widget.padding,
-      onReorder: _onReorder,
+      onReorderItem: _onReorderItem,
       buildDefaultDragHandles: false,
       proxyDecorator: (child, index, animation) => Material(
         elevation: 0,

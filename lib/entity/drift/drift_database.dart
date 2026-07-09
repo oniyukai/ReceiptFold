@@ -17,9 +17,9 @@ class BasicTypeConverter<R, S> extends TypeConverter<R, S> {
   final R Function(S fromS) _toR;
 
   const BasicTypeConverter({
-    required S Function(R fromR) toS,
-    required R Function(S fromS) toR,
-  }) :  _toS = toS, _toR = toR;
+    required this._toS,
+    required this._toR,
+  });
 
   S toS(R fromR) => _toS(fromR);
   R toR(S fromS) => _toR(fromS);

@@ -28,8 +28,8 @@ class KVConverter<R> extends BasicTypeConverter<R?, String?> {
   KVConverter({
     required super.toS,
     required super.toR,
-    R? Function()? defaultValue,
-  }) : _defaultValue = defaultValue;
+    this._defaultValue,
+  });
 
   static KVConverter<bool> boolean([bool? defaultValue]) => KVConverter<bool>(
     toS: (fromR) => fromR?.toString(),
