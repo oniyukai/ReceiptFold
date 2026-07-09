@@ -12,36 +12,44 @@ enum ThemeOption {
 
   const ThemeOption([this.brightness]);
 
-  static Map<ThemeOption, String> get optionMap => (<ThemeOption, String>{
+  static Map<ThemeOption, String> get optionMap => <ThemeOption, String>{
     sys: DictKey.preferencesThemeSystem.s,
     light: DictKey.preferencesThemeLight.s,
     dark: DictKey.preferencesThemeDark.s,
-  });
+  };
 }
 
 enum ColorOption {
   sys,
   blue(Colors.blue),
+  violet(Color(0xFF6750A4)),
+  purple(Colors.purple),
+  pink(Colors.pink),
+  deepOrange(Colors.deepOrange),
   orange(Colors.orange),
+  yellow(Colors.yellow),
   green(Colors.green),
-  red(Colors.red),
-  purple(Colors.purple);
+  teal(Colors.teal);
 
-  final MaterialColor? color;
+  final Color? color;
 
   const ColorOption([this.color]);
 
   static Map<ColorOption, String> get optionMap => <ColorOption, String>{
     sys: DictKey.preferencesColorMaterialYou.s,
     blue: DictKey.preferencesColorBlue.s,
-    orange: DictKey.preferencesColorOrange.s,
-    green: DictKey.preferencesColorGreen.s,
-    red: DictKey.preferencesColorRed.s,
+    violet: '紫羅蘭色',
     purple: DictKey.preferencesColorPurple.s,
+    pink: '粉红色',
+    deepOrange: '深橘色',
+    orange: DictKey.preferencesColorOrange.s,
+    yellow: '黄色',
+    green: DictKey.preferencesColorGreen.s,
+    teal: '青色',
   };
 }
 
-abstract final class MyAppTheme { // todo: 採用新版樣式
+abstract final class MyAppTheme {
   static late ColorScheme? dynamicColorScheme;
 
   static const systemOverlayStyle = SystemUiOverlayStyle(

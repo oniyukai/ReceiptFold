@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
-class OverlayShow {
-  const OverlayShow._();
+abstract final class OverlayShow {
 
   static Future<void> dialog({
     required BuildContext context,

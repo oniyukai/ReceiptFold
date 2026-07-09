@@ -53,9 +53,10 @@ class _MainSettingsPageState extends State<MainSettingsView> {
               ListTileText(text: DictKey.preferencesAppearanceTitle.s, isSection: true),
               ListTilePicker<ColorOption>(
                 text: DictKey.preferencesColorLabel.s,
-                selectedOption: prefs.get(PrefsEnum.selectedColor),
+                selectedOption: prefs.get(.selectedColor),
                 optionMap: ColorOption.optionMap,
-                onChanged: (value) => prefs.update(PrefsEnum.selectedColor, value),
+                leadingBuilder: (radio, selected) => ColorfulRadio(radio, selected),
+                onChanged: (value) => prefs.update(.selectedColor, value),
               ),
               ListTilePicker<ThemeOption>(
                 text: DictKey.preferencesThemeLabel.s,

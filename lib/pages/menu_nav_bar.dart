@@ -70,7 +70,7 @@ class _MenuNavBarState extends State<MenuNavBar> {
           label: DictKey.titleRecorder.s,
         ),
         NavigationDestination(
-          selectedIcon: const Icon(Icons.document_scanner),
+          selectedIcon: const Icon(Icons.flip),
           icon: const Icon(Icons.fullscreen),
           label: DictKey.titleScanner.s,
         ),
@@ -101,7 +101,7 @@ class _MenuNavBarState extends State<MenuNavBar> {
           label: Text(DictKey.titleRecorder.s),
         ),
         NavigationRailDestination(
-          selectedIcon: const Icon(Icons.document_scanner),
+          selectedIcon: const Icon(Icons.flip),
           icon: const Icon(Icons.fullscreen),
           label: Text(DictKey.titleScanner.s)
         ),

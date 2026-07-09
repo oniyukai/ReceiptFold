@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:receipt_fold/common/app_theme.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
 class ListTileText extends StatelessWidget {
@@ -23,10 +24,10 @@ class ListTileText extends StatelessWidget {
 
   @override
   Widget build(context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final ThemeData theme = Theme.of(context);
+    final ColorScheme colorScheme = theme.colorScheme;
     return ListTile(
-      contentPadding: isSection ? const EdgeInsets.only(top: 16, left: 16) : null,
+      contentPadding: isSection ? const .only(top: 16, left: 16) : null,
       leading: Icon(iconData),
       shape: shape,
       minTileHeight: isSection ? 0 : null,
@@ -85,7 +86,7 @@ class ListTilePicker<T> extends StatelessWidget {
   final T selectedOption;
   final Map<T, String> optionMap;
   final ValueChanged<T> onChanged;
-  final Widget Function(Radio<T>, bool)? optionLeadingBuilder;
+  final Widget Function(Radio<T>, bool)? leadingBuilder;
   final ShapeBorder? shape;
 
   const ListTilePicker({
@@ -96,7 +97,7 @@ class ListTilePicker<T> extends StatelessWidget {
     required this.selectedOption,
     required this.optionMap,
     required this.onChanged,
-    this.optionLeadingBuilder,
+    this.leadingBuilder,
     this.shape,
   });
 
@@ -127,10 +128,10 @@ class ListTilePicker<T> extends StatelessWidget {
                 children: [
                   for (final T value in optionMap.keys)
                     ListTile(
-                      leading: (optionLeadingBuilder ?? (radio, _) => radio)(
+                      leading: (leadingBuilder ?? (radio, selected) => radio)(
                         Radio(
-                            value: value,
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap
+                          value: value,
+                          materialTapTargetSize: .shrinkWrap,
                         ),
                         value == selectedOption,
                       ),
@@ -142,6 +143,62 @@ class ListTilePicker<T> extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class ColorfulRadio extends StatelessWidget {
+  final Radio<ColorOption> radio;
+  final bool selected;
+
+  const ColorfulRadio(this.radio, this.selected, {super.key});
+
+  @override
+  Widget build(context) {
+    final ColorScheme? colorScheme = radio.value.color == null
+        ? MyAppTheme.dynamicColorScheme
+        : .fromSeed(seedColor: radio.value.color!);
+    if (colorScheme == null) return radio;
+    final Color topColor = colorScheme.primaryContainer;
+    final Color bottomLeftColor = colorScheme.tertiaryContainer;
+    final Color bottomRightColor = colorScheme.primary;
+    return Padding(
+      padding: const .symmetric(vertical: 8),
+      child: AspectRatio(
+        aspectRatio: 1.0,
+        child: Stack(
+          children: [
+            ClipOval(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      color: topColor,
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            color: bottomLeftColor,
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            color: bottomRightColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (selected) radio,
+          ],
         ),
       ),
     );
