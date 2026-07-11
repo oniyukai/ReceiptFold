@@ -264,7 +264,8 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                         )),
                                       ),
                                     ),
-                                    ...periodData.evenMonthReceiptMap.entries.map((e) => ReceiptItemTile(receiptEntry: e)),
+                                    for (final e in periodData.evenMonthReceiptMap.entries)
+                                      ReceiptItemTile(receiptEntry: e),
                                   ],
                                 ),
                               ),
@@ -284,7 +285,8 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                         )),
                                       ),
                                     ),
-                                    ...periodData.oddMonthReceiptMap.entries.map((e) => ReceiptItemTile(receiptEntry: e)),
+                                    for (final e in periodData.oddMonthReceiptMap.entries)
+                                      ReceiptItemTile(receiptEntry: e),
                                   ],
                                 ),
                               ),

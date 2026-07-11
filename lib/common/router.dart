@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:receipt_fold/pages/menu_manager/page_carrier_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_mobile_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
@@ -31,6 +32,7 @@ final Map<Type, RouteEntry> _routingTable = Map.fromEntries(const <Type, Widget>
   // menu_manager
   PageMobileForm: PageMobileForm(),
   PageMemberForm: PageMemberForm(),
+  PageCarrierForm: PageCarrierForm(),
   // menu_settings
   PageAboutView: PageAboutView(),
   PageTermsView: PageTermsView(),

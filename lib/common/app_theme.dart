@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/prefs.dart';
+import 'package:receipt_fold/common/prefs.dart';
 
 enum ThemeOption {
   sys,

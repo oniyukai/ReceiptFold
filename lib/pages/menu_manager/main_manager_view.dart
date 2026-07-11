@@ -10,7 +10,8 @@ class MainManagerView extends StatefulWidget {
   State<MainManagerView> createState() => _MainManagerViewState();
 }
 
-class _MainManagerViewState extends State<MainManagerView> with SingleTickerProviderStateMixin {
+class _MainManagerViewState extends State<MainManagerView>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
   @override
@@ -33,22 +34,18 @@ class _MainManagerViewState extends State<MainManagerView> with SingleTickerProv
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.dock)),
-            Tab(icon: Icon(Icons.loyalty_outlined)),
-            Tab(icon: Icon(Icons.payment)),
+            Tab(icon: Icon(Icons.dock), text: '展示條碼'),
+            Tab(icon: Icon(Icons.loyalty_outlined), text: '會員載具'),
+            Tab(icon: Icon(Icons.payment), text: '載具歸戶'),
           ],
         ),
       ),
       body: SafeArea(
         child: TabBarView(
           controller: _tabController,
-          children: const [
-            TabBarcodeView(),
-            TabMemberView(),
-            TabCarrierView(),
-          ],
+          children: const [TabBarcodeView(), TabMemberView(), TabCarrierView()],
         ),
-      )
+      ),
     );
   }
 }

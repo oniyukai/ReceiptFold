@@ -6,11 +6,11 @@ import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/locale/app_language.dart';
+import 'package:receipt_fold/pages/menu_manager/main_manager_widgets.dart';
 import 'package:receipt_fold/pages/screen_gadget/member_screen.dart';
 import 'package:receipt_fold/pages/screen_gadget/mobile_screen.dart';
 import 'package:receipt_fold/pages/menu_manager/page_mobile_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
-import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
 class TabMemberView extends StatefulWidget {
@@ -62,48 +62,14 @@ class _TabMemberViewState extends State<TabMemberView> {
     }
   );
 
-  Future<void> _deleteAllMobileItems() => OverlayShow.dialog(
-    context: context,
-    title: DictKey.barcodeManagerMobileCarrierLabel.s,
-    content: Text(DictKey.sureToDeleteThisLabel.s),
-    actions: [
-      TextButton(
-        child: Text(DictKey.deleteLabel.s),
-        onPressed: () async {
-          Navigator.pop(context);
-          await DriftServices.appDb.keyValueStoreDao.upsert(.mobileBarcodeList, null);
-          await updateHomeScreenMobile();
-          setState(() {});
-        },
-      ),
-    ],
-  );
-
   Future<void> _sortMemberItem() => OverlayShow.sortDialog(
     context: context,
     items: _memberItems,
-    itemBuilder: (item) => _MemberItemCard(item: item),
+    itemBuilder: (item) => MemberItemCard(item: item),
     saveOnTap: (items) async {
       await DriftServices.appDb.keyValueStoreDao.upsert(.memberBarcodeList, items);
       await updateHomeScreenMember();
     }
-  );
-
-  Future<void> _deleteAllMemberItems() => OverlayShow.dialog(
-    context: context,
-    title: DictKey.barcodeManagerMembershipCardLabel.s,
-    content: Text(DictKey.sureToDeleteThisLabel.s),
-    actions: [
-      TextButton(
-        child: Text(DictKey.deleteLabel.s),
-        onPressed: () async {
-          Navigator.pop(context);
-          await DriftServices.appDb.keyValueStoreDao.upsert(.memberBarcodeList, null);
-          await updateHomeScreenMember();
-          setState(() {});
-        },
-      ),
-    ],
   );
 
   @override
@@ -126,12 +92,6 @@ class _TabMemberViewState extends State<TabMemberView> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (_mobileItems.isNotEmpty) IconButton(
-                      padding: const EdgeInsets.all(0),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: _deleteAllMobileItems,
-                      icon: const Icon(Icons.delete_forever),
-                    ),
                     if (_mobileItems.length > 1) IconButton(
                       padding: const EdgeInsets.all(0),
                       visualDensity: VisualDensity.compact,
@@ -162,12 +122,6 @@ class _TabMemberViewState extends State<TabMemberView> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (_memberItems.isNotEmpty) IconButton(
-                      padding: const EdgeInsets.all(0),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: _deleteAllMemberItems,
-                      icon: const Icon(Icons.delete_forever),
-                    ),
                     if (_memberItems.length > 1) IconButton(
                       padding: const EdgeInsets.all(0),
                       visualDensity: VisualDensity.compact,
@@ -184,7 +138,7 @@ class _TabMemberViewState extends State<TabMemberView> {
                 ),
               ),
               Column(
-                children: List.generate(_memberItems.length, (index) => _MemberItemCard(
+                children: List.generate(_memberItems.length, (index) => MemberItemCard(
                   item: _memberItems[index],
                   onTap: () => MyRouter.of<PageMemberForm>().toPass(PageMemberFormArgs(
                     index: index,
@@ -195,73 +149,6 @@ class _TabMemberViewState extends State<TabMemberView> {
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class MobileItemCard extends StatelessWidget {
-  final MobileBarcodeItem item;
-  final VoidCallback? onTap;
-
-  const MobileItemCard({
-    super.key,
-    required this.item,
-    this.onTap
-  });
-
-  @override
-  Widget build(context) {
-    return Card(
-      child: ListTile(
-        minTileHeight: 0,
-        title: Text(
-          item.code,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          item.name ?? '',
-          overflow: TextOverflow.ellipsis,
-        ),
-        onTap: onTap,
-      ),
-    );
-  }
-}
-
-class _MemberItemCard extends StatelessWidget {
-  final MemberBarcodeItem item;
-  final VoidCallback? onTap;
-
-  const _MemberItemCard({
-    required this.item,
-    this.onTap
-  });
-
-  @override
-  Widget build(context) {
-    return Card(
-      child: ListTile(
-        onTap: onTap,
-        minTileHeight: 0,
-        title: Text(
-          item.name ?? '',
-          overflow: TextOverflow.ellipsis
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              item.code,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              item.format.locale,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-        trailing: ImageBox(item: item, nullNeedBuild: false),
       ),
     );
   }

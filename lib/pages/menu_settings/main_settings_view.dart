@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/app_theme.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
-import 'package:receipt_fold/modules/prefs.dart';
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/app_localizations.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_platform_view.dart';
@@ -71,6 +71,20 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 onChanged: (value) => prefs.update(PrefsEnum.selectedLanguage, value),
               ),
 
+              ListTileText(text: '資料與自動化', isSection: true),
+              ListTileText(
+                text: '發票平台',
+                trailing: const Icon(Icons.chevron_right),
+                iconData: Icons.account_balance,
+                onTap: () => MyRouter.routeTo(PagePlatformView),
+              ),
+              ListTileText(
+                text: '備份與同步',
+                trailing: const Icon(Icons.chevron_right),
+                iconData: Icons.cloud,
+                onTap: () => MyRouter.routeTo(PageBackupPage),
+              ),
+
               ListTileText(text: DictKey.preferencesPreferenceTitle.s, isSection: true),
               ListTileSwitch(
                 text: DictKey.preferencesSwitchAutoBrightnessLabel.s,
@@ -94,20 +108,6 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 text: DictKey.preferencesClearImageCacheLabel.s,
                 iconData: Icons.image_outlined,
                 onTap: _clearImageCache,
-              ),
-
-              ListTileText(text: '資料與自動化', isSection: true),
-              ListTileText(
-                text: '發票平台',
-                trailing: const Icon(Icons.chevron_right),
-                iconData: Icons.account_balance,
-                onTap: () => MyRouter.routeTo(PagePlatformView),
-              ),
-              ListTileText(
-                text: '備份與同步',
-                trailing: const Icon(Icons.chevron_right),
-                iconData: Icons.cloud,
-                onTap: () => MyRouter.routeTo(PageBackupPage),
               ),
 
               ListTileText(text: DictKey.preferencesAboutTitle.s, isSection: true),

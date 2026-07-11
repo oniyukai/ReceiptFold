@@ -7,7 +7,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/modules/prefs.dart';
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/modules/secure_prefs.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
@@ -189,9 +189,9 @@ class _PageBackupPageState extends State<PageBackupPage> {
             if (_formKey.currentState?.saveAndValidate() != true) return;
             Navigator.pop(context);
             await SecurePrefs.webDAVAccount.write(jsonEncode({
-              'url': _formKey.currentState?.value['url'] ?? '',
-              'user': _formKey.currentState?.value['user'] ?? '',
-              'password': _formKey.currentState?.value['password'] ?? '',
+              'url': _formKey.currentState!.value['url'] ?? '',
+              'user': _formKey.currentState!.value['user'] ?? '',
+              'password': _formKey.currentState!.value['password'] ?? '',
             }));
             await PageBackupPage.connectWebDAV(reConnect: true);
           },

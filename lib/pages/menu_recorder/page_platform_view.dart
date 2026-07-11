@@ -9,7 +9,7 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/modules/invoice_platform_api.dart';
-import 'package:receipt_fold/modules/prefs.dart';
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/modules/secure_prefs.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
@@ -84,8 +84,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
             Navigator.pop(context);
             await SecurePrefs.invoicePlatformAccount.write(
               jsonEncode({
-                'phone': _formKey.currentState?.value['phone'] ?? '',
-                'password': _formKey.currentState?.value['password'] ?? '',
+                'phone': _formKey.currentState!.value['phone'] ?? '',
+                'password': _formKey.currentState!.value['password'] ?? '',
               }),
             );
             await _pressFillAccount();

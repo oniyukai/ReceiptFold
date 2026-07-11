@@ -8,6 +8,12 @@ enum CarrierStatus {
   platformExpired,
   manual;
 
+  String get locale => switch (this) {
+    CarrierStatus.platform => '雲端',
+    CarrierStatus.platformExpired => '雲端離線',
+    CarrierStatus.manual => '本地',
+  };
+
   String toJson() => name;
 }
 

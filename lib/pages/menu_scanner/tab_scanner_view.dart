@@ -11,6 +11,6 @@ class _TabScannerViewState extends State<TabScannerView> {
   @override
   Widget build(context) {
     // todo: 相機掃描器頁面
-    return SizedBox.shrink();
+    return Text('施工中... 也許會做出來。');
   }
 }

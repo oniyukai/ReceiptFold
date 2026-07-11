@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
@@ -10,9 +9,9 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/modules/prefs.dart';
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/pages/menu_manager/tab_member_view.dart';
+import 'package:receipt_fold/pages/menu_manager/main_manager_widgets.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
@@ -99,16 +98,6 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
     } else if (_isLockOrientation) {
       await Utils.unlockCurrentOrientation();
     }
-  }
-
-  Future<void> _copyMember() async {
-    if (_memberItemIndex == null) return;
-    await Clipboard.setData(ClipboardData(text: _memberItems[_memberItemIndex!].code));
-  }
-
-  Future<void> _copyMobile() async {
-    if (_mobileItemIndex == null) return;
-    await Clipboard.setData(ClipboardData(text: _mobileItems[_mobileItemIndex!].code));
   }
 
   Future<void> _changeMobileItem() => OverlayShow.dialog(
@@ -199,7 +188,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           trailing: IconButton(
-                            onPressed: _copyMember,
+                            onPressed: () => Utils.copyTextToClipboard(_memberItems[_memberItemIndex!].code),
                             icon: const Icon(Icons.copy),
                           ),
                         ),
@@ -254,7 +243,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       trailing: IconButton(
-                        onPressed: _copyMobile,
+                        onPressed: () => Utils.copyTextToClipboard(_mobileItems[_mobileItemIndex!].code),
                         icon: const Icon(Icons.copy),
                       ),
                     ),
@@ -351,7 +340,7 @@ class ImageBox extends StatelessWidget {
         )
       ) : const SizedBox.shrink();
     }
-    if (UrlValidator().isURL(item.imageUrl)) {
+    if (!UrlValidator().isURL(item.imageUrl)) {
       return SizedBox(
         width: width,
         height: height,

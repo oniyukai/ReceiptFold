@@ -55,7 +55,7 @@ class InvoicePrizeSearcher {
   bool _matchSpecifiedTimeInterval(int unixMilliseconds) {
     final int currentUnixMilliseconds = UnitUtils.nowUnixTime;
     final int differenceInMilliseconds = (unixMilliseconds - currentUnixMilliseconds).abs();
-    const int targetDifferenceInSeconds = 1000;
+    const int targetDifferenceInSeconds = 256;
     const int targetDifferenceInMilliseconds = targetDifferenceInSeconds * 1000;
     return differenceInMilliseconds >= targetDifferenceInMilliseconds;
   }

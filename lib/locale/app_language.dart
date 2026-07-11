@@ -151,7 +151,6 @@ enum DictKey {
   receiptHeaderUserNoteLabel,
   receiptHeaderPrizeInformationLabel,
   receiptHeaderPrizeAmountLabel,
-  receiptHeaderReceiptOriginLabel,
   receiptHeaderTotalAmountLabel,
   receiptHeaderItemLengthLabel,
   receiptHeaderCurrencyLabel,

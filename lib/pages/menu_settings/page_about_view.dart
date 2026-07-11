@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';
@@ -37,6 +38,12 @@ class _PageAboutViewState extends State<PageAboutView> {
               ListTile(
                 title: Text(DictKey.preferencesApplicationVersionLabel.s),
                 subtitle: Text(StaticString.appVersion),
+                onLongPress: () async {
+                  final bool newMode = !context.readPrefs.get(.isAppDeveloperMode);
+                  await context.readPrefs.update(.isAppDeveloperMode, newMode, false);
+                  Utils.showToast('set ${PrefsEnum.isAppDeveloperMode.name} $newMode, '
+                      'default: ${PrefsEnum.isAppDeveloperMode.defaultValue()}');
+                },
               ),
               ListTile(
                 title: Text(DictKey.preferencesApplicationVersionTagLabel.s),

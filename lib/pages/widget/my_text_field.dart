@@ -26,6 +26,7 @@ class MyTextField extends StatefulWidget {
   final String? initialValue;
   final FieldType type;
   final bool required;
+  final bool readOnly;
 
   const MyTextField({
     super.key,
@@ -33,6 +34,7 @@ class MyTextField extends StatefulWidget {
     this.initialValue,
     this.type = .text,
     this.required = true,
+    this.readOnly = false,
   });
 
   @override
@@ -55,6 +57,7 @@ class _MyTextFieldState extends State<MyTextField> {
       maxLines: 1,
       initialValue: widget.initialValue,
       obscureText: textHidden,
+      readOnly: widget.readOnly,
       decoration: InputDecoration(
         prefixIcon: Icon(widget.type.iconData),
         labelText: widget.type.labelText,
