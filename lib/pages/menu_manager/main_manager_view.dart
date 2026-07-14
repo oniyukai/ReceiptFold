@@ -22,8 +22,8 @@ class _MainManagerViewState extends State<MainManagerView>
 
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
+    _tabController.dispose();
   }
 
   @override

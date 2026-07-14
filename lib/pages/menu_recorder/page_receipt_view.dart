@@ -99,7 +99,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
             titleText: initialValue,
             subtitleText: DictKey.receiptViewOriginalContentLabel.s,
             trailing: IconButton(
-              onPressed: () => Utils.copyTextToClipboard(initialValue),
+              onPressed: () => Utils.copyText(initialValue),
               icon: const Icon(Icons.copy),
             ),
           ),
@@ -511,7 +511,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                         final product = _products[index];
                         return _ProductInfoRow(
                           onTap: _isCloudPlatform ? null : () => _productAddOrModify(index, product),
-                          onLongPress: () => Utils.copyTextToClipboard(product.description),
+                          onLongPress: () => Utils.copyText(product.description),
                           description: product.description,
                           unitPrice: Utils.amountToDescription(product.unitPrice),
                           quantity: Utils.amountToDescription(product.quantity),

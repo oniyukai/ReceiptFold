@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:receipt_fold/common/router.dart';
+import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/locale/app_language.dart';
@@ -59,10 +60,8 @@ class _PageMemberFormState extends State<PageMemberForm> {
     if (_formKey.currentState?.saveAndValidate() != true) return;
     Navigator.pop(context);
     final String code = _formKey.currentState!.value['code'];
-    String? name = _formKey.currentState!.value['name'];
-    String? imageUrl = _formKey.currentState!.value['imageUrl'];
-    if (name?.isEmpty == true) name = null;
-    if (imageUrl?.isEmpty == true) imageUrl = null;
+    final String? name = Utils.noEmptyStr(_formKey.currentState!.value['name']);
+    final String? imageUrl = Utils.noEmptyStr(_formKey.currentState!.value['imageUrl']);
     late final List<MemberBarcodeItem> items;
     if (_args == null) {
       items = await DriftServices.appDb.keyValueStoreDao.getExistDefault(

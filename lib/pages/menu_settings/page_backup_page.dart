@@ -8,9 +8,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/common/prefs.dart';
+import 'package:receipt_fold/modules/log_service.dart';
 import 'package:receipt_fold/modules/secure_prefs.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
-import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
 import 'package:path/path.dart' as p;
@@ -59,7 +59,7 @@ class PageBackupPage extends StatefulWidget {
     if (reConnect || (_webDAV.value == null && PrefsEnum.isAutoWebDAVSync.get())) {
       _webDAV.value = null;
       final account = await _readWebDAVAccount();
-      if (account.url == null || account.user == null || account.password == null || account.url!.isEmpty) return;
+      if (Utils.noEmptyStr(account.url) == null || account.user == null || account.password == null) return;
       try {
         _webDAV.value = await WebDAV.connect(account.url!, account.user!, account.password!);
       } catch (e) {

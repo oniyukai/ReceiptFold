@@ -10,10 +10,10 @@ import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/modules/invoice_platform_api.dart';
 import 'package:receipt_fold/common/prefs.dart';
+import 'package:receipt_fold/modules/log_service.dart';
 import 'package:receipt_fold/modules/secure_prefs.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
-import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
@@ -122,7 +122,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     try {
       await _api.fillLoginForm(account.phone, account.password);
     } catch (e) {
-      LogService('fillLoginForm failed.', errorObject: e, instance: _api).w();
+      LogService('fillLoginForm exception.', errorObject: e, instance: _api).w();
     }
   }
 

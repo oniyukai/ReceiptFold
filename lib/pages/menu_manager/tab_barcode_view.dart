@@ -40,15 +40,10 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
   bool _isInitialized = false;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
+    super.dispose();
     _setAppBrightness(false);
     _setOrientationLock(false);
-    super.dispose();
   }
 
   @override
@@ -188,7 +183,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           trailing: IconButton(
-                            onPressed: () => Utils.copyTextToClipboard(_memberItems[_memberItemIndex!].code),
+                            onPressed: () => Utils.copyText(_memberItems[_memberItemIndex!].code),
                             icon: const Icon(Icons.copy),
                           ),
                         ),
@@ -243,7 +238,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       trailing: IconButton(
-                        onPressed: () => Utils.copyTextToClipboard(_mobileItems[_mobileItemIndex!].code),
+                        onPressed: () => Utils.copyText(_mobileItems[_mobileItemIndex!].code),
                         icon: const Icon(Icons.copy),
                       ),
                     ),

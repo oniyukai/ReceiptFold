@@ -38,9 +38,9 @@ class InvoiceCarrier {
     'carrierId2': carrierId2,
     'name': name,
     'status': status,
-    if (carrierType?.isNotEmpty == true) 'carrierType': carrierType,
-    if (carrierTypeName?.isNotEmpty == true) 'carrierTypeName': carrierTypeName,
-    if (fetchJson?.isNotEmpty == true) 'fetchJson': fetchJson,
+    'carrierType': ?Utils.noEmptyStr(carrierType),
+    'carrierTypeName': ?Utils.noEmptyStr(carrierTypeName),
+    'fetchJson': ?Utils.noEmptyStr(fetchJson),
   };
 
   factory InvoiceCarrier.fromString(String jsonString) {
@@ -55,9 +55,9 @@ class InvoiceCarrier {
       carrierId2 = json['carrierId2'];
       name = json['name'];
       status = CarrierStatus.values.fromName(json['status']);
-      carrierType = json['carrierType'];
-      carrierTypeName = json['carrierTypeName'];
-      fetchJson = json['fetchJson'];
+      carrierType = Utils.noEmptyStr(json['carrierType']);
+      carrierTypeName = Utils.noEmptyStr(json['carrierTypeName']);
+      fetchJson = Utils.noEmptyStr(json['fetchJson']);
     } catch (e) {
       debugPrint('$InvoiceCarrier.fromString: $e');
     }
@@ -65,9 +65,9 @@ class InvoiceCarrier {
       carrierId2: carrierId2 ?? StaticString.nullString,
       name: name ?? StaticString.nullString,
       status: status ?? .manual,
-      carrierType: carrierType?.isNotEmpty == true ? carrierType : null,
-      carrierTypeName: carrierTypeName?.isNotEmpty == true ? carrierTypeName : null,
-      fetchJson: fetchJson?.isNotEmpty == true ? fetchJson : null,
+      carrierType: carrierType,
+      carrierTypeName: carrierTypeName,
+      fetchJson: fetchJson,
     );
   }
 }

@@ -147,14 +147,9 @@ class _MainRecorderViewState extends State<MainRecorderView> {
   final PageController _pageController = PageController(initialPage: MainRecorderView._initialPageIndex);
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
-    _pageController.dispose();
     super.dispose();
+    _pageController.dispose();
   }
 
   @override

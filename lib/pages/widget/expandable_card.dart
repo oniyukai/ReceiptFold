@@ -48,8 +48,8 @@ class _ExpandableCardState extends State<ExpandableCard>
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
+    _controller.dispose();
   }
 
   void _toggleExpand() {

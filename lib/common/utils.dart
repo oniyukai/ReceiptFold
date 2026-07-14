@@ -101,12 +101,14 @@ abstract final class Utils {
   /// 將數字修飾, 如果有小數會才顯示小數後，正數每3位數一個","隔開
   static String amountToDescription(num amount) => NumberFormat.decimalPattern().format(amount);
 
-  static Future<void> copyTextToClipboard(String? text) async {
+  static Future<void> copyText(String? text) async {
     if (text == null || text.isEmpty) {
-      Utils.showToast(DictKey.noContentToCopyLabel.s);
+      showToast(DictKey.noContentToCopyLabel.s);
     } else {
       await Clipboard.setData(ClipboardData(text: text));
-      Utils.showToast('${DictKey.copiedLabel.s}\n${text.replaceAll('\n', ' ')}');
+      showToast('${DictKey.copiedLabel.s}\n${text.replaceAll('\n', ' ')}');
     }
   }
+
+  static String? noEmptyStr(String? s) => s?.trim().isNotEmpty == true ? s : null;
 }

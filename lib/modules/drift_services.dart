@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
-import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:path/path.dart' as p;
+import 'package:receipt_fold/modules/log_service.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
 /// 請確定 [Upload].call([File]) 過程如果不穩定斷連能夠不覆蓋到正常還沒被取代掉的目的地.
@@ -221,7 +221,7 @@ class WebDAV {
       }
       return true;
     } catch (e) {
-      LogService('Failed.', errorObject: e, instance: this).w();
+      LogService('upload exception.', errorObject: e, instance: this).w();
       return false;
     }
   }

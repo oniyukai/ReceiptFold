@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:receipt_fold/entity/period.dart';
-import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 import 'package:receipt_fold/pages/menu_scanner/tab_manual_view.dart';
 import 'package:receipt_fold/pages/menu_scanner/tab_number_view.dart';
@@ -13,48 +11,22 @@ class MainScannerView extends StatefulWidget {
   State<MainScannerView> createState() => _MainScannerViewState();
 }
 
-class _MainScannerViewState extends State<MainScannerView> with SingleTickerProviderStateMixin {
-  late final InvoicePrizeSearcher _invoicePrizeSearcher = InvoicePrizeSearcher();
+class _MainScannerViewState extends State<MainScannerView>
+    with SingleTickerProviderStateMixin {
+  final InvoicePrizeSearcher _invoicePrizeSearcher = InvoicePrizeSearcher();
   late final TabController _tabController;
-  late final InvoicePrizeAward? _thisWinningNumber;
-  late final InvoicePrizeAward? _lastWinningNumber;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    // _loadPeriodNumber();
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadPeriodNumber() async {
-    late final InvoicePrizeAward? thisWinningNumber;
-    late final InvoicePrizeAward? lastWinningNumber;
-    final nowInvoicePeriod = Period(.now());
-    final last1InvoicePeriod = nowInvoicePeriod.previous;
-    final last2InvoicePeriod = last1InvoicePeriod.previous;
-    final last3InvoicePeriod = last2InvoicePeriod.previous;
-    final nowWinningNumber = await _invoicePrizeSearcher.getPrizeAward(nowInvoicePeriod);
-    final last1WinningNumber = await _invoicePrizeSearcher.getPrizeAward(last1InvoicePeriod);
-    if (nowWinningNumber != null) {
-      thisWinningNumber = nowWinningNumber;
-      lastWinningNumber = last1WinningNumber;
-    } else if (last1WinningNumber != null) {
-      thisWinningNumber = last1WinningNumber;
-      lastWinningNumber = await _invoicePrizeSearcher.getPrizeAward(last2InvoicePeriod);
-    } else {
-      thisWinningNumber = await _invoicePrizeSearcher.getPrizeAward(last2InvoicePeriod);
-      lastWinningNumber = await _invoicePrizeSearcher.getPrizeAward(last3InvoicePeriod);
-    }
-    setState(() {
-      _thisWinningNumber = thisWinningNumber;
-      _lastWinningNumber = lastWinningNumber;
-    });
+    _tabController.dispose();
+    _invoicePrizeSearcher.close();
   }
 
   @override
@@ -74,13 +46,13 @@ class _MainScannerViewState extends State<MainScannerView> with SingleTickerProv
       body: SafeArea(
         child: TabBarView(
           controller: _tabController,
-          children: const [
-            TabManualView(),
-            TabNumberView(),
-            TabScannerView(),
+          children: [
+            TabManualView(searcher: _invoicePrizeSearcher),
+            TabNumberView(searcher: _invoicePrizeSearcher),
+            TabScannerView(searcher: _invoicePrizeSearcher),
           ],
         ),
-      )
+      ),
     );
   }
 }

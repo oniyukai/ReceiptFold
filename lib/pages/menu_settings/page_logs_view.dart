@@ -1,109 +1,17 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/locale/app_language.dart';
+import 'package:receipt_fold/modules/log_service.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
 import 'package:share_plus/share_plus.dart';
 
 const String _separatorOfLog = '‖§SEPARATOR_OF_LOG¶';
-final RegExp _ansiRegex = RegExp(r'\x1B\[[0-9;]*m');
 
-class _LogOutput extends LogOutput {
-  @override
-  void output(event) {
-    final LogService logInfo = event.origin.error as LogService;
-    if (kDebugMode) event.lines.forEach(debugPrint);
-    LogService._controller.add(logInfo..logLines = List.unmodifiable(event.lines));
-  }
-}
-
-class LogService {
-  static final Logger _logger = Logger(
-    filter: ProductionFilter(),
-    output: _LogOutput(),
-    printer: PrettyPrinter(
-      stackTraceBeginIndex: 2,
-      errorMethodCount: 2,
-      printEmojis: false,
-      noBoxingByDefault: true,
-    ),
-  );
-  static final Logger _warnLogger = Logger(
-    filter: ProductionFilter(),
-    output: _LogOutput(),
-    printer: PrettyPrinter(
-      stackTraceBeginIndex: 2,
-      lineLength: 32,
-      printEmojis: false,
-      noBoxingByDefault: false,
-    ),
-  );
-  static final StreamController<LogService> _controller = .broadcast();
-
-  static Stream<LogService> get stream => _controller.stream;
-
-  final String? msg;
-  final String? errorMsg;
-  final Object? errorObject;
-  final Type? classType;
-  final Object? instance;
-  final DateTime time = .now();
-  late final Level level;
-  late final String levelTag;
-  late final List<String> logLines;
-
-  String get logString => logLines.join('\n').replaceAll(_ansiRegex, '');
-
-  LogService(this.msg, {
-    this.errorMsg,
-    this.errorObject,
-    this.classType,
-    this.instance,
-  }) {
-    unawaited(_LogFileListener._file);
-  }
-
-  void t() => _log(.trace, '·');
-  void d() => _log(.debug, '🐛');
-  void i() => _log(.info, '💡');
-  void w() => _log(.warning, '⚠️');
-  void e() => _log(.error, '⛔');
-  void f() => _log(.fatal, '👾');
-
-  void _log(Level level, String levelTag) {
-    this.level = level;
-    this.levelTag = levelTag;
-    final String where = <String>[
-      if (classType != null) 'class<$classType>',
-      if (instance != null) 'instance<$instance>',
-    ].join(', ');
-    return (level < .warning ? _logger : _warnLogger).log(
-      level,
-      <String>[
-        if (where.isNotEmpty) where,
-        if (msg != null && msg!.isNotEmpty) msg!,
-      ].join('\n'),
-      time: time,
-      error: this,
-    );
-  }
-
-  @override
-  String toString() {
-    final String? errorObjectString = errorObject?.toString();
-    return <String>[
-      '[$levelTag ${level.name.toUpperCase()} ${time.toLocal()}]',
-      if (errorMsg != null && errorMsg!.isNotEmpty) errorMsg!,
-      if (errorObjectString != null && errorObjectString.isNotEmpty) errorObjectString,
-    ].join('\n');
-  }
-}
-
-abstract final class _LogFileListener {
+abstract final class LogFileListener {
   static IOSink? _ioSink;
   static Timer? _flushTimer;
   static Future<void> _ioTask = Future.value();
@@ -118,6 +26,10 @@ abstract final class _LogFileListener {
     return file;
   }();
 
+  static Future<void> init() async {
+    await _file;
+  }
+
   static Future<IOSink> _getSink() async =>
       _ioSink ?? (_ioSink = (await _file).openWrite(mode: .append));
 
@@ -128,12 +40,14 @@ abstract final class _LogFileListener {
   }
 
   static void _enqueue(List<String> lines) {
-    _logQueue..addAll(lines)..add(_separatorOfLog);
+    _logQueue
+      ..addAll(lines)
+      ..add(_separatorOfLog);
 
     _flushTimer?.cancel();
     _flushTimer = Timer(const Duration(seconds: 2), () {
       if (_logQueue.isEmpty) return;
-      final String contents = _logQueue.join('\n').replaceAll(_ansiRegex, '');
+      final String contents = _logQueue.join('\n').replaceAll(LogService.ansiRegex, '');
       _logQueue.clear();
       _ioTask = _ioTask.then((_) async {
         final IOSink sink = await _getSink();
@@ -177,19 +91,24 @@ class _PageLogsViewState extends State<PageLogsView> {
 
   Future<void> _pressRefresh() async {
     setState(() => _formattedLogs = null);
-    final String contents = await _LogFileListener.readLogs();
-    List<String> formattedLogs = contents.split(_separatorOfLog).reversed.map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    final String contents = await LogFileListener.readLogs();
+    List<String> formattedLogs = contents
+        .split(_separatorOfLog)
+        .reversed
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
     if (formattedLogs.length >= 1024) {
       formattedLogs = formattedLogs.sublist(0, 512);
-      await _LogFileListener.replaceLogs('${formattedLogs.reversed.join('\n$_separatorOfLog\n')}\n$_separatorOfLog\n');
+      await LogFileListener.replaceLogs(
+        '${formattedLogs.reversed.join('\n$_separatorOfLog\n')}\n$_separatorOfLog\n',
+      );
     }
     setState(() => _formattedLogs = formattedLogs);
   }
 
   Future<ShareResult> _pressShare() async => await SharePlus.instance.share(
-    ShareParams(
-      files: [XFile((await _LogFileListener._file).path)],
-    ),
+    ShareParams(files: [XFile((await LogFileListener._file).path)]),
   );
 
   Future<void> _pressDelete() => OverlayShow.dialog(
@@ -201,7 +120,7 @@ class _PageLogsViewState extends State<PageLogsView> {
         onPressed: () async {
           Navigator.pop(context);
           setState(() => _formattedLogs = null);
-          await _LogFileListener.replaceLogs('');
+          await LogFileListener.replaceLogs('');
           await _pressRefresh();
         },
         child: Text(DictKey.deleteLabel.s),
@@ -215,18 +134,9 @@ class _PageLogsViewState extends State<PageLogsView> {
       appBar: AppBar(
         title: Text('除錯日誌'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _pressRefresh,
-          ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: _pressShare,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: _pressDelete,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _pressRefresh),
+          IconButton(icon: const Icon(Icons.share), onPressed: _pressShare),
+          IconButton(icon: const Icon(Icons.delete), onPressed: _pressDelete),
         ],
       ),
       body: SafeArea(
@@ -234,7 +144,8 @@ class _PageLogsViewState extends State<PageLogsView> {
           child: ListView(
             children: [
               if (_formattedLogs == null) const CircularProgressIndicator(),
-              if (_formattedLogs != null) SelectableText(_formattedLogs!.join('\n')),
+              if (_formattedLogs != null)
+                SelectableText(_formattedLogs!.join('\n')),
             ],
           ),
         ),

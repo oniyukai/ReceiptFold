@@ -243,8 +243,8 @@ class _ToastState extends State<_ToastWidget> with SingleTickerProviderStateMixi
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
+    _controller.dispose();
   }
 
   @override

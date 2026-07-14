@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 
 class TabScannerView extends StatefulWidget {
-  const TabScannerView({super.key});
+  final InvoicePrizeSearcher searcher;
+
+  const TabScannerView({super.key, required this.searcher});
 
   @override
   State<TabScannerView> createState() => _TabScannerViewState();

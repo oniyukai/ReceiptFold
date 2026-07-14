@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:receipt_fold/common/router.dart';
+import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/locale/app_language.dart';
@@ -56,8 +57,7 @@ class _PageMobileFormState extends State<PageMobileForm> {
     if (_formKey.currentState?.saveAndValidate() != true) return;
     Navigator.pop(context);
     final String code = _formKey.currentState!.value['code'];
-    String? name = _formKey.currentState!.value['name'];
-    if (name?.isEmpty == true) name = null;
+    final String? name = Utils.noEmptyStr(_formKey.currentState!.value['name']);
     late final List<MobileBarcodeItem> items;
     if (_args == null) {
       items = await DriftServices.appDb.keyValueStoreDao.getExistDefault(

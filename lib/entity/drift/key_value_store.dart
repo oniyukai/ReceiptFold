@@ -6,7 +6,7 @@ import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
-import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
+import 'package:receipt_fold/modules/log_service.dart';
 
 class KeyValueStores extends Table with ModifiedMixin {
   late final key = text()();

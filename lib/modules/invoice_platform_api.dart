@@ -3,11 +3,12 @@ import 'package:csv/csv.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:intl/intl.dart';
+import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
+import 'package:receipt_fold/modules/log_service.dart';
 
 class InvoicePlatformApi {
   InAppWebViewController? _controller;
@@ -17,8 +18,6 @@ class InvoicePlatformApi {
   set auth(String? value) => _auth = value ?? _auth;
 
   bool get isInitialized => _controller != null && _auth != null;
-
-  String? _noEmptyString(String? s) => s?.trim().isNotEmpty == true ? s : null;
 
   OriginStatus? _analyzeOriginStatus(String? extStatus, String? donateMark, String? invoiceStrStatus) {
     if (extStatus == '0') {
@@ -68,12 +67,12 @@ class InvoicePlatformApi {
       originStatus: _analyzeOriginStatus(jsonData['extStatus'], jsonData['donateMark'], jsonData['invoiceStrStatus']),
       issuedAt: DateTime.tryParse(jsonData['invoiceInstantDate'] ?? ''),
       totalAmount: double.tryParse(jsonData['totalAmount'] ?? ''),
-      randomNumber: Value.absentIfNull(_noEmptyString(jsonData['randomNumber'])),
-      carrierId2: Value.absentIfNull(_noEmptyString(jsonData['carrierId2'])),
-      sellerName: Value.absentIfNull(_noEmptyString(jsonData['sellerName'])),
-      sellerTaxId: Value.absentIfNull(_noEmptyString(jsonData['sellerId'])),
-      sellerAddress: Value.absentIfNull(_noEmptyString(jsonData['sellerAddress'])),
-      sellerRemark: Value.absentIfNull(_noEmptyString(jsonData['mainRemark'])),
+      randomNumber: Value.absentIfNull(Utils.noEmptyStr(jsonData['randomNumber'])),
+      carrierId2: Value.absentIfNull(Utils.noEmptyStr(jsonData['carrierId2'])),
+      sellerName: Value.absentIfNull(Utils.noEmptyStr(jsonData['sellerName'])),
+      sellerTaxId: Value.absentIfNull(Utils.noEmptyStr(jsonData['sellerId'])),
+      sellerAddress: Value.absentIfNull(Utils.noEmptyStr(jsonData['sellerAddress'])),
+      sellerRemark: Value.absentIfNull(Utils.noEmptyStr(jsonData['mainRemark'])),
     );
   }
 
@@ -139,8 +138,8 @@ class InvoicePlatformApi {
         carrierId2: content['carrierId2'] ?? old?.carrierId2,
         name: content['carrierName'] ?? old?.name,
         status: .platform,
-        carrierType: _noEmptyString(content['cardCode']) ?? old?.carrierType,
-        carrierTypeName: _noEmptyString(content['codeName']) ?? old?.carrierTypeName,
+        carrierType: Utils.noEmptyStr(content['cardCode']) ?? old?.carrierType,
+        carrierTypeName: Utils.noEmptyStr(content['codeName']) ?? old?.carrierTypeName,
         fetchJson: jsonEncode(content),
       );
     }
@@ -184,11 +183,11 @@ class InvoicePlatformApi {
               originStatus: .platformConfirmedNotDonated,
               issuedAt: DateTime.tryParse(jsonAward['invoiceDate'] ?? '') ?? .now(),
               totalAmount: double.tryParse(jsonAward['totalAmount'] ?? '') ?? 0.0,
-              invoiceNumber: _noEmptyString(jsonAward['invNum']),
-              carrierName: _noEmptyString(jsonAward['carrierName']),
-              carrierType: _noEmptyString(jsonAward['cardCode']),
-              carrierId2: _noEmptyString(jsonAward['carrierId2']),
-              prizeName: _noEmptyString(jsonAward['prizeName']),
+              invoiceNumber: Utils.noEmptyStr(jsonAward['invNum']),
+              carrierName: Utils.noEmptyStr(jsonAward['carrierName']),
+              carrierType: Utils.noEmptyStr(jsonAward['cardCode']),
+              carrierId2: Utils.noEmptyStr(jsonAward['carrierId2']),
+              prizeName: Utils.noEmptyStr(jsonAward['prizeName']),
               prizeAmount: double.tryParse(jsonAward['prizeAmt'] ?? ''),
               invoiceJsonData: await fResData,
               invoiceJsonDetail: await fResDetail,
@@ -254,11 +253,11 @@ class InvoicePlatformApi {
                 ?? .platformUnconfirmed,
             issuedAt: DateTime.tryParse(jsonInvoice['invoiceDate'] ?? '') ?? .now(),
             totalAmount: double.tryParse(jsonInvoice['totalAmount'].toString()) ?? 0.0, // API 特別回傳的是 int
-            invoiceNumber: _noEmptyString(jsonInvoice['invoiceNumber']),
-            carrierName: _noEmptyString(jsonInvoice['carrierName']),
-            carrierType: _noEmptyString(jsonInvoice['carrierType']),
-            carrierId2: _noEmptyString(jsonInvoice['carrierId2']),
-            sellerName: _noEmptyString(jsonInvoice['sellerName']),
+            invoiceNumber: Utils.noEmptyStr(jsonInvoice['invoiceNumber']),
+            carrierName: Utils.noEmptyStr(jsonInvoice['carrierName']),
+            carrierType: Utils.noEmptyStr(jsonInvoice['carrierType']),
+            carrierId2: Utils.noEmptyStr(jsonInvoice['carrierId2']),
+            sellerName: Utils.noEmptyStr(jsonInvoice['sellerName']),
             invoiceJsonData: await fResData,
             invoiceJsonDetail: await fResDetail,
             invoiceJsonSummary: jsonEncode(jsonInvoice),
@@ -288,10 +287,10 @@ class InvoicePlatformApi {
             int.parse(dateString.substring(6, 8)),
           ).subtract(const Duration(hours: 8)),
           totalAmount: double.tryParse(stringList[7]) ?? 0.0,
-          carrierId2: _noEmptyString(stringList[2]),
-          sellerTaxId: _noEmptyString(stringList[4]),
-          sellerName: _noEmptyString(stringList[5]),
-          invoiceNumber: _noEmptyString(invoiceNumber),
+          carrierId2: Utils.noEmptyStr(stringList[2]),
+          sellerTaxId: Utils.noEmptyStr(stringList[4]),
+          sellerName: Utils.noEmptyStr(stringList[5]),
+          invoiceNumber: Utils.noEmptyStr(invoiceNumber),
         ), []);
       } else if (rowType == 'D') {
         final String invoiceNumber = stringList[1];

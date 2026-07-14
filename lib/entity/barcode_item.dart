@@ -24,8 +24,7 @@ class MobileBarcodeItem {
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
       code = json['code'];
-      name = json['name'];
-      if (name == '') name = null;
+      name = Utils.noEmptyStr(json['name']);
     } catch (e) {
       debugPrint('$MobileBarcodeItem.fromString: $e');
     }
@@ -65,10 +64,8 @@ class MemberBarcodeItem {
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
       code = json['code'];
-      name = json['name'];
-      if (name == '') name = null;
-      imageUrl = json['imageUrl'];
-      if (imageUrl == '') imageUrl = null;
+      name = Utils.noEmptyStr(json['name']);
+      imageUrl = Utils.noEmptyStr(json['imageUrl']);
       format = BarcodeFormat.values.fromName(json['format']);
     } catch (e) {
       debugPrint('$MemberBarcodeItem.fromString: $e');

@@ -54,10 +54,12 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
     if (_formKey.currentState?.saveAndValidate() != true) return;
     final String carrierId2 = _formKey.currentState!.value['carrierId2'];
     final String name = _formKey.currentState!.value['name'];
-    String? carrierType = _formKey.currentState!.value['carrierType'];
-    String? carrierTypeName = _formKey.currentState!.value['carrierTypeName'];
-    if (carrierType?.isEmpty == true) carrierType = null;
-    if (carrierTypeName?.isEmpty == true) carrierTypeName = null;
+    final String? carrierType = Utils.noEmptyStr(
+      _formKey.currentState!.value['carrierType'],
+    );
+    final String? carrierTypeName = Utils.noEmptyStr(
+      _formKey.currentState!.value['carrierTypeName'],
+    );
     late final List<InvoiceCarrier> items;
     if (_args == null) {
       items = await DriftServices.appDb.keyValueStoreDao.getExistDefault(
@@ -78,13 +80,11 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
         ),
       );
     } else {
-      _args.items[_args.index] = InvoiceCarrier(
-        carrierId2: carrierId2,
-        name: name,
-        status: _args.items[_args.index].status,
-        carrierType: carrierType,
-        carrierTypeName: carrierTypeName,
-      );
+      assert(_args.items[_args.index].carrierId2 == carrierId2);
+      _args.items[_args.index]
+        ..name = name
+        ..carrierType = carrierType
+        ..carrierTypeName = carrierTypeName;
       items = _args.items;
     }
     Navigator.pop(context);

@@ -5,20 +5,52 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
+import 'package:receipt_fold/modules/log_service.dart';
 
 class InvoicePrizeSearcher {
-  final Dio _dio = Dio();
-  List<InvoicePrizeAward>? _awardListCache;
+  static List<InvoicePrizeAward>? _awardListCache;
 
-  void close() => _dio.close();
+  static int _instanceCounter = 0;
+
+  late final Dio _dio = Dio();
+
+  InvoicePrizeSearcher() {
+    _instanceCounter += 1;
+  }
+
+  void close() {
+    if (_instanceCounter > 0) _instanceCounter -= 1;
+    if (_instanceCounter <= 0) _awardListCache = null;
+    _dio.close();
+  }
+
+  Future<InvoicePrizeAward?> getByDistance(int distance) async {
+    assert(distance >= 0);
+    Period nowPeriod = Period(.now()).invPrevious;
+    InvoicePrizeAward? lastPrizeAward;
+    for (int i = 0; i < 2; i += 1) {
+      lastPrizeAward = await getPrizeAward(nowPeriod);
+      if (lastPrizeAward != null) break;
+      nowPeriod = nowPeriod.invPrevious;
+    }
+    if (lastPrizeAward == null) return null;
+    for (int i = 0; i < distance; i += 1) {
+      nowPeriod = nowPeriod.invPrevious;
+    }
+    return await getPrizeAward(nowPeriod);
+  }
 
   Future<InvoicePrizeAward?> getPrizeAward(Period period) async {
     final String invQuery = period.invQuery;
-    final List<InvoicePrizeAward> awardList = _awardListCache ??
-        await DriftServices.appDb.keyValueStoreDao.getExistDefault(.invoicePrizeAwardList);
+    final List<InvoicePrizeAward> awardList =
+        _awardListCache ??
+        await DriftServices.appDb.keyValueStoreDao.getExistDefault(
+          .invoicePrizeAwardList,
+        );
     _awardListCache = awardList;
-    final int historyWhere = awardList.indexWhere((item) => item.invQuery == invQuery);
+    final int historyWhere = awardList.indexWhere(
+      (item) => item.invQuery == invQuery,
+    );
     if (historyWhere >= 0) {
       final InvoicePrizeAward result = awardList[historyWhere];
       if (result.prizes.isNotEmpty) return result;
@@ -30,9 +62,17 @@ class InvoicePrizeSearcher {
     try {
       prizes.addAll(await _requestPrizeAward(invQuery));
     } on DioException catch (e) {
-      LogService('findInvoicePrizeAward failed.', errorObject: e, instance: this).w();
+      LogService(
+        'findInvoicePrizeAward exception.',
+        errorObject: e,
+        instance: this,
+      ).w();
     } catch (e) {
-      LogService('findInvoicePrizeAward failed.', errorObject: e, instance: this).e();
+      LogService(
+        'findInvoicePrizeAward failed.',
+        errorObject: e,
+        instance: this,
+      ).e();
     }
 
     // 獎金高的放前面，同金額維持插入順序
@@ -48,21 +88,27 @@ class InvoicePrizeSearcher {
     } else {
       awardList.add(invoicePrizeAward);
     }
-    await DriftServices.appDb.keyValueStoreDao.upsert(.invoicePrizeAwardList, awardList);
+    await DriftServices.appDb.keyValueStoreDao.upsert(
+      .invoicePrizeAwardList,
+      awardList,
+    );
     return invoicePrizeAward.prizes.isNotEmpty ? invoicePrizeAward : null;
   }
 
   bool _matchSpecifiedTimeInterval(int unixMilliseconds) {
     final int currentUnixMilliseconds = UnitUtils.nowUnixTime;
-    final int differenceInMilliseconds = (unixMilliseconds - currentUnixMilliseconds).abs();
-    const int targetDifferenceInSeconds = 256;
+    final int differenceInMilliseconds =
+        (unixMilliseconds - currentUnixMilliseconds).abs();
+    const int targetDifferenceInSeconds = 1000;
     const int targetDifferenceInMilliseconds = targetDifferenceInSeconds * 1000;
     return differenceInMilliseconds >= targetDifferenceInMilliseconds;
   }
 
+  // https://invoice.etax.nat.gov.tw/invoice.xml 其實更好解析，但是最早只有 114年 05~06月
   Future<List<InvoicePrize>> _requestPrizeAward(String invQuery) async {
     final List<InvoicePrize> prizes = [];
-    final String fullUrl = 'https://www.etax.nat.gov.tw/etw-main/ETW183W2_$invQuery/';
+    final String fullUrl =
+        'https://www.etax.nat.gov.tw/etw-main/ETW183W2_$invQuery/';
     LogService('_requestPrizeAward...: $fullUrl', instance: this).d();
     final Response response = await _dio.get(fullUrl);
     if (response.statusCode != 200) {
@@ -72,7 +118,10 @@ class InvoicePrizeSearcher {
     final Document document = parse(response.data);
     final Element? table = document.querySelector('table#tenMillionsTable');
     if (table == null) {
-      LogService('Element "table#tenMillionsTable" does not exists.', instance: this).w();
+      LogService(
+        'Element "table#tenMillionsTable" does not exists.',
+        instance: this,
+      ).w();
       return prizes;
     }
     final Element? tbody = table.querySelector('tbody');
@@ -110,13 +159,19 @@ class InvoicePrizeSearcher {
 
       for (final number in numbers) {
         prizes.add(InvoicePrize(amount, headerText, number));
-        if (headerText == '頭獎') { // 頭獎號碼可衍生出二獎～六獎（依末幾碼比對）
+        if (headerText == '頭獎') {
+          // 頭獎號碼可衍生出二獎～六獎（依末幾碼比對）
           prizes.addAll([
-            if (number.length >= 7) InvoicePrize(40000, '二獎', number.substring(number.length - 7)),
-            if (number.length >= 6) InvoicePrize(10000, '三獎', number.substring(number.length - 6)),
-            if (number.length >= 5) InvoicePrize(4000, '四獎', number.substring(number.length - 5)),
-            if (number.length >= 4) InvoicePrize(1000, '五獎', number.substring(number.length - 4)),
-            if (number.length >= 3) InvoicePrize(200, '六獎', number.substring(number.length - 3)),
+            if (number.length >= 7)
+              InvoicePrize(40000, '二獎', number.substring(number.length - 7)),
+            if (number.length >= 6)
+              InvoicePrize(10000, '三獎', number.substring(number.length - 6)),
+            if (number.length >= 5)
+              InvoicePrize(4000, '四獎', number.substring(number.length - 5)),
+            if (number.length >= 4)
+              InvoicePrize(1000, '五獎', number.substring(number.length - 4)),
+            if (number.length >= 3)
+              InvoicePrize(200, '六獎', number.substring(number.length - 3)),
           ]);
         }
       }
