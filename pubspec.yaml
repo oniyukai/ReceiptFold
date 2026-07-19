@@ -70,3 +70,5 @@ flutter_launcher_icons:
   windows:
     generate: true
   image_path: 'assets/appicon.png'
+  adaptive_icon_background: '#ffffff'
+  adaptive_icon_foreground: 'assets/appicon.png'

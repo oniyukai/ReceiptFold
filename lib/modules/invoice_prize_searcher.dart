@@ -110,7 +110,9 @@ class InvoicePrizeSearcher {
     final String fullUrl =
         'https://www.etax.nat.gov.tw/etw-main/ETW183W2_$invQuery/';
     LogService('_requestPrizeAward...: $fullUrl', instance: this).d();
-    final Response response = await _dio.get(fullUrl);
+    final Response response = await _dio
+        .get(fullUrl)
+        .timeout(const Duration(seconds: 4));
     if (response.statusCode != 200) {
       LogService('response.statusCode != 200.', instance: this).d();
       return prizes;

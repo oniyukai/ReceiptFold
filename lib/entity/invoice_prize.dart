@@ -83,8 +83,15 @@ class InvoicePrizeAward {
 
   Period get period => Period.inv(invQuery);
 
-  InvoicePrize? check(String number) {
+  InvoicePrize? checkAll(String number) {
     if (number.length < 3) return null;
     return prizes.firstWhereOrNull((prize) => number.endsWith(prize.number));
+  }
+
+  List<InvoicePrize> checkEnd(String number) {
+    return <InvoicePrize>[
+      for (final InvoicePrize prize in prizes)
+        if (prize.number.endsWith(number)) prize,
+    ];
   }
 }

@@ -13,9 +13,9 @@ enum ThemeOption {
   const ThemeOption([this.brightness]);
 
   static Map<ThemeOption, String> get optionMap => <ThemeOption, String>{
-    sys: DictKey.preferencesThemeSystem.s,
-    light: DictKey.preferencesThemeLight.s,
-    dark: DictKey.preferencesThemeDark.s,
+    sys: DictKey.settingOptionThemeSystem.s,
+    light: DictKey.settingOptionThemeLight.s,
+    dark: DictKey.settingOptionThemeDark.s,
   };
 }
 
@@ -36,15 +36,15 @@ enum ColorOption {
   const ColorOption([this.color]);
 
   static Map<ColorOption, String> get optionMap => <ColorOption, String>{
-    sys: DictKey.preferencesColorMaterialYou.s,
-    blue: DictKey.preferencesColorBlue.s,
+    sys: '系統 Material You',
+    blue: '藍色',
     violet: '紫羅蘭色',
-    purple: DictKey.preferencesColorPurple.s,
+    purple: '紫色',
     pink: '粉红色',
     deepOrange: '深橘色',
-    orange: DictKey.preferencesColorOrange.s,
+    orange: '橘色',
     yellow: '黄色',
-    green: DictKey.preferencesColorGreen.s,
+    green: '綠色',
     teal: '青色',
   };
 }

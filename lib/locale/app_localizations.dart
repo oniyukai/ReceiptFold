@@ -19,7 +19,7 @@ enum LocaleOption {
   Locale get locale => _locale ?? WidgetsBinding.instance.platformDispatcher.locale;
 
   static Map<LocaleOption, String> get optionMap => <LocaleOption, String>{
-    sys: DictKey.preferencesDefault.s,
+    sys: DictKey.settingOptionLanguagesDefault.s,
     en: StaticString.localeLanguageEn,
     ja: StaticString.localeLanguageJa,
     zhHant: StaticString.localeLanguageZhHant,

@@ -6,11 +6,11 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/app_localizations.dart';
-import 'package:receipt_fold/pages/menu_recorder/page_platform_view.dart';
+import 'package:receipt_fold/pages/menu_settings/page_platform_view.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/menu_settings/page_about_view.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
+import 'package:receipt_fold/pages/menu_settings/page_backup_view.dart';
 
 class MainSettingsView extends StatefulWidget {
   const MainSettingsView({super.key});
@@ -50,22 +50,22 @@ class _MainSettingsPageState extends State<MainSettingsView> {
           builder: (context, prefs, child) => ListView(
             controller: _scrollController,
             children: [
-              ListTileText(text: DictKey.preferencesAppearanceTitle.s, isSection: true),
+              ListTileText(text: DictKey.settingGroupAppearance.s, isSection: true),
               ListTilePicker<ColorOption>(
-                text: DictKey.preferencesColorLabel.s,
+                text: DictKey.settingOptionColor.s,
                 selectedOption: prefs.get(.selectedColor),
                 optionMap: ColorOption.optionMap,
                 leadingBuilder: (radio, selected) => ColorfulRadio(radio, selected),
                 onChanged: (value) => prefs.update(.selectedColor, value),
               ),
               ListTilePicker<ThemeOption>(
-                text: DictKey.preferencesThemeLabel.s,
+                text: DictKey.settingOptionTheme.s,
                 selectedOption: prefs.get(PrefsEnum.selectedTheme),
                 optionMap: ThemeOption.optionMap,
                 onChanged: (value) => prefs.update(PrefsEnum.selectedTheme, value),
               ),
               ListTilePicker<LocaleOption>(
-                text: DictKey.preferencesLanguageLabel.s,
+                text: DictKey.settingGroupLanguages.s,
                 selectedOption: prefs.get(PrefsEnum.selectedLanguage),
                 optionMap: LocaleOption.optionMap,
                 onChanged: (value) => prefs.update(PrefsEnum.selectedLanguage, value),
@@ -82,7 +82,7 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 text: '備份與同步',
                 trailing: const Icon(Icons.chevron_right),
                 iconData: Icons.cloud,
-                onTap: () => MyRouter.routeTo(PageBackupPage),
+                onTap: () => MyRouter.routeTo(PageBackupView),
               ),
 
               ListTileText(text: DictKey.preferencesPreferenceTitle.s, isSection: true),
@@ -93,7 +93,7 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 onToggle: (value) => prefs.update(PrefsEnum.isAutoBrightness, value),
               ),
               ListTileSwitch(
-                text: DictKey.preferencesSwitchScanScreenRotationLabel.s,
+                text: DictKey.settingOptionScanLockOrient.s,
                 iconData: Icons.screen_rotation,
                 initialValue: prefs.get(PrefsEnum.isScanScreenRotation),
                 onToggle: (value) => prefs.update(PrefsEnum.isScanScreenRotation, value),
@@ -110,7 +110,7 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 onTap: _clearImageCache,
               ),
 
-              ListTileText(text: DictKey.preferencesAboutTitle.s, isSection: true),
+              ListTileText(text: DictKey.settingGroupAbout.s, isSection: true),
               ListTileText(
                 text: StaticString.appName,
                 trailing: const Icon(Icons.chevron_right),

@@ -123,7 +123,7 @@ class _PageLogsViewState extends State<PageLogsView> {
           await LogFileListener.replaceLogs('');
           await _pressRefresh();
         },
-        child: Text(DictKey.deleteLabel.s),
+        child: Text(DictKey.commonLabelDelete.s),
       ),
     ],
   );

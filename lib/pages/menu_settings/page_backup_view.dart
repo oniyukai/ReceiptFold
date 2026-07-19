@@ -46,8 +46,8 @@ Future<({String? url, String? user, String? password})> _readWebDAVAccount() asy
   );
 }
 
-class PageBackupPage extends StatefulWidget {
-  const PageBackupPage({super.key});
+class PageBackupView extends StatefulWidget {
+  const PageBackupView({super.key});
 
   static Timer? _webDAVConnectSyncTimer;
   static int _lastTimeWebDAVAction = 0;
@@ -63,7 +63,7 @@ class PageBackupPage extends StatefulWidget {
       try {
         _webDAV.value = await WebDAV.connect(account.url!, account.user!, account.password!);
       } catch (e) {
-        LogService('connectWebDAV failed.', errorObject: e, classType: PageBackupPage).e();
+        LogService('connectWebDAV failed.', errorObject: e, classType: PageBackupView).e();
       }
     }
     if (_webDAV.value != null && PrefsEnum.isAutoWebDAVSync.get()) {
@@ -73,10 +73,10 @@ class PageBackupPage extends StatefulWidget {
 
   static Future<void> _webDAVAction(_DriftAction action) async {
     if (_singleActionLocked.value) {
-      LogService('現在已有其他資料庫操作, 取消執行.', classType: PageBackupPage).d();
+      LogService('現在已有其他資料庫操作, 取消執行.', classType: PageBackupView).d();
       return;
     } else if (UnitUtils.nowUnixTime - _lastTimeWebDAVAction < 2000) {
-      LogService('太過頻繁的 WebDAV 操作, 取消執行.', classType: PageBackupPage).d();
+      LogService('太過頻繁的 WebDAV 操作, 取消執行.', classType: PageBackupView).d();
       return;
     }
     _singleActionLocked.value = true;
@@ -90,9 +90,9 @@ class PageBackupPage extends StatefulWidget {
         .pull => DriftServices.pullMerge(webDAV.download),
         .sync => DriftServices.syncMerge(webDAV.download, webDAV.upload),
       };
-      LogService('_webDAVAction finished.', classType: PageBackupPage).d();
+      LogService('_webDAVAction finished.', classType: PageBackupView).d();
     } catch (e) {
-      LogService('_webDAVAction failed.', errorObject: e, classType: PageBackupPage).e();
+      LogService('_webDAVAction failed.', errorObject: e, classType: PageBackupView).e();
     } finally {
       _lastTimeWebDAVAction = UnitUtils.nowUnixTime;
       _singleActionLocked.value = false;
@@ -101,7 +101,7 @@ class PageBackupPage extends StatefulWidget {
 
   static Future<void> _localAction(_DriftAction action, String filePath) async {
     if (_singleActionLocked.value) {
-      LogService('現在已有其他資料庫操作, 取消執行.', classType: PageBackupPage).d();
+      LogService('現在已有其他資料庫操作, 取消執行.', classType: PageBackupView).d();
       return;
     }
     _singleActionLocked.value = true;
@@ -115,19 +115,19 @@ class PageBackupPage extends StatefulWidget {
         .pull => DriftServices.pullMerge(download),
         .sync => DriftServices.syncMerge(download, upload),
       };
-      LogService('_localAction finished.', classType: PageBackupPage).d();
+      LogService('_localAction finished.', classType: PageBackupView).d();
     } catch (e) {
-      LogService('_localAction failed.', errorObject: e, classType: PageBackupPage).e();
+      LogService('_localAction failed.', errorObject: e, classType: PageBackupView).e();
     } finally {
       _singleActionLocked.value = false;
     }
   }
 
   @override
-  State<StatefulWidget> createState() => _PageBackupPageState();
+  State<StatefulWidget> createState() => _PageBackupViewState();
 }
 
-class _PageBackupPageState extends State<PageBackupPage> {
+class _PageBackupViewState extends State<PageBackupView> {
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   final List<String> _logs = [];
   late final StreamSubscription<LogService> _logSubscription;
@@ -153,7 +153,7 @@ class _PageBackupPageState extends State<PageBackupPage> {
       Utils.showToast('取消');
       return;
     }
-    await PageBackupPage._localAction(.pushForce, p.join(directoryPath, 'ReceiptFold_${UnitUtils.unixRadix36}.sqlite'));
+    await PageBackupView._localAction(.pushForce, p.join(directoryPath, 'ReceiptFold_${UnitUtils.unixRadix36}.sqlite'));
   }
 
   Future<void> _pressLocalAction(_DriftAction action) async {
@@ -166,7 +166,7 @@ class _PageBackupPageState extends State<PageBackupPage> {
       return;
     }
     try {
-      await PageBackupPage._localAction(action, result.files.single.path!);
+      await PageBackupView._localAction(action, result.files.single.path!);
     } catch (e) {
       Utils.showToast(e.toString());
     }
@@ -193,7 +193,7 @@ class _PageBackupPageState extends State<PageBackupPage> {
               'user': _formKey.currentState!.value['user'] ?? '',
               'password': _formKey.currentState!.value['password'] ?? '',
             }));
-            await PageBackupPage.connectWebDAV(reConnect: true);
+            await PageBackupView.connectWebDAV(reConnect: true);
           },
         ),
       ),
@@ -247,7 +247,7 @@ class _PageBackupPageState extends State<PageBackupPage> {
             padding: const .fromLTRB(16.0, 0.0, 16.0, 16.0),
             children: [
               ValueListenableBuilder(
-                valueListenable: PageBackupPage._singleActionLocked,
+                valueListenable: PageBackupView._singleActionLocked,
                 builder: (context, value, child) => value ? const LinearProgressIndicator() : const SizedBox.shrink(),
               ),
               ExpandableCard(
@@ -287,7 +287,7 @@ class _PageBackupPageState extends State<PageBackupPage> {
                 iconData: Icons.cloud_sync,
                 text: 'WebDAV',
                 expandedChild: ValueListenableBuilder(
-                  valueListenable: PageBackupPage._webDAV,
+                  valueListenable: PageBackupView._webDAV,
                   builder: (context, webDAV, child) {
                     final bool isConnected = webDAV != null;
                     return Column(
@@ -303,31 +303,31 @@ class _PageBackupPageState extends State<PageBackupPage> {
                           leading: const Icon(Icons.upload),
                           title: Text('強推送'),
                           enabled: isConnected,
-                          onTap: () => PageBackupPage._webDAVAction(.pushForce),
+                          onTap: () => PageBackupView._webDAVAction(.pushForce),
                         ),
                         ListTile(
                           leading: const Icon(Icons.upload_outlined),
                           title: Text('推送'),
                           enabled: isConnected,
-                          onTap: () => PageBackupPage._webDAVAction(.push),
+                          onTap: () => PageBackupView._webDAVAction(.push),
                         ),
                         if (context.readPrefs.get(.isAppDeveloperMode)) ListTile(
                           leading: const Icon(Icons.download),
                           title: Text('強拉取'),
                           enabled: isConnected,
-                          onTap: () => PageBackupPage._webDAVAction(.pullForce),
+                          onTap: () => PageBackupView._webDAVAction(.pullForce),
                         ),
                         ListTile(
                           leading: const Icon(Icons.download_outlined),
                           title: Text('拉取'),
                           enabled: isConnected,
-                          onTap: () => PageBackupPage._webDAVAction(.pull),
+                          onTap: () => PageBackupView._webDAVAction(.pull),
                         ),
                         ListTile(
                           leading: const Icon(Icons.sync),
                           title: Text('同步'),
                           enabled: isConnected,
-                          onTap: () => PageBackupPage._webDAVAction(.sync),
+                          onTap: () => PageBackupView._webDAVAction(.sync),
                         ),
                         ListTileSwitch(
                           iconData: Icons.motion_photos_auto,

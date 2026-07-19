@@ -126,11 +126,11 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     assert(_args.isEdit);
     return OverlayShow.dialog(
       context: context,
-      title: DictKey.deleteLabel.s,
+      title: DictKey.commonLabelDelete.s,
       content: Text(DictKey.sureToDeleteThisLabel.s),
       actions: [
         TextButton(
-          child: Text(DictKey.deleteLabel.s),
+          child: Text(DictKey.commonLabelDelete.s),
           onPressed: () async {
             Navigator.pop(context);
             Navigator.pop(context);
@@ -187,11 +187,11 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       if (index == null || product == null) throw 'index不能是null';
       return OverlayShow.dialog(
         context: context,
-        title: DictKey.deleteLabel.s,
+        title: DictKey.commonLabelDelete.s,
         content: Text(DictKey.sureToDeleteThisLabel.s),
         actions: [
           TextButton(
-            child: Text(DictKey.deleteLabel.s),
+            child: Text(DictKey.commonLabelDelete.s),
             onPressed: () async {
               Navigator.pop(context);
               Navigator.pop(context);

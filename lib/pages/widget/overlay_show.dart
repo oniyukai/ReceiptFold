@@ -24,7 +24,7 @@ abstract final class OverlayShow {
         actions: [
           if (!noCancelButton) TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(DictKey.cancelLabel.s),
+            child: Text(DictKey.commonUiCancel.s),
           ),
           ...?actions,
         ],
@@ -54,7 +54,7 @@ abstract final class OverlayShow {
               mainAxisAlignment: .spaceAround,
               children: [
                 if (!noCancelButton) ElevatedButton(
-                  child: Text(DictKey.cancelLabel.s),
+                  child: Text(DictKey.commonUiCancel.s),
                   onPressed: () => Navigator.pop(context),
                 ),
                 ...?actions,

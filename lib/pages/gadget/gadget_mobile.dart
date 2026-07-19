@@ -13,7 +13,7 @@ const String _homeWidgetMobilePath = 'HomeWidgetMobilePath';
 Future<void> updateHomeScreenMobile() async {
   if (!Platform.isAndroid && !Platform.isIOS) return;
   await HomeWidget.renderFlutterWidget(
-    HomeScreenMobileSample(
+    GadgetMobile(
       items: await DriftServices.appDb.keyValueStoreDao.getExistDefault(.mobileBarcodeList),
     ),
     key: _homeWidgetMobilePath,
@@ -24,10 +24,10 @@ Future<void> updateHomeScreenMobile() async {
   );
 }
 
-class HomeScreenMobileSample extends StatelessWidget {
+class GadgetMobile extends StatelessWidget {
   final List<MobileBarcodeItem> items;
 
-  const HomeScreenMobileSample({super.key, required this.items});
+  const GadgetMobile({super.key, required this.items});
 
   @override
   Widget build(context) {
@@ -39,7 +39,7 @@ class HomeScreenMobileSample extends StatelessWidget {
         child: Text(DictKey.barcodeManagerNotYetSetLabel.s),
       );
     }
-    return ScreenGadgetBarcode(
+    return GadgetBarcode(
       data: firstCode.code,
       name: '${DictKey.barcodeManagerMobileCarrierLabel.s} ${firstCode.name ?? ''}',
       format: BarcodeFormat.code39,
@@ -47,12 +47,12 @@ class HomeScreenMobileSample extends StatelessWidget {
   }
 }
 
-class ScreenGadgetBarcode extends StatelessWidget {
+class GadgetBarcode extends StatelessWidget {
   final String data;
   final String? name;
   final BarcodeFormat format;
 
-  const ScreenGadgetBarcode({
+  const GadgetBarcode({
     super.key,
     required this.data,
     this.name,

@@ -6,7 +6,7 @@ import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/pages/screen_gadget/mobile_screen.dart';
+import 'package:receipt_fold/pages/gadget/gadget_mobile.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
@@ -33,11 +33,11 @@ class _PageMobileFormState extends State<PageMobileForm> {
     assert(_args != null);
     return OverlayShow.dialog(
       context: context,
-      title: DictKey.deleteLabel.s,
+      title: DictKey.commonLabelDelete.s,
       content: Text(DictKey.sureToDeleteThisLabel.s),
       actions: [
         TextButton(
-          child: Text(DictKey.deleteLabel.s),
+          child: Text(DictKey.commonLabelDelete.s),
           onPressed: () async {
             Navigator.pop(context);
             Navigator.pop(context);

@@ -13,7 +13,7 @@ import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/modules/log_service.dart';
 import 'package:receipt_fold/modules/secure_prefs.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
-import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
+import 'package:receipt_fold/pages/menu_settings/page_backup_view.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
@@ -48,7 +48,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
   void dispose() {
     super.dispose();
     _logSubscription.cancel();
-    unawaited(PageBackupPage.connectWebDAV());
+    unawaited(PageBackupView.connectWebDAV());
   }
 
   Future<({String? phone, String? password})> _readPlatformAccount() async {

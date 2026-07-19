@@ -173,6 +173,11 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                 MyMenuButton(
                   items: [
                     MyMenuItem(
+                      text: '對獎該期',
+                      iconData: Icons.flip,
+                      onTap: (){} // todo: 該期對獎功能
+                    ),
+                    MyMenuItem(
                       text: DictKey.recorderMenuStatisticalAnalysisLabel.s,
                       iconData: Icons.bar_chart,
                       onTap: (){} // todo: 統計分析功能

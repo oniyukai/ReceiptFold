@@ -67,22 +67,22 @@ class _MenuNavBarState extends State<MenuNavBar> {
         NavigationDestination(
           selectedIcon: const Icon(Icons.article),
           icon: const Icon(Icons.article_outlined),
-          label: DictKey.titleRecorder.s,
+          label: DictKey.navTitleRecorder.s,
         ),
         NavigationDestination(
           selectedIcon: const Icon(Icons.flip),
           icon: const Icon(Icons.fullscreen),
-          label: DictKey.titleScanner.s,
+          label: DictKey.navTitleScanner.s,
         ),
         NavigationDestination(
           selectedIcon: const Icon(Icons.inbox),
           icon: const Icon(Icons.inbox_outlined),
-          label: DictKey.titleManager.s,
+          label: DictKey.navTitleManager.s,
         ),
         NavigationDestination(
           selectedIcon: const Icon(Icons.settings),
           icon: const Icon(Icons.settings_outlined),
-          label: DictKey.titleSettings.s,
+          label: DictKey.navTitleSettings.s,
         ),
       ],
     );
@@ -98,22 +98,22 @@ class _MenuNavBarState extends State<MenuNavBar> {
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.article),
           icon: const Icon(Icons.article_outlined),
-          label: Text(DictKey.titleRecorder.s),
+          label: Text(DictKey.navTitleRecorder.s),
         ),
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.flip),
           icon: const Icon(Icons.fullscreen),
-          label: Text(DictKey.titleScanner.s)
+          label: Text(DictKey.navTitleScanner.s)
         ),
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.inbox),
           icon: const Icon(Icons.inbox_outlined),
-          label: Text(DictKey.titleManager.s),
+          label: Text(DictKey.navTitleManager.s),
         ),
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.settings),
           icon: const Icon(Icons.settings_outlined),
-          label: Text(DictKey.titleSettings.s),
+          label: Text(DictKey.navTitleSettings.s),
         ),
       ],
     );

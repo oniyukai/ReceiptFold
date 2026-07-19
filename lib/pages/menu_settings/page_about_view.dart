@@ -19,7 +19,7 @@ class _PageAboutViewState extends State<PageAboutView> {
   Widget build(context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(DictKey.preferencesAboutTitle.s),
+        title: Text(DictKey.settingGroupAbout.s),
       ),
       body: SafeArea(
         child: Scrollbar(
@@ -36,7 +36,7 @@ class _PageAboutViewState extends State<PageAboutView> {
                 textAlign: TextAlign.center,
               ),
               ListTile(
-                title: Text(DictKey.preferencesApplicationVersionLabel.s),
+                title: Text(DictKey.settingOptionVersion.s),
                 subtitle: Text(StaticString.appVersion),
                 onLongPress: () async {
                   final bool newMode = !context.readPrefs.get(.isAppDeveloperMode);
@@ -46,7 +46,7 @@ class _PageAboutViewState extends State<PageAboutView> {
                 },
               ),
               ListTile(
-                title: Text(DictKey.preferencesApplicationVersionTagLabel.s),
+                title: Text(DictKey.settingOptionVersionTag.s),
                 subtitle: Text(StaticString.appVersionTag),
               ),
               ListTile(
@@ -55,11 +55,11 @@ class _PageAboutViewState extends State<PageAboutView> {
                 onTap: () => MyRouter.routeTo(PageLogsView),
               ),
               ListTile(
-                title: Text(DictKey.preferencesAboutOpenSourceLibrariesLabel.s),
+                title: Text(DictKey.settingOptionLicenses.s),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => showLicensePage(
                   context: context,
-                  applicationName: DictKey.preferencesAboutOpenSourceLibrariesLabel.s,
+                  applicationName: DictKey.settingOptionLicenses.s,
                 ),
               ),
               ListTile(
@@ -68,7 +68,7 @@ class _PageAboutViewState extends State<PageAboutView> {
                 onTap: () => MyRouter.routeTo(PageTermsView),
               ),
               ListTile(
-                title: Text(DictKey.preferencesSourceCodeLabel.s),
+                title: Text(DictKey.settingOptionSourceCode.s),
                 subtitle: Text(StaticString.sourceCodeLink),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Utils.openUrlInBrowser(StaticString.sourceCodeLink),

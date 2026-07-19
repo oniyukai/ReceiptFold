@@ -6,7 +6,7 @@ import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
-import 'package:receipt_fold/pages/screen_gadget/mobile_screen.dart';
+import 'package:receipt_fold/pages/gadget/gadget_mobile.dart';
 
 const String _androidName = 'HomeWidgetMember';
 const String _homeWidgetMemberItemIndex = 'HomeWidgetMemberItemIndex';
@@ -21,7 +21,7 @@ Future<void> updateHomeScreenMember() async {
   await HomeWidget.saveWidgetData<int>(_homeWidgetMemberItemIndex, -1);
   for (int index=0; index<itemLength; index++) {
     await HomeWidget.renderFlutterWidget(
-      ScreenGadgetBarcode(
+      GadgetBarcode(
         data: memberItems[index].code,
         format: memberItems[index].format,
         name:  memberItems[index].name,
@@ -43,16 +43,16 @@ Future<void> updateHomeScreenMember() async {
   );
 }
 
-class HomeScreenMemberSample extends StatefulWidget {
+class GadgetMember extends StatefulWidget {
   final List<MemberBarcodeItem> items;
 
-  const HomeScreenMemberSample({super.key, required this.items});
+  const GadgetMember({super.key, required this.items});
 
   @override
-  State<HomeScreenMemberSample> createState() => _HomeScreenMemberSampleState();
+  State<GadgetMember> createState() => _GadgetMemberState();
 }
 
-class _HomeScreenMemberSampleState extends State<HomeScreenMemberSample> {
+class _GadgetMemberState extends State<GadgetMember> {
   int _memberItemIndex = 0;
 
   @override
@@ -65,7 +65,7 @@ class _HomeScreenMemberSampleState extends State<HomeScreenMemberSample> {
     } else if (_memberItemIndex != -1) {
       return InkWell(
         onTap: () => setState(() => _memberItemIndex = -1),
-        child: ScreenGadgetBarcode(
+        child: GadgetBarcode(
           data: widget.items[_memberItemIndex].code,
           format: widget.items[_memberItemIndex].format,
           name:  widget.items[_memberItemIndex].name,

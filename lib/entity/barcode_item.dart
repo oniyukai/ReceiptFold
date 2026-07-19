@@ -35,7 +35,6 @@ class MobileBarcodeItem {
   }
 }
 
-
 class MemberBarcodeItem {
   final String code;
   final String? name;

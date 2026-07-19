@@ -31,11 +31,11 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
   Future<void> _deleteItem() {
     return OverlayShow.dialog(
       context: context,
-      title: DictKey.deleteLabel.s,
+      title: DictKey.commonLabelDelete.s,
       content: Text(DictKey.sureToDeleteThisLabel.s),
       actions: [
         TextButton(
-          child: Text(DictKey.deleteLabel.s),
+          child: Text(DictKey.commonLabelDelete.s),
           onPressed: () async {
             Navigator.pop(context);
             Navigator.pop(context);

@@ -38,8 +38,8 @@ class _MainScannerViewState extends State<MainScannerView>
           controller: _tabController,
           tabs: const [
             Tab(text: '手動對獎'),
-            Tab(text: '中獎號碼'),
-            Tab(text: '掃描對獎'),
+            Tab(text: '開獎號碼'),
+            Tab(text: '掃描發票'),
           ],
         ),
       ),

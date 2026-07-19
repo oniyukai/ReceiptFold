@@ -5,10 +5,10 @@ import 'package:receipt_fold/pages/menu_manager/page_carrier_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_mobile_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
-import 'package:receipt_fold/pages/menu_recorder/page_platform_view.dart';
+import 'package:receipt_fold/pages/menu_settings/page_platform_view.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_about_view.dart';
-import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
+import 'package:receipt_fold/pages/menu_settings/page_backup_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_terms_view.dart';
 import 'package:collection/collection.dart';
@@ -27,17 +27,17 @@ final Map<Type, RouteEntry> _routingTable = Map.fromEntries(const <Type, Widget>
   _InitialPage: _InitialPage(),
   // menu_recorder
   PageReceiptView: PageReceiptView(),
-  PagePlatformView: PagePlatformView(),
   // menu_scanner
   // menu_manager
   PageMobileForm: PageMobileForm(),
   PageMemberForm: PageMemberForm(),
   PageCarrierForm: PageCarrierForm(),
   // menu_settings
+  PagePlatformView: PagePlatformView(),
+  PageBackupView: PageBackupView(),
   PageAboutView: PageAboutView(),
-  PageTermsView: PageTermsView(),
   PageLogsView: PageLogsView(),
-  PageBackupPage: PageBackupPage(),
+  PageTermsView: PageTermsView(),
 }.entries.mapIndexed((index, entry) => MapEntry(
     entry.key, RouteEntry(
     '/${_useIndexPrefix ? '$index-' : ''}${entry.key}',
