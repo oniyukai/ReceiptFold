@@ -113,8 +113,8 @@ class _PageLogsViewState extends State<PageLogsView> {
 
   Future<void> _pressDelete() => OverlayShow.dialog(
     context: context,
-    title: '刪除日誌',
-    content: Text('確定要刪除日誌嗎'),
+    title: DictKey.backupDeleteLog.s,
+    content: Text(DictKey.backupSureDeleteLog.s),
     actions: [
       TextButton(
         onPressed: () async {
@@ -123,7 +123,7 @@ class _PageLogsViewState extends State<PageLogsView> {
           await LogFileListener.replaceLogs('');
           await _pressRefresh();
         },
-        child: Text(DictKey.commonLabelDelete.s),
+        child: Text(DictKey.commonUiDelete.s),
       ),
     ],
   );
@@ -132,7 +132,7 @@ class _PageLogsViewState extends State<PageLogsView> {
   Widget build(context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('除錯日誌'),
+        title: Text(DictKey.settingOptionDebugLog.s),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _pressRefresh),
           IconButton(icon: const Icon(Icons.share), onPressed: _pressShare),

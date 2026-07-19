@@ -36,12 +36,12 @@ class GadgetMobile extends StatelessWidget {
     if (firstCode == null) {
       return Container(
         color: Colors.white,
-        child: Text(DictKey.barcodeManagerNotYetSetLabel.s),
+        child: Text(DictKey.managerNotYetSet.s),
       );
     }
     return GadgetBarcode(
       data: firstCode.code,
-      name: '${DictKey.barcodeManagerMobileCarrierLabel.s} ${firstCode.name ?? ''}',
+      name: '${DictKey.managerMobileCarrier.s} ${firstCode.name ?? ''}',
       format: BarcodeFormat.code39,
     );
   }

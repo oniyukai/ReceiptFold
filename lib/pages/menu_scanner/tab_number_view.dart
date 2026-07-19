@@ -5,6 +5,7 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
+import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 
@@ -75,7 +76,7 @@ class _TabNumberViewState extends State<TabNumberView> {
             padding: const EdgeInsets.all(8.0),
             children: [
               ListTilePicker<int>(
-                text: '瀏覽期別',
+                text: DictKey.scannerNumberBrowsePeriod.s,
                 iconData: Icons.calendar_month,
                 selectedOption: _viewIndex,
                 optionMap: Map.fromEntries(
@@ -95,9 +96,9 @@ class _TabNumberViewState extends State<TabNumberView> {
               if (_prizeAwardList.isNotEmpty)
                 DataTable(
                   columns: [
-                    DataColumn(label: Text('獎項')),
-                    DataColumn(label: Text('獎金'), numeric: true),
-                    DataColumn(label: Text('號碼'), numeric: true),
+                    DataColumn(label: Text(DictKey.scannerNumberColumnPrize.s)),
+                    DataColumn(label: Text(DictKey.scannerNumberColumnAmount.s), numeric: true),
+                    DataColumn(label: Text(DictKey.scannerNumberColumnNumber.s), numeric: true),
                   ],
                   rows: [
                     for (final prizes in _prizeAwardList[_viewIndex].prizes)
@@ -113,7 +114,7 @@ class _TabNumberViewState extends State<TabNumberView> {
                   ],
                 ),
 
-              Text('發票號碼尾數與開獎號碼全數一致的發票，得符合之獎項獎金最大者。', textAlign: .center),
+              Text(DictKey.scannerNumberRule.s, textAlign: .center),
             ],
           );
         },

@@ -50,7 +50,7 @@ class _PageAboutViewState extends State<PageAboutView> {
                 subtitle: Text(StaticString.appVersionTag),
               ),
               ListTile(
-                title: Text('除錯日誌'),
+                title: Text(DictKey.settingOptionDebugLog.s),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => MyRouter.routeTo(PageLogsView),
               ),
@@ -63,7 +63,7 @@ class _PageAboutViewState extends State<PageAboutView> {
                 ),
               ),
               ListTile(
-                title: Text(DictKey.preferencesTermsTitle.s),
+                title: Text(DictKey.settingTermsTitle.s),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => MyRouter.routeTo(PageTermsView),
               ),

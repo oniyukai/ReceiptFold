@@ -87,7 +87,7 @@ class _TabMemberViewState extends State<TabMemberView> {
             padding: const EdgeInsets.all(8.0),
             children: [
               ListTile(
-                title: Text(DictKey.barcodeManagerMembershipCardLabel.s),
+                title: Text(DictKey.managerMembershipCard.s),
                 leading: const Icon(Icons.loyalty_outlined),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -118,7 +118,7 @@ class _TabMemberViewState extends State<TabMemberView> {
               ),
 
               ListTile(
-                title: Text(DictKey.barcodeManagerMobileCarrierLabel.s),
+                title: Text(DictKey.managerMobileCarrier.s),
                 leading: const Icon(MaterialCommunityIcons.barcode),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,

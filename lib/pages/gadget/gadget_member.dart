@@ -60,7 +60,7 @@ class _GadgetMemberState extends State<GadgetMember> {
     if (widget.items.isEmpty) {
       return Container(
         color: Colors.white,
-        child: Text(DictKey.barcodeManagerNotYetSetLabel.s),
+        child: Text(DictKey.managerNotYetSet.s),
       );
     } else if (_memberItemIndex != -1) {
       return InkWell(

@@ -9,10 +9,10 @@ enum CarrierStatus {
   manual;
 
   String get locale => switch (this) {
-    CarrierStatus.platform => '雲端',
-    CarrierStatus.platformExpired => '雲端離線',
-    CarrierStatus.manual => '本地',
-  };
+    platform => DictKey.carrierStatusPlatform,
+    platformExpired => DictKey.carrierStatusPlatformExpired,
+    manual => DictKey.carrierStatusManual,
+  }.s;
 
   String toJson() => name;
 }

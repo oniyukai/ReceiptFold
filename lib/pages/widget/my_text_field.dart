@@ -16,7 +16,7 @@ enum FieldType {
 
   String get labelText => switch (this) {
     text => DictKey.barcodeCompositionText,
-    number=> DictKey.barcodeNumberCompositionLabel,
+    number => DictKey.barcodeCompositionNumber,
     password => DictKey.barcodeCompositionText,
   }.s;
 }
@@ -71,8 +71,8 @@ class _MyTextFieldState extends State<MyTextField> {
       ),
       keyboardType: widget.type.inputType,
       validator: FormBuilderValidators.compose([
-        if (widget.required) FormBuilderValidators.required(errorText: DictKey.errorEmptyFields.s),
-        if (widget.type == .number) FormBuilderValidators.numeric(errorText: DictKey.errorNotNumber.s, checkNullOrEmpty: false),
+        if (widget.required) FormBuilderValidators.required(errorText: DictKey.barcodeErrorEmptyFields.s),
+        if (widget.type == .number) FormBuilderValidators.numeric(errorText: DictKey.barcodeErrorNotNumber.s, checkNullOrEmpty: false),
       ]),
     );
   }

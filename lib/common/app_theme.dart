@@ -36,16 +36,16 @@ enum ColorOption {
   const ColorOption([this.color]);
 
   static Map<ColorOption, String> get optionMap => <ColorOption, String>{
-    sys: '系統 Material You',
-    blue: '藍色',
-    violet: '紫羅蘭色',
-    purple: '紫色',
-    pink: '粉红色',
-    deepOrange: '深橘色',
-    orange: '橘色',
-    yellow: '黄色',
-    green: '綠色',
-    teal: '青色',
+    sys: DictKey.settingOptionColorMaterialYou.s,
+    blue: DictKey.settingOptionColorBlue.s,
+    violet: DictKey.settingOptionColorViolet.s,
+    purple: DictKey.settingOptionColorPurple.s,
+    pink: DictKey.settingOptionColorPink.s,
+    deepOrange: DictKey.settingOptionColorDeepOrange.s,
+    orange: DictKey.settingOptionColorOrange.s,
+    yellow: DictKey.settingOptionColorYellow.s,
+    green: DictKey.settingOptionColorGreen.s,
+    teal: DictKey.settingOptionColorTeal.s,
   };
 }
 

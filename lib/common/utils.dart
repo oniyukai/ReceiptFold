@@ -63,7 +63,7 @@ abstract final class Utils {
   static Future<void> openUrlInBrowser(String url) async {
     final Uri uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: .externalApplication)) {
-      showToast('Could not launch $url');
+      showToast('${DictKey.actionCouldNotLaunch.s}: $url');
     }
   }
 
@@ -103,10 +103,10 @@ abstract final class Utils {
 
   static Future<void> copyText(String? text) async {
     if (text == null || text.isEmpty) {
-      showToast(DictKey.noContentToCopyLabel.s);
+      showToast(DictKey.toastNoContentCopy.s);
     } else {
       await Clipboard.setData(ClipboardData(text: text));
-      showToast('${DictKey.copiedLabel.s}\n${text.replaceAll('\n', ' ')}');
+      showToast('${DictKey.toastCopied.s}\n${text.replaceAll('\n', ' ')}');
     }
   }
 

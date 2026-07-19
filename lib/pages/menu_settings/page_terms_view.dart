@@ -31,7 +31,7 @@ class _PageTermsViewState extends State<PageTermsView> {
     final bool isAgreed = context.readPrefs.get(.isAgreedAllTerms);
     return Scaffold(
       appBar: AppBar(
-        title: Text(DictKey.preferencesTermsTitle.s),
+        title: Text(DictKey.settingTermsTitle.s),
       ),
       body: SafeArea(
         child: Column(
@@ -52,7 +52,7 @@ class _PageTermsViewState extends State<PageTermsView> {
               ),
             ),
             if (!isAgreed) CheckboxListTile(
-              title: Text(DictKey.preferencesTermsAgreedAll.s),
+              title: Text(DictKey.settingTermsAgreedAll.s),
               value: _isAgreedAllTerms,
               enabled: _termsText != null,
               controlAffinity: ListTileControlAffinity.leading,
@@ -62,7 +62,7 @@ class _PageTermsViewState extends State<PageTermsView> {
               onPressed: _termsText != null && _isAgreedAllTerms
                   ? () => context.readPrefs.update(PrefsEnum.isAgreedAllTerms, true)
                   : null,
-              child: Text(DictKey.preferencesTermsContinue.s),
+              child: Text(DictKey.settingTermsContinue.s),
             ),
             const Row(),
           ],

@@ -36,11 +36,11 @@ class _PageMemberFormState extends State<PageMemberForm> {
     assert(_args != null);
     return OverlayShow.dialog(
       context: context,
-      title: DictKey.commonLabelDelete.s,
-      content: Text(DictKey.sureToDeleteThisLabel.s),
+      title: DictKey.commonUiDelete.s,
+      content: Text(DictKey.commonUiSureDelete.s),
       actions: [
         TextButton(
-          child: Text(DictKey.commonLabelDelete.s),
+          child: Text(DictKey.commonUiDelete.s),
           onPressed: () async {
             Navigator.pop(context);
             Navigator.pop(context);
@@ -99,8 +99,8 @@ class _PageMemberFormState extends State<PageMemberForm> {
       appBar: AppBar(
         title: Text(
           _args == null
-              ? DictKey.barcodeManagerAddMembershipCardLabel.s
-              : DictKey.barcodeManagerEditMembershipCardLabel.s,
+              ? DictKey.managerAddMembershipCard.s
+              : DictKey.managerEditMembershipCard.s,
         ),
         actions: [
           if (_args != null)
@@ -122,7 +122,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
                   children: [
                     ListTile(
                       minTileHeight: 0,
-                      subtitle: Text(DictKey.barcodeManagerNameLabel.s),
+                      subtitle: Text(DictKey.managerNameLabel.s),
                     ),
                     BarcodeField(
                       format: null,
@@ -131,7 +131,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
                     ),
                     ListTile(
                       minTileHeight: 0,
-                      subtitle: Text(DictKey.barcodeManagerCodeLabel.s),
+                      subtitle: Text(DictKey.managerCodeLabel.s),
                     ),
                     DropdownMenu(
                       initialSelection: _format,
@@ -155,7 +155,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
                     ),
                     ListTile(
                       minTileHeight: 0,
-                      subtitle: Text(DictKey.barcodeManagerThumbnailURL.s),
+                      subtitle: Text(DictKey.managerThumbnailUrl.s),
                     ),
                     BarcodeField(
                       format: null,
@@ -171,7 +171,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
                     ListTile(
                       minTileHeight: 0,
                       subtitle: Text(
-                        DictKey.barcodeManagerPreviousRenderingLabel.s,
+                        DictKey.managerPreviousRendering.s,
                       ),
                     ),
                     Row(

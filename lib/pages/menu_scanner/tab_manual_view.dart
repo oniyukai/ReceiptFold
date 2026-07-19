@@ -98,16 +98,16 @@ class _TabManualViewState extends State<TabManualView> {
             ),
           ),
           if (_prizeAwardList == null)
-            Text('請輸入發票號碼末 3 碼。', textAlign: .center),
+            Text(DictKey.scannerManualHint.s, textAlign: .center),
           if (_prizeAwardList?.isEmpty == true)
-            Text('沒有開獎號碼資料。', textAlign: .center),
+            Text(DictKey.scannerManualNoData.s, textAlign: .center),
           if (_prizeAwardList?.isNotEmpty == true)
             for (final InvoicePrizeAward prizeAward in _prizeAwardList!)
               DataTable(
                 columns: [
                   DataColumn(label: Text(prizeAward.period.invString)),
-                  DataColumn(label: Text('獎金'), numeric: true),
-                  DataColumn(label: Text('號碼'), numeric: true),
+                  DataColumn(label: Text(DictKey.scannerNumberColumnAmount.s), numeric: true),
+                  DataColumn(label: Text(DictKey.scannerNumberColumnNumber.s), numeric: true),
                 ],
                 rows: [
                   for (final InvoicePrize prizes in prizeAward.checkEnd(

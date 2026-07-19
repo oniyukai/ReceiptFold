@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/period.dart';
+import 'package:receipt_fold/locale/app_language.dart';
 
 enum OriginStatus {
   platformUnconfirmed(16),
@@ -19,16 +20,16 @@ enum OriginStatus {
   const OriginStatus(this.sqlValue);
 
   String get locale => switch (this) {
-    .platformUnconfirmed => '平台 未確認',
-    .platformInvalidated => '平台 確認無效',
-    .platformDonated => '平台 確認捐贈',
-    .platformConfirmed => '平台 確認有效',
-    .platformConfirmedNotDonated => '平台 有效已開獎',
-    .platformExpired => '平台 過期或未知狀態',
-    .manualImport => '本地 匯入',
-    .manualScan => '本地 掃描',
-    .manualEntry => '本地 手動',
-  };
+    platformUnconfirmed => DictKey.originStatusPlatformUnconfirmed,
+    platformInvalidated => DictKey.originStatusPlatformInvalidated,
+    platformDonated => DictKey.originStatusPlatformDonated,
+    platformConfirmed => DictKey.originStatusPlatformConfirmed,
+    platformConfirmedNotDonated => DictKey.originStatusPlatformConfirmedNotDonated,
+    platformExpired => DictKey.originStatusPlatformExpired,
+    manualImport => DictKey.originStatusManualImport,
+    manualScan => DictKey.originStatusManualScan,
+    manualEntry => DictKey.originStatusManualEntry,
+  }.s;
 
   int toJson() => sqlValue;
 

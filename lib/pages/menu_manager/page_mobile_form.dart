@@ -33,11 +33,11 @@ class _PageMobileFormState extends State<PageMobileForm> {
     assert(_args != null);
     return OverlayShow.dialog(
       context: context,
-      title: DictKey.commonLabelDelete.s,
-      content: Text(DictKey.sureToDeleteThisLabel.s),
+      title: DictKey.commonUiDelete.s,
+      content: Text(DictKey.commonUiSureDelete.s),
       actions: [
         TextButton(
-          child: Text(DictKey.commonLabelDelete.s),
+          child: Text(DictKey.commonUiDelete.s),
           onPressed: () async {
             Navigator.pop(context);
             Navigator.pop(context);
@@ -81,8 +81,8 @@ class _PageMobileFormState extends State<PageMobileForm> {
       appBar: AppBar(
         title: Text(
           _args == null
-              ? DictKey.barcodeManagerAddMobileCarrierLabel.s
-              : DictKey.barcodeManagerEditMobileCarrierLabel.s,
+              ? DictKey.managerAddMobileCarrier.s
+              : DictKey.managerEditMobileCarrier.s,
         ),
         actions: [
           if (_args != null)
@@ -104,7 +104,7 @@ class _PageMobileFormState extends State<PageMobileForm> {
                   children: [
                     ListTile(
                       minTileHeight: 0,
-                      subtitle: Text(DictKey.barcodeManagerCodeLabel.s),
+                      subtitle: Text(DictKey.managerCodeLabel.s),
                     ),
                     BarcodeField(
                       format: BarcodeFormat.code39,
@@ -113,7 +113,7 @@ class _PageMobileFormState extends State<PageMobileForm> {
                     ),
                     ListTile(
                       minTileHeight: 0,
-                      subtitle: Text(DictKey.barcodeManagerNameLabel.s),
+                      subtitle: Text(DictKey.managerNameLabel.s),
                     ),
                     BarcodeField(
                       format: null,

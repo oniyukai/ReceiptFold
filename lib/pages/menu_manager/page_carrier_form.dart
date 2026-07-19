@@ -31,11 +31,11 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
   Future<void> _deleteItem() {
     return OverlayShow.dialog(
       context: context,
-      title: DictKey.commonLabelDelete.s,
-      content: Text(DictKey.sureToDeleteThisLabel.s),
+      title: DictKey.commonUiDelete.s,
+      content: Text(DictKey.commonUiSureDelete.s),
       actions: [
         TextButton(
-          child: Text(DictKey.commonLabelDelete.s),
+          child: Text(DictKey.commonUiDelete.s),
           onPressed: () async {
             Navigator.pop(context);
             Navigator.pop(context);
@@ -66,7 +66,7 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
         .invoiceCarrierList,
       );
       if (items.indexWhere((e) => e.carrierId2 == carrierId2) >= 0) {
-        Utils.showToast('不允許新增已存在的相同載具隱碼');
+        Utils.showToast(DictKey.managerCarrierDuplicate.s);
         return;
       }
       items.insert(
@@ -101,7 +101,7 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
         context.readPrefs.get(.isAppDeveloperMode);
     return Scaffold(
       appBar: AppBar(
-        title: Text(_args == null ? '新增歸戶載具' : '編輯歸戶載具'),
+        title: Text(_args == null ? DictKey.managerAddCarrier.s : DictKey.managerEditCarrier.s),
         actions: [
           if (_args != null && allowEdit)
             IconButton(
@@ -123,27 +123,27 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
                       CarrierStatus.manual.locale,
                   overflow: TextOverflow.ellipsis,
                 ),
-                title: Text('載具狀態'),
+                title: Text(DictKey.managerCarrierStatus.s),
               ),
               FormBuilder(
                 key: _formKey,
                 child: Column(
                   children: [
-                    ListTile(minTileHeight: 0, subtitle: Text('載具隱碼')),
+                    ListTile(minTileHeight: 0, subtitle: Text(DictKey.managerCarrierId2.s)),
                     MyTextField(
                       name: 'carrierId2',
                       initialValue: _args?.items[_args.index].carrierId2,
                       readOnly: _args != null,
                     ),
 
-                    ListTile(minTileHeight: 0, subtitle: Text('自訂名稱')),
+                    ListTile(minTileHeight: 0, subtitle: Text(DictKey.managerCarrierCustomName.s)),
                     MyTextField(
                       name: 'name',
                       initialValue: _args?.items[_args.index].name,
                       readOnly: !allowEdit,
                     ),
 
-                    ListTile(minTileHeight: 0, subtitle: Text('類別代號')),
+                    ListTile(minTileHeight: 0, subtitle: Text(DictKey.managerCarrierTypeCode.s)),
                     MyTextField(
                       name: 'carrierType',
                       initialValue: _args?.items[_args.index].carrierType,
@@ -151,7 +151,7 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
                       readOnly: !allowEdit,
                     ),
 
-                    ListTile(minTileHeight: 0, subtitle: Text('類別名稱')),
+                    ListTile(minTileHeight: 0, subtitle: Text(DictKey.managerCarrierTypeName.s)),
                     MyTextField(
                       name: 'carrierTypeName',
                       initialValue: _args?.items[_args.index].carrierTypeName,

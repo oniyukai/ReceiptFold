@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:receipt_fold/common/utils.dart';
+import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/modules/invoice_platform_api.dart';
@@ -73,7 +74,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       context: context,
       noCancelButton: true,
       title: ListTile(
-        title: Text('帳號設定'),
+        title: Text(DictKey.platformAccountSetting.s),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back),
@@ -97,13 +98,13 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         key: _formKey,
         child: Column(
           children: [
-            ListTile(minTileHeight: 0, subtitle: Text('Phone')),
+            ListTile(minTileHeight: 0, subtitle: Text(DictKey.platformPhoneLabel.s)),
             MyTextField(
               name: 'phone',
               initialValue: account.phone,
               required: false,
             ),
-            ListTile(minTileHeight: 0, subtitle: Text('Password')),
+            ListTile(minTileHeight: 0, subtitle: Text(DictKey.platformPasswordLabel.s)),
             MyTextField(
               name: 'password',
               initialValue: account.password,
@@ -247,7 +248,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("發票平台")),
+      appBar: AppBar(title: Text(DictKey.platformTitle.s)),
       body: SafeArea(
         child: Scrollbar(
           child: ListView(
@@ -261,25 +262,28 @@ class _PagePlatformViewState extends State<PagePlatformView> {
               ),
               ExpandableCard(
                 iconData: Icons.play_circle_outline,
-                text: '功能操作',
+                text: DictKey.platformFunctionAction.s,
                 initialExpanded: true,
                 expandedChild: Column(
                   children: [
                     ListTile(
                       leading: const Icon(Icons.manage_accounts),
-                      title: Text('帳號設定'),
+                      title: Text(DictKey.platformAccountSetting.s),
                       onTap: _pressSetAccount,
                     ),
                     ListTile(
                       leading: const Icon(Icons.input),
-                      title: Text('填入帳號'),
+                      title: Text(DictKey.platformFillAccount.s),
                       onTap: _pressFillAccount,
                     ),
                     ListTilePicker<int>(
                       iconData: Icons.calendar_month,
-                      text: '查詢發票距離',
+                      text: DictKey.platformQueryMonths.s,
                       selectedOption: context.readPrefs.get(.invoiceQueryMonths),
-                      optionMap: Map.fromEntries(List.generate(8, (i) => MapEntry(i + 1, '${i + 1} 月'))),
+                      optionMap: Map.fromEntries(List.generate(8, (i) => MapEntry(i + 1, Utils.multilingualFiller(
+                        DictKey.platformQueryMonthsOption.s,
+                        [(StaticString.fillObjectMonths, '${i + 1}')]
+                      )))),
                       onChanged: (value) async {
                         await context.readPrefs.update(.invoiceQueryMonths, value, false);
                         setState(() {});
@@ -287,12 +291,12 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                     ),
                     ListTile(
                       leading: const Icon(Icons.manage_accounts),
-                      title: Text('從定期 CSV 匯入'),
+                      title: Text(DictKey.platformImportCsv.s),
                       onTap: _pressImportCSV,
                     ),
                     ListTile(
                       leading: const Icon(Icons.play_circle),
-                      title: Text('執行全部'),
+                      title: Text(DictKey.platformExecuteAll.s),
                       enabled: _apiReady,
                       onTap: () async {
                         await _pressFetchCarrierList() &&
@@ -302,19 +306,19 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                     ),
                     ListTile(
                       leading: const Icon(Icons.payment),
-                      title: Text('調取載具'),
+                      title: Text(DictKey.platformFetchCarrier.s),
                       enabled: _apiReady,
                       onTap: _pressFetchCarrierList,
                     ),
                     ListTile(
                       leading: const Icon(Icons.money),
-                      title: Text('調取中獎發票'),
+                      title: Text(DictKey.platformFetchAward.s),
                       enabled: _apiReady,
                       onTap: _pressFetchAwardList,
                     ),
                     ListTile(
                       leading: const Icon(Icons.article_outlined),
-                      title: Text('調取發票'),
+                      title: Text(DictKey.platformFetchInvoice.s),
                       enabled: _apiReady,
                       onTap: _pressFetchInvoiceList,
                     ),
@@ -324,7 +328,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
 
               ExpandableCard(
                 iconData: Icons.terminal,
-                text: '即時日誌',
+                text: DictKey.platformRealTimeLog.s,
                 initialExpanded: true,
                 expandedChild: ConstrainedBox(
                   constraints: const BoxConstraints(
@@ -341,7 +345,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
 
               ExpandableCard(
                 iconData: Icons.web,
-                text: 'WebView',
+                text: DictKey.platformWebView.s,
                 initialExpanded: true,
                 expandedChild: ConstrainedBox(
                   constraints: const BoxConstraints(

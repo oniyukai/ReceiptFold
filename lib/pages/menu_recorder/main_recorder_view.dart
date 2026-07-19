@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +21,6 @@ class MainRecorderView extends StatefulWidget {
   State<MainRecorderView> createState() => _MainRecorderViewState();
 }
 
-
 class PeriodData {
   final Period period;
   final oddMonthReceiptMap = <Receipt, List<ReceiptProduct>>{};
@@ -39,7 +39,6 @@ class PeriodData {
   }
 }
 
-
 class MainRecorderViewModel extends ChangeNotifier {
   /// 快取半徑，表示當前頁面左右各快取多少頁
   static const int _cacheRadius = 1;
@@ -52,7 +51,8 @@ class MainRecorderViewModel extends ChangeNotifier {
 
   MainRecorderViewModel() : _todayPeriod = Period(.now());
 
-  PeriodData getPeriodData(int index) => _periodDataCache[index] ?? _loadReceiptsByIndex(index);
+  PeriodData getPeriodData(int index) =>
+      _periodDataCache[index] ?? _loadReceiptsByIndex(index);
 
   /// 當 PageView 頁面改變時呼叫，更新目前頁面索引
   void switchPeriodByIndex(int index) {
@@ -85,35 +85,38 @@ class MainRecorderViewModel extends ChangeNotifier {
     }
   }
 
-  PeriodData _loadReceiptsByIndex(int index) => _periodDataCache.putIfAbsent(index, () {
-    final periodData = PeriodData(_getInvoicePeriodByIndex(index));
-    periodData._receiptSubscription = DriftServices.appDb.receiptDao.queryStream(
-      issuedStart: periodData.period.start,
-      issuedEnd: periodData.period.end,
-      order: .desc,
-    ).listen((receiptEntries) {
-      if (!_periodDataCache.containsKey(index)) {
-        periodData.dispose();
-        return;
-      }
-      periodData.oddMonthReceiptMap.clear();
-      periodData.evenMonthReceiptMap.clear();
-      periodData.oddMonthTotalAmount = 0;
-      periodData.evenMonthTotalAmount = 0;
-      for (final entry in receiptEntries.entries) {
-        if (entry.key.issuedAt.month % 2 != 0) {
-          periodData.oddMonthReceiptMap[entry.key] = entry.value;
-          periodData.oddMonthTotalAmount += entry.key.totalAmount;
-        } else {
-          periodData.evenMonthReceiptMap[entry.key] = entry.value;
-          periodData.evenMonthTotalAmount += entry.key.totalAmount;
-        }
-      }
-      periodData.isLoading = false;
-      if (index == _currentPageIndex) notifyListeners();
-    });
-    return periodData;
-  });
+  PeriodData _loadReceiptsByIndex(int index) =>
+      _periodDataCache.putIfAbsent(index, () {
+        final periodData = PeriodData(_getInvoicePeriodByIndex(index));
+        periodData._receiptSubscription = DriftServices.appDb.receiptDao
+            .queryStream(
+              issuedStart: periodData.period.start,
+              issuedEnd: periodData.period.end,
+              order: .desc,
+            )
+            .listen((receiptEntries) {
+              if (!_periodDataCache.containsKey(index)) {
+                periodData.dispose();
+                return;
+              }
+              periodData.oddMonthReceiptMap.clear();
+              periodData.evenMonthReceiptMap.clear();
+              periodData.oddMonthTotalAmount = 0;
+              periodData.evenMonthTotalAmount = 0;
+              for (final entry in receiptEntries.entries) {
+                if (entry.key.issuedAt.month % 2 != 0) {
+                  periodData.oddMonthReceiptMap[entry.key] = entry.value;
+                  periodData.oddMonthTotalAmount += entry.key.totalAmount;
+                } else {
+                  periodData.evenMonthReceiptMap[entry.key] = entry.value;
+                  periodData.evenMonthTotalAmount += entry.key.totalAmount;
+                }
+              }
+              periodData.isLoading = false;
+              if (index == _currentPageIndex) notifyListeners();
+            });
+        return periodData;
+      });
 
   /// 根據 PageView 的索引計算對應的 InvoicePeriod
   Period _getInvoicePeriodByIndex(int index) {
@@ -141,10 +144,11 @@ class MainRecorderViewModel extends ChangeNotifier {
   }
 }
 
-
 class _MainRecorderViewState extends State<MainRecorderView> {
   final ScrollController _scrollController = ScrollController();
-  final PageController _pageController = PageController(initialPage: MainRecorderView._initialPageIndex);
+  final PageController _pageController = PageController(
+    initialPage: MainRecorderView._initialPageIndex,
+  );
 
   @override
   void dispose() {
@@ -165,32 +169,34 @@ class _MainRecorderViewState extends State<MainRecorderView> {
               title: Text(currentPeriodData.period.localString),
               actions: [
                 IconButton(
-                  onPressed: () => MyRouter.of<PageReceiptView>().toPass(PageReceiptViewArgs(
-                    period: currentPeriodData.period,
-                  )),
+                  onPressed: () => MyRouter.of<PageReceiptView>().toPass(
+                    PageReceiptViewArgs(period: currentPeriodData.period),
+                  ),
                   icon: const Icon(Icons.add),
                 ),
                 MyMenuButton(
                   items: [
                     MyMenuItem(
-                      text: '對獎該期',
+                      text: DictKey.recorderMenuPrizeCheck.s,
                       iconData: Icons.flip,
-                      onTap: (){} // todo: 該期對獎功能
+                      onTap: () {}, // todo: 該期對獎功能
                     ),
                     MyMenuItem(
-                      text: DictKey.recorderMenuStatisticalAnalysisLabel.s,
+                      text: DictKey.recorderMenuStatisticalAnalysis.s,
                       iconData: Icons.bar_chart,
-                      onTap: (){} // todo: 統計分析功能
+                      onTap: () {}, // todo: 統計分析功能
                     ),
                     MyMenuItem(
-                      text: DictKey.recorderMenuSearchLabel.s,
+                      text: DictKey.recorderMenuSearch.s,
                       iconData: Icons.search,
-                      onTap: (){} // todo: 查詢功能
+                      onTap: () {}, // todo: 查詢功能
                     ),
                     MyMenuItem(
-                      text: DictKey.recorderMenuReturnTodayLabel.s,
+                      text: DictKey.recorderMenuReturnToday.s,
                       iconData: Icons.arrow_back,
-                      onTap: () => _pageController.jumpToPage(MainRecorderView._initialPageIndex),
+                      onTap: () => _pageController.jumpToPage(
+                        MainRecorderView._initialPageIndex,
+                      ),
                     ),
                   ],
                 ),
@@ -202,7 +208,9 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                 onPageChanged: model.switchPeriodByIndex,
                 itemBuilder: (context, index) {
                   final periodData = model.getPeriodData(index);
-                  if (periodData.isLoading) return const Center(child: CircularProgressIndicator());
+                  if (periodData.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
                   return Column(
                     children: [
                       Row(
@@ -219,13 +227,23 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                               );
                             },
                           ),
-                          Text(Utils.multilingualFiller(
-                            DictKey.recorderPeriodTransactionsAndAmount.s,
-                            [
-                              (StaticString.fillObjectNumber, '${periodData.oddMonthReceiptMap.length + periodData.evenMonthReceiptMap.length}'),
-                              (StaticString.fillObjectAmount, Utils.amountToDescription(periodData.totalAmount))
-                            ]
-                          )),
+                          Text(
+                            Utils.multilingualFiller(
+                              DictKey.recorderPeriodTransactionsAndAmount.s,
+                              [
+                                (
+                                  StaticString.fillObjectNumber,
+                                  '${periodData.oddMonthReceiptMap.length + periodData.evenMonthReceiptMap.length}',
+                                ),
+                                (
+                                  StaticString.fillObjectAmount,
+                                  Utils.amountToDescription(
+                                    periodData.totalAmount,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                           IconButton(
                             padding: const EdgeInsets.all(0),
                             visualDensity: VisualDensity.compact,
@@ -245,7 +263,9 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                           child: ListView(
                             addAutomaticKeepAlives: false,
                             addRepaintBoundaries: false,
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
                             controller: _scrollController,
                             children: [
                               Card(
@@ -254,17 +274,38 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                     ListTile(
                                       minTileHeight: 0,
                                       subtitle: Center(
-                                        child: Text(Utils.multilingualFiller(
-                                          DictKey.recorderMonthTransactionsAndAmount.s,
-                                          [
-                                            (StaticString.fillObjectMonth, UnitUtils.singleMonthText(periodData.period.end)),
-                                            (StaticString.fillObjectNumber, '${periodData.evenMonthReceiptMap.length}'),
-                                            (StaticString.fillObjectAmount, Utils.amountToDescription(periodData.evenMonthTotalAmount))
-                                          ]
-                                        )),
+                                        child: Text(
+                                          Utils.multilingualFiller(
+                                            DictKey
+                                                .recorderMonthTransactionsAndAmount
+                                                .s,
+                                            [
+                                              (
+                                                StaticString.fillObjectMonth,
+                                                UnitUtils.singleMonthText(
+                                                  periodData.period.end,
+                                                ),
+                                              ),
+                                              (
+                                                StaticString.fillObjectNumber,
+                                                '${periodData.evenMonthReceiptMap.length}',
+                                              ),
+                                              (
+                                                StaticString.fillObjectAmount,
+                                                Utils.amountToDescription(
+                                                  periodData
+                                                      .evenMonthTotalAmount,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                    for (final e in periodData.evenMonthReceiptMap.entries)
+                                    for (final e
+                                        in periodData
+                                            .evenMonthReceiptMap
+                                            .entries)
                                       ReceiptItemTile(receiptEntry: e),
                                   ],
                                 ),
@@ -275,17 +316,38 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                     ListTile(
                                       minTileHeight: 0,
                                       subtitle: Center(
-                                        child: Text(Utils.multilingualFiller(
-                                          DictKey.recorderMonthTransactionsAndAmount.s,
-                                          [
-                                            (StaticString.fillObjectMonth, UnitUtils.singleMonthText(periodData.period.start)),
-                                            (StaticString.fillObjectNumber, '${periodData.oddMonthReceiptMap.length}'),
-                                            (StaticString.fillObjectAmount, Utils.amountToDescription(periodData.oddMonthTotalAmount))
-                                          ]
-                                        )),
+                                        child: Text(
+                                          Utils.multilingualFiller(
+                                            DictKey
+                                                .recorderMonthTransactionsAndAmount
+                                                .s,
+                                            [
+                                              (
+                                                StaticString.fillObjectMonth,
+                                                UnitUtils.singleMonthText(
+                                                  periodData.period.start,
+                                                ),
+                                              ),
+                                              (
+                                                StaticString.fillObjectNumber,
+                                                '${periodData.oddMonthReceiptMap.length}',
+                                              ),
+                                              (
+                                                StaticString.fillObjectAmount,
+                                                Utils.amountToDescription(
+                                                  periodData
+                                                      .oddMonthTotalAmount,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                    for (final e in periodData.oddMonthReceiptMap.entries)
+                                    for (final e
+                                        in periodData
+                                            .oddMonthReceiptMap
+                                            .entries)
                                       ReceiptItemTile(receiptEntry: e),
                                   ],
                                 ),
@@ -306,39 +368,31 @@ class _MainRecorderViewState extends State<MainRecorderView> {
   }
 }
 
-
 class ReceiptItemTile extends StatelessWidget {
   final MapEntry<Receipt, List<ReceiptProduct>> receiptEntry;
 
-  const ReceiptItemTile({
-    super.key,
-    required this.receiptEntry,
-  });
+  const ReceiptItemTile({super.key, required this.receiptEntry});
 
   @override
   Widget build(context) {
     final DateTime dateTime = receiptEntry.key.issuedAt;
-    final String shortWeekday = DateFormat.E(DictKey.languageTag).format(dateTime);
+    final String shortWeekday = DateFormat.E(
+      DictKey.languageTag,
+    ).format(dateTime);
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       visualDensity: VisualDensity.compact,
-      onTap: () => MyRouter.of<PageReceiptView>().toPass(PageReceiptViewArgs(
-        receiptEntry: receiptEntry,
-      )),
+      onTap: () => MyRouter.of<PageReceiptView>().toPass(
+        PageReceiptViewArgs(receiptEntry: receiptEntry),
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       leading: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            dateTime.day.toString(),
-            style: textTheme.titleMedium,
-          ),
-          Text(
-            shortWeekday,
-            style: textTheme.bodySmall,
-          )
+          Text(dateTime.day.toString(), style: textTheme.titleMedium),
+          Text(shortWeekday, style: textTheme.bodySmall),
         ],
       ),
       title: Text(
@@ -368,10 +422,8 @@ class ReceiptItemTile extends StatelessWidget {
             child: Text(
               receiptEntry.key.invoiceNumber ?? '',
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: textTheme.bodyMedium?.fontSize,
-              ),
-            )
+              style: TextStyle(fontSize: textTheme.bodyMedium?.fontSize),
+            ),
           ),
         ],
       ),
@@ -384,10 +436,8 @@ class ReceiptItemTile extends StatelessWidget {
             '\$${Utils.amountToDescription(receiptEntry.key.totalAmount)}',
             style: textTheme.bodyLarge,
           ),
-          if (receiptEntry.key.prizeName != null) Text(
-            '${receiptEntry.key.prizeName}',
-            style: textTheme.bodyMedium,
-          ),
+          if (receiptEntry.key.prizeName != null)
+            Text('${receiptEntry.key.prizeName}', style: textTheme.bodyMedium),
         ],
       ),
     );

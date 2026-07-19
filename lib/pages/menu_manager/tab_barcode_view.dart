@@ -106,7 +106,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
 
   Future<void> _changeMobileItem() => OverlayShow.dialog(
     context: context,
-    title: DictKey.barcodeManagerChangeMobileCarrierLabel.s,
+    title: DictKey.managerChangeMobileCarrier.s,
     noCancelButton: true,
     content: Scrollbar(
       child: SingleChildScrollView(
@@ -138,10 +138,10 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
         children: [
           ExpandableCard(
             initialExpanded: true,
-            text: DictKey.barcodeManagerMembershipCardLabel.s,
+            text: DictKey.managerMembershipCard.s,
             iconData: Icons.loyalty_outlined,
             expandedChild: (_memberItemIndex == null)
-                ? Center(child: Text(DictKey.barcodeManagerNotYetSetLabel.s))
+                ? Center(child: Text(DictKey.managerNotYetSet.s))
                 : Flex(
                     direction: isPortrait ? Axis.vertical : Axis.horizontal,
                     children: [
@@ -215,10 +215,10 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
           ),
           ExpandableCard(
             initialExpanded: true,
-            text: DictKey.barcodeManagerMobileCarrierLabel.s,
+            text: DictKey.managerMobileCarrier.s,
             iconData: MaterialCommunityIcons.barcode,
             expandedChild: _mobileItemIndex == null
-                ? Center(child: Text(DictKey.barcodeManagerNotYetSetLabel.s))
+                ? Center(child: Text(DictKey.managerNotYetSet.s))
                 : Flex(
                     direction: isPortrait ? Axis.vertical : Axis.horizontal,
                     children: [
@@ -267,7 +267,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
                   ),
           ),
           ListTileSwitch(
-            text: DictKey.barcodeManagerBrightenScreenLabel.s,
+            text: DictKey.managerBrightenScreen.s,
             iconData: Icons.brightness_6_outlined,
             initialValue: _isBrightness,
             shape: RoundedRectangleBorder(
@@ -385,7 +385,7 @@ class ImageBox extends StatelessWidget {
                   ),
             child: Center(
               child: Text(
-                DictKey.barcodeManagerNotanURL.s,
+                DictKey.managerNotAUrl.s,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: Colors.red),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 import 'package:receipt_fold/pages/menu_scanner/tab_manual_view.dart';
 import 'package:receipt_fold/pages/menu_scanner/tab_number_view.dart';
@@ -36,10 +37,10 @@ class _MainScannerViewState extends State<MainScannerView>
         toolbarHeight: 0,
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: '手動對獎'),
-            Tab(text: '開獎號碼'),
-            Tab(text: '掃描發票'),
+          tabs: [
+            Tab(text: DictKey.scannerTabManual.s),
+            Tab(text: DictKey.scannerTabNumber.s),
+            Tab(text: DictKey.scannerTabScan.s),
           ],
         ),
       ),

@@ -75,7 +75,7 @@ abstract final class OverlayShow {
   {
     return OverlayShow.dialog(
       context: context,
-      title: DictKey.swipeToSortLabel.s,
+      title: DictKey.commonUiSwipeSort.s,
       content: SizedBox(
         height: MediaQuery.of(context).size.height * 0.6,
         width: MediaQuery.of(context).size.width * 0.8,
@@ -90,7 +90,7 @@ abstract final class OverlayShow {
       ),
       actions: [
         TextButton(
-          child: Text(DictKey.saveLabel.s),
+          child: Text(DictKey.commonUiSave.s),
           onPressed: () {
             Navigator.pop(context);
             saveOnTap(items);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_carrier_view.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_member_view.dart';
@@ -33,10 +34,10 @@ class _MainManagerViewState extends State<MainManagerView>
         toolbarHeight: 0,
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.dock), text: '展示條碼'),
-            Tab(icon: Icon(Icons.loyalty_outlined), text: '會員載具'),
-            Tab(icon: Icon(Icons.payment), text: '載具歸戶'),
+          tabs: [
+            Tab(icon: const Icon(Icons.dock), text: DictKey.managerTabBarcode.s),
+            Tab(icon: const Icon(Icons.loyalty_outlined), text: DictKey.managerTabMember.s),
+            Tab(icon: const Icon(Icons.payment), text: DictKey.managerTabCarrier.s),
           ],
         ),
       ),

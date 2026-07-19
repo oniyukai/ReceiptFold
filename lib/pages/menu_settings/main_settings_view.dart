@@ -29,14 +29,14 @@ class _MainSettingsPageState extends State<MainSettingsView> {
       await cache.emptyCache();
       final newSize = await cache.store.getCacheSize();
       Utils.showToast(Utils.multilingualFiller(
-        DictKey.preferencesClearedImageCache.s,
+        DictKey.settingCacheClearedMsg.s,
         [
           (StaticString.fillObjectOldBytes, UnitUtils.shortBytesText(oldSize)),
           (StaticString.fillObjectNewBytes, UnitUtils.shortBytesText(newSize)),
         ]
       ));
     } catch (e) {
-      Utils.showToast('${DictKey.preferencesFailure.s}: $e');
+      Utils.showToast('${DictKey.commonUiFailure.s}: $e');
     }
   }
 
@@ -71,23 +71,23 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 onChanged: (value) => prefs.update(PrefsEnum.selectedLanguage, value),
               ),
 
-              ListTileText(text: '資料與自動化', isSection: true),
+              ListTileText(text: DictKey.settingGroupDataAutomation.s, isSection: true),
               ListTileText(
-                text: '發票平台',
+                text: DictKey.settingDataPlatform.s,
                 trailing: const Icon(Icons.chevron_right),
                 iconData: Icons.account_balance,
                 onTap: () => MyRouter.routeTo(PagePlatformView),
               ),
               ListTileText(
-                text: '備份與同步',
+                text: DictKey.settingDataBackup.s,
                 trailing: const Icon(Icons.chevron_right),
                 iconData: Icons.cloud,
                 onTap: () => MyRouter.routeTo(PageBackupView),
               ),
 
-              ListTileText(text: DictKey.preferencesPreferenceTitle.s, isSection: true),
+              ListTileText(text: DictKey.settingGroupPreferences.s, isSection: true),
               ListTileSwitch(
-                text: DictKey.preferencesSwitchAutoBrightnessLabel.s,
+                text: DictKey.settingSwitchAutoBrightness.s,
                 iconData: Icons.brightness_6_outlined,
                 initialValue: prefs.get(PrefsEnum.isAutoBrightness),
                 onToggle: (value) => prefs.update(PrefsEnum.isAutoBrightness, value),
@@ -99,13 +99,13 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 onToggle: (value) => prefs.update(PrefsEnum.isScanScreenRotation, value),
               ),
               ListTileSwitch(
-                text: DictKey.preferencesSwitchShowScreenRotationLabel.s,
+                text: DictKey.settingSwitchShowLockRotation.s,
                 iconData: Icons.screen_rotation,
                 initialValue: prefs.get(PrefsEnum.isShowScreenRotation),
                 onToggle: (value) => prefs.update(PrefsEnum.isShowScreenRotation, value),
               ),
               ListTileText(
-                text: DictKey.preferencesClearImageCacheLabel.s,
+                text: DictKey.settingActionClearCache.s,
                 iconData: Icons.image_outlined,
                 onTap: _clearImageCache,
               ),

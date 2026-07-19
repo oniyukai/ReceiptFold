@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/common/utils.dart';
+import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/modules/log_service.dart';
@@ -150,7 +151,7 @@ class _PageBackupViewState extends State<PageBackupView> {
     final Directory? directory = await getDownloadsDirectory();
     final String? directoryPath = await FilePicker.getDirectoryPath(initialDirectory:directory?.path);
     if (directoryPath == null) {
-      Utils.showToast('取消');
+      Utils.showToast(DictKey.commonUiCancel.s);
       return;
     }
     await PageBackupView._localAction(.pushForce, p.join(directoryPath, 'ReceiptFold_${UnitUtils.unixRadix36}.sqlite'));
@@ -162,7 +163,7 @@ class _PageBackupViewState extends State<PageBackupView> {
       allowedExtensions: const ['sqlite'],
     );
     if (result == null) {
-      Utils.showToast('取消');
+      Utils.showToast(DictKey.commonUiCancel.s);
       return;
     }
     try {
@@ -178,13 +179,13 @@ class _PageBackupViewState extends State<PageBackupView> {
       context: context,
       noCancelButton: true,
       title: ListTile(
-        title: Text('連線設定'),
+        title: Text(DictKey.backupConnectionSetting.s),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back),
         ),
         trailing: ElevatedButton(
-          child: Text('保存並嘗試連線'),
+          child: Text(DictKey.backupSaveAndConnect.s),
           onPressed: () async {
             if (_formKey.currentState?.saveAndValidate() != true) return;
             Navigator.pop(context);
@@ -203,7 +204,7 @@ class _PageBackupViewState extends State<PageBackupView> {
           children: [
             ListTile(
               minTileHeight: 0,
-              subtitle: Text('URL'),
+              subtitle: Text(DictKey.backupUrlLabel.s),
             ),
             MyTextField(
               name: 'url',
@@ -212,7 +213,7 @@ class _PageBackupViewState extends State<PageBackupView> {
             ),
             ListTile(
               minTileHeight: 0,
-              subtitle: Text('User'),
+              subtitle: Text(DictKey.backupUserLabel.s),
             ),
             MyTextField(
               name: 'user',
@@ -221,7 +222,7 @@ class _PageBackupViewState extends State<PageBackupView> {
             ),
             ListTile(
               minTileHeight: 0,
-              subtitle: Text('Password'),
+              subtitle: Text(DictKey.backupPasswordLabel.s),
             ),
             MyTextField(
               name: 'password',
@@ -239,7 +240,7 @@ class _PageBackupViewState extends State<PageBackupView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('備份與同步'),
+        title: Text(DictKey.backupTitle.s),
       ),
       body: SafeArea(
         child: Scrollbar(
@@ -252,32 +253,32 @@ class _PageBackupViewState extends State<PageBackupView> {
               ),
               ExpandableCard(
                 iconData: Icons.devices,
-                text: '本地動作',
+                text: DictKey.backupLocalAction.s,
                 expandedChild: Column(
                   children: [
                     ListTile(
                       leading: const Icon(Icons.upload),
-                      title: Text('另存新檔'),
+                      title: Text(DictKey.backupLocalCopy.s),
                       onTap: _pressLocalCopy,
                     ),
                     ListTile(
                       leading: const Icon(Icons.upload_outlined),
-                      title: Text('推送'),
+                      title: Text(DictKey.backupPush.s),
                       onTap: () => _pressLocalAction(.push),
                     ),
                     if (context.readPrefs.get(.isAppDeveloperMode)) ListTile(
                       leading: const Icon(Icons.download),
-                      title: Text('強拉取'),
+                      title: Text(DictKey.backupPullForce.s),
                       onTap: () => _pressLocalAction(.pullForce),
                     ),
                     ListTile(
                       leading: const Icon(Icons.download_outlined),
-                      title: Text('拉取'),
+                      title: Text(DictKey.backupPull.s),
                       onTap: () => _pressLocalAction(.pull),
                     ),
                     ListTile(
                       leading: const Icon(Icons.sync),
-                      title: Text('同步'),
+                      title: Text(DictKey.backupSync.s),
                       onTap: () => _pressLocalAction(.sync),
                     ),
                   ],
@@ -285,7 +286,7 @@ class _PageBackupViewState extends State<PageBackupView> {
               ),
               ExpandableCard(
                 iconData: Icons.cloud_sync,
-                text: 'WebDAV',
+                text: DictKey.backupWebDAV.s,
                 expandedChild: ValueListenableBuilder(
                   valueListenable: PageBackupView._webDAV,
                   builder: (context, webDAV, child) {
@@ -296,42 +297,42 @@ class _PageBackupViewState extends State<PageBackupView> {
                           leading: isConnected
                               ? const Icon(Icons.cloud_outlined, color: Colors.green)
                               : const Icon(Icons.cloud_off, color: Colors.grey),
-                          title: Text('連線設定'),
+                          title: Text(DictKey.backupConnectionSetting.s),
                           onTap: _pressSetWebDAV,
                         ),
                         if (context.readPrefs.get(.isAppDeveloperMode)) ListTile(
                           leading: const Icon(Icons.upload),
-                          title: Text('強推送'),
+                          title: Text(DictKey.backupPushForce.s),
                           enabled: isConnected,
                           onTap: () => PageBackupView._webDAVAction(.pushForce),
                         ),
                         ListTile(
                           leading: const Icon(Icons.upload_outlined),
-                          title: Text('推送'),
+                          title: Text(DictKey.backupPush.s),
                           enabled: isConnected,
                           onTap: () => PageBackupView._webDAVAction(.push),
                         ),
                         if (context.readPrefs.get(.isAppDeveloperMode)) ListTile(
                           leading: const Icon(Icons.download),
-                          title: Text('強拉取'),
+                          title: Text(DictKey.backupPullForce.s),
                           enabled: isConnected,
                           onTap: () => PageBackupView._webDAVAction(.pullForce),
                         ),
                         ListTile(
                           leading: const Icon(Icons.download_outlined),
-                          title: Text('拉取'),
+                          title: Text(DictKey.backupPull.s),
                           enabled: isConnected,
                           onTap: () => PageBackupView._webDAVAction(.pull),
                         ),
                         ListTile(
                           leading: const Icon(Icons.sync),
-                          title: Text('同步'),
+                          title: Text(DictKey.backupSync.s),
                           enabled: isConnected,
                           onTap: () => PageBackupView._webDAVAction(.sync),
                         ),
                         ListTileSwitch(
                           iconData: Icons.motion_photos_auto,
-                          text: '啟用定期同步',
+                          text: DictKey.backupAutoSync.s,
                           initialValue: context.readPrefs.get(.isAutoWebDAVSync),
                           onToggle: (value) async {
                             await context.readPrefs.update(.isAutoWebDAVSync, value, false);
@@ -345,7 +346,7 @@ class _PageBackupViewState extends State<PageBackupView> {
               ),
               ExpandableCard(
                 iconData: Icons.terminal,
-                text: '即時日誌',
+                text: DictKey.backupRealTimeLog.s,
                 initialExpanded: true,
                 expandedChild: ConstrainedBox(
                   constraints: const BoxConstraints(

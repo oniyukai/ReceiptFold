@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
@@ -48,15 +49,28 @@ String? barcodeValidator(String? value, BarcodeFormat? format) {
   if (format == null) {
     return null;
   } else if (value == null || value.trim().isEmpty) {
-    return DictKey.errorEmptyFields.s;
+    return DictKey.barcodeErrorEmptyFields.s;
   }
 
   bool notYetVerified = true;
-  late final onlyNumbers = FormBuilderValidators.match(_onlyNumbersRegex, errorText: DictKey.errorNotNumber.s);
-  String? validator(bool passConditions, String? errorText) => passConditions ? null : errorText;
-  String? hardLength(int length) => validator(value.length == length, '${DictKey.errorWrongLength.s}== $length');
-  String? maxLength(int length) => validator(value.length <= length, '${DictKey.errorWrongLength.s}<= $length');
-  String? maxByteLength(int length) => validator(utf8.encode(value).length <= length, '${DictKey.errorWrongLength.s}<= $length (Bytes)');
+  late final onlyNumbers = FormBuilderValidators.match(
+    _onlyNumbersRegex,
+    errorText: DictKey.barcodeErrorNotNumber.s,
+  );
+  String? validator(bool passConditions, String? errorText) =>
+      passConditions ? null : errorText;
+  String? hardLength(int length) => validator(
+    value.length == length,
+    '${DictKey.barcodeErrorWrongLength.s}== $length',
+  );
+  String? maxLength(int length) => validator(
+    value.length <= length,
+    '${DictKey.barcodeErrorWrongLength.s}<= $length',
+  );
+  String? maxByteLength(int length) => validator(
+    utf8.encode(value).length <= length,
+    '${DictKey.barcodeErrorWrongLength.s}<= $length (Bytes)',
+  );
   String? tryVerify([String? errorText]) {
     notYetVerified = false;
     try {
@@ -71,7 +85,7 @@ String? barcodeValidator(String? value, BarcodeFormat? format) {
     final String valueNoCheck = value.substring(0, value.length - 1);
     for (int i = 0; i < 10 && errorText != null; i += 1) {
       if (format.barcodeFunc().isValid('$valueNoCheck$i')) {
-        errorText = '${DictKey.errorWrongCheckDigit.s}$i';
+        errorText = '${DictKey.barcodeErrorWrongCheckDigit.s}$i';
         break;
       }
     }
@@ -79,61 +93,54 @@ String? barcodeValidator(String? value, BarcodeFormat? format) {
   }
 
   final List<FormFieldValidator<String>> validators = switch (format) {
-    .qrCode => [
-      (_) => maxByteLength(2953),
-    ],
+    .qrCode => [(_) => maxByteLength(2953)],
     .dataMatrix => [
       (_) => maxByteLength(1556),
-      (_) => tryVerify(DictKey.errorUnsupportedCharsIso88591.s),
+      (_) => tryVerify(DictKey.barcodeErrorUnsupportedCharsIso88591.s),
     ],
     .aztec => [
       (_) => maxByteLength(1914),
-      (_) => tryVerify(DictKey.errorUnsupportedCharsIso88591.s),
+      (_) => tryVerify(DictKey.barcodeErrorUnsupportedCharsIso88591.s),
     ],
-    .pdf417 => [
-      (_) => maxByteLength(1108),
-    ],
-    .ean13 => [
-      onlyNumbers,
-      (_) => hardLength(13),
-      (_) => tryCheckDigit(),
-    ],
-    .ean8 => [
-      onlyNumbers,
-      (_) => hardLength(8),
-      (_) => tryCheckDigit(),
-    ],
-    .upcA => [
-      onlyNumbers,
-      (_) => hardLength(12),
-      (_) => tryCheckDigit(),
-    ],
+    .pdf417 => [(_) => maxByteLength(1108)],
+    .ean13 => [onlyNumbers, (_) => hardLength(13), (_) => tryCheckDigit()],
+    .ean8 => [onlyNumbers, (_) => hardLength(8), (_) => tryCheckDigit()],
+    .upcA => [onlyNumbers, (_) => hardLength(12), (_) => tryCheckDigit()],
     .upcE => [
       onlyNumbers,
-      FormBuilderValidators.startsWith('0', errorText: DictKey.errorUpcEStartZero.s),
+      FormBuilderValidators.startsWith(
+        '0',
+        errorText: DictKey.barcodeErrorUpcEStartZero.s,
+      ),
       (_) => hardLength(8),
       (_) => tryCheckDigit(),
     ],
     .code128 => [
       (_) => maxLength(2046),
-      (_) => tryVerify(DictKey.errorUnsupportedCharsAscii.s),
-      FormBuilderValidators.match(_code128Regex, errorText: DictKey.errorUnsupportedCharsAscii.s),
+      (_) => tryVerify(DictKey.barcodeErrorUnsupportedCharsAscii.s),
+      FormBuilderValidators.match(
+        _code128Regex,
+        errorText: DictKey.barcodeErrorUnsupportedCharsAscii.s,
+      ),
     ],
     .code93 => [
       (_) => maxLength(47),
-      (_) => tryVerify(DictKey.errorRegexCode93.s),
+      (_) => tryVerify(DictKey.barcodeErrorRegexCode93.s),
     ],
     .code39 => [
       (_) => maxLength(43),
-      (_) => tryVerify(DictKey.errorRegexCode39.s),
+      (_) => tryVerify(DictKey.barcodeErrorRegexCode39.s),
     ],
     .codabar => [
       (_) => maxLength(40),
-      (_) => tryVerify(DictKey.errorRegexCodabar.s),
+      (_) => tryVerify(DictKey.barcodeErrorRegexCodabar.s),
     ],
     .itf => [
       onlyNumbers,
-      (_) => validator((value.length % 2) == 0, DictKey.errorItfEvenLength.s),
+      (_) => validator(
+        (value.length % 2) == 0,
+        DictKey.barcodeErrorItfEvenLength.s,
+      ),
       (_) => maxLength(40),
     ],
   };

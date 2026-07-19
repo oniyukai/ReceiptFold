@@ -89,16 +89,16 @@ enum KVStoreKey {
 
   KVConverter<R> _getConverter<R>() => _converterCache.putIfAbsent(this, () {
     final converter = switch (this) {
-      .mobileBarcodeList => KVConverter.listCustom<MobileBarcodeItem>(
+      mobileBarcodeList => KVConverter.listCustom<MobileBarcodeItem>(
         jsonEncode, MobileBarcodeItem.fromString, const [],
       ),
-      .memberBarcodeList => KVConverter.listCustom<MemberBarcodeItem>(
+      memberBarcodeList => KVConverter.listCustom<MemberBarcodeItem>(
         jsonEncode, MemberBarcodeItem.fromString, const [],
       ),
-      .invoicePrizeAwardList => KVConverter.listCustom<InvoicePrizeAward>(
+      invoicePrizeAwardList => KVConverter.listCustom<InvoicePrizeAward>(
         jsonEncode, InvoicePrizeAward.fromString, const [],
       ),
-      .invoiceCarrierList => KVConverter.listCustom<InvoiceCarrier>(
+      invoiceCarrierList => KVConverter.listCustom<InvoiceCarrier>(
         jsonEncode, InvoiceCarrier.fromString, const [],
       ),
     };
