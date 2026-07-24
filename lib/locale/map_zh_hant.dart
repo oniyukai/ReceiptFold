@@ -16,7 +16,7 @@ const LocaleInstance mapZhHant = {
   .toastNoContentCopy: '無內容可複製',
 
   // ===== Nav: 導航 =====
-  .navTitleRecorder: '記錄',
+  .navTitleRecorder: '紀錄',
   .navTitleScanner: '掃描對獎',
   .navTitleManager: '會員載具',
   .navTitleSettings: '設定',
@@ -25,8 +25,8 @@ const LocaleInstance mapZhHant = {
   .scannerTabManual: '手動對獎',
   .scannerTabNumber: '開獎號碼',
   .scannerTabScan: '掃描發票',
-  .scannerManualHint: '請輸入發票號碼末 3 碼。',
-  .scannerManualNoData: '沒有開獎號碼資料。',
+  .scannerManualHint: '請輸入發票號碼末 3 碼',
+  .scannerManualNoData: '沒有開獎號碼資料',
   .scannerNumberBrowsePeriod: '瀏覽期別',
   .scannerNumberColumnPrize: '獎項',
   .scannerNumberColumnAmount: '獎金',
@@ -116,7 +116,7 @@ const LocaleInstance mapZhHant = {
   .originStatusPlatformExpired: '平台 過期或未知狀態',
   .originStatusManualImport: '本地 匯入',
   .originStatusManualScan: '本地 掃描',
-  .originStatusManualEntry: '本地 手動',
+  .originStatusManualEntry: '本地 輸入',
 
   // ===== Recorder: 記錄器 =====
   .recorderMenuPrizeCheck: '對獎該期',
@@ -129,8 +129,8 @@ const LocaleInstance mapZhHant = {
       '${StaticString.fillObjectMonth} 有 ${StaticString.fillObjectNumber} 筆, 共 ${StaticString.fillObjectAmount} 元',
 
   // ===== Receipt: 發票檢視 =====
-  .receiptViewAddRecord: '新的交易記錄',
-  .receiptViewRecord: '交易記錄',
+  .receiptViewAddRecord: '新的交易紀錄',
+  .receiptViewRecord: '交易紀錄',
   .receiptViewOriginalContent: '原先內容',
   .receiptViewModify: '修改',
   .receiptHeaderSellerName: '賣家名稱 / 交易名稱',
@@ -162,7 +162,7 @@ const LocaleInstance mapZhHant = {
   .platformPhoneLabel: 'Phone',
   .platformPasswordLabel: 'Password',
   .platformQueryMonths: '查詢發票距離',
-  .platformQueryMonthsOption: '${StaticString.fillObjectMonths} 月',
+  .platformQueryMonthsOption: '${StaticString.fillObjectMonths} 個月',
   .platformImportCsv: '從定期 CSV 匯入',
   .platformExecuteAll: '執行全部',
   .platformFetchCarrier: '調取載具',

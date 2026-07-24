@@ -72,7 +72,7 @@ class Receipts extends Table with ModifiedMixin, UuidMixin {
 }
 
 class ReceiptProducts extends Table with ModifiedMixin, UuidMixin {
-  late final receiptUuid = text().references(Receipts, #uuid, onDelete: KeyAction.cascade)();
+  late final receiptUuid = text().references(Receipts, #uuid, onDelete: .cascade)();
   late final sequence = integer()();
   late final description = text()();
   late final unitPrice = real()();

@@ -5,6 +5,8 @@ import 'package:receipt_fold/pages/menu_manager/page_carrier_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_mobile_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
+import 'package:receipt_fold/pages/menu_recorder/page_search_form.dart';
+import 'package:receipt_fold/pages/menu_recorder/page_search_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_platform_view.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_about_view.dart';
@@ -27,6 +29,8 @@ final Map<Type, RouteEntry> _routingTable = Map.fromEntries(const <Type, Widget>
   _InitialPage: _InitialPage(),
   // menu_recorder
   PageReceiptView: PageReceiptView(),
+  PageSearchForm: PageSearchForm(),
+  PageSearchView: PageSearchView(),
   // menu_scanner
   // menu_manager
   PageMobileForm: PageMobileForm(),

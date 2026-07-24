@@ -115,36 +115,43 @@ class ListTilePicker<T> extends StatelessWidget {
       title: Text(text),
       subtitle: Text('${optionMap[selectedOption] ?? selectedOption}'),
       shape: shape,
-      onTap: () => OverlayShow.dialog(
-        context: context,
-        title: dialogText ?? text,
-        content: Scrollbar(
-          child: SingleChildScrollView(
-            child: RadioGroup<T>(
-              groupValue: selectedOption,
-              onChanged: (value) => _onChanged(context, value),
-              child: Column(
-                mainAxisSize: .min,
-                children: [
-                  for (final T value in optionMap.keys)
-                    ListTile(
-                      leading: (leadingBuilder ?? (radio, selected) => radio)(
-                        Radio(
-                          value: value,
-                          materialTapTargetSize: .shrinkWrap,
+      onTap: () {
+        final ScrollController scrollController = ScrollController();
+        OverlayShow.dialog(
+          context: context,
+          title: dialogText ?? text,
+          content: Scrollbar(
+            controller: scrollController,
+            child: SingleChildScrollView(
+              controller: scrollController,
+              child: RadioGroup<T>(
+                groupValue: selectedOption,
+                onChanged: (value) => _onChanged(context, value),
+                child: Column(
+                  mainAxisSize: .min,
+                  children: [
+                    for (final T value in optionMap.keys)
+                      ListTile(
+                        leading: (leadingBuilder ?? (radio, selected) => radio)(
+                          Radio(
+                            value: value,
+                            materialTapTargetSize: .shrinkWrap,
+                          ),
+                          value == selectedOption,
                         ),
-                        value == selectedOption,
+                        title: Text(optionMap[value]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: .circular(12.0),
+                        ),
+                        onTap: () => _onChanged(context, value),
                       ),
-                      title: Text(optionMap[value]!),
-                      shape: RoundedRectangleBorder(borderRadius: .circular(12.0)),
-                      onTap: () => _onChanged(context, value),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        ).whenComplete(scrollController.dispose);
+      },
     );
   }
 }
@@ -173,24 +180,12 @@ class ColorfulRadio extends StatelessWidget {
             ClipOval(
               child: Column(
                 children: [
-                  Expanded(
-                    child: Container(
-                      color: topColor,
-                    ),
-                  ),
+                  Expanded(child: Container(color: topColor)),
                   Expanded(
                     child: Row(
                       children: [
-                        Expanded(
-                          child: Container(
-                            color: bottomLeftColor,
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            color: bottomRightColor,
-                          ),
-                        ),
+                        Expanded(child: Container(color: bottomLeftColor)),
+                        Expanded(child: Container(color: bottomRightColor)),
                       ],
                     ),
                   ),

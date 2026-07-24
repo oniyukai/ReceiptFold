@@ -29,8 +29,6 @@ class TabBarcodeView extends StatefulWidget {
 
 class _TabBarcodeViewState extends State<TabBarcodeView> {
   final ScrollController _scrollController = ScrollController();
-
-  // 他沒有監聽是因為tab是及時initState dispose
   late List<MobileBarcodeItem> _mobileItems;
   late List<MemberBarcodeItem> _memberItems;
   int? _mobileItemIndex;
@@ -43,6 +41,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
   @override
   void dispose() {
     super.dispose();
+    _scrollController.dispose();
     _setAppBrightness(false);
     _setOrientationLock(false);
   }
@@ -104,28 +103,33 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
     }
   }
 
-  Future<void> _changeMobileItem() => OverlayShow.dialog(
-    context: context,
-    title: DictKey.managerChangeMobileCarrier.s,
-    noCancelButton: true,
-    content: Scrollbar(
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(
-            _mobileItems.length,
-            ((index) => MobileItemCard(
-              item: _mobileItems[index],
-              onTap: () {
-                setState(() => _mobileItemIndex = index);
-                Navigator.pop(context);
-              },
-            )),
+  Future<void> _changeMobileItem() {
+    final ScrollController scrollController = ScrollController();
+    return OverlayShow.dialog(
+      context: context,
+      title: DictKey.managerChangeMobileCarrier.s,
+      noCancelButton: true,
+      content: Scrollbar(
+        controller: scrollController,
+        child: SingleChildScrollView(
+          controller: scrollController,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(
+              _mobileItems.length,
+              ((index) => MobileItemCard(
+                item: _mobileItems[index],
+                onTap: () {
+                  setState(() => _mobileItemIndex = index);
+                  Navigator.pop(context);
+                },
+              )),
+            ),
           ),
         ),
       ),
-    ),
-  );
+    ).whenComplete(scrollController.dispose);
+  }
 
   @override
   Widget build(context) {
@@ -134,6 +138,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
     return Scrollbar(
       controller: _scrollController,
       child: ListView(
+        controller: _scrollController,
         padding: const EdgeInsets.all(8.0),
         children: [
           ExpandableCard(

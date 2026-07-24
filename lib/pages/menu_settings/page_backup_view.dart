@@ -1,31 +1,122 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/modules/log_service.dart';
 import 'package:receipt_fold/modules/secure_prefs.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
-import 'package:path/path.dart' as p;
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
-enum _DriftAction {
+enum DriftDispatcher {
   pushForce,
   push,
   pullForce,
   pull,
-  sync,
+  sync;
+
+  static Timer? _webDAVConnectSyncTimer;
+  static int _lastTimeWebDAVAction = 0;
+  static final ValueNotifier<bool> _singleActionLocked = ValueNotifier(false);
+  static final ValueNotifier<WebDAVAdapter?> _webDAV = ValueNotifier(null);
+
+  static Future<void> connectWebDAV({bool reConnect = false}) async {
+    _webDAVConnectSyncTimer?.cancel();
+    if (reConnect ||
+        (_webDAV.value == null && PrefsEnum.isAutoWebDAVSync.get())) {
+      _webDAV.value = null;
+      final account = await _readWebDAVAccount();
+      if (Utils.noEmptyStr(account.url) == null ||
+          account.user == null ||
+          account.password == null) {
+        return;
+      }
+      try {
+        _webDAV.value = await WebDAVAdapter.connect(
+          account.url!,
+          account.user!,
+          account.password!,
+        );
+      } catch (e) {
+        LogService(
+          'connectWebDAV failed.',
+          errorObject: e,
+          classType: DriftDispatcher,
+        ).e();
+      }
+    }
+    if (_webDAV.value != null && PrefsEnum.isAutoWebDAVSync.get()) {
+      _webDAVConnectSyncTimer = Timer(
+        const Duration(seconds: 4),
+        sync.executeWebDAV,
+      );
+    }
+  }
+
+  Future<void> _execute(TransportAdapter adapter) => switch (this) {
+    pushForce => DriftServices.pushForce(adapter.upload).then((f) async {
+      if (await f.exists()) await f.delete();
+    }),
+    push => DriftServices.pushMerge(adapter.download, adapter.upload).then((
+      f,
+    ) async {
+      if (await f.exists()) await f.delete();
+    }),
+    pullForce => DriftServices.pullForce(adapter.download),
+    pull => DriftServices.pullMerge(adapter.download),
+    sync => DriftServices.syncMerge(adapter.download, adapter.upload),
+  };
+
+  Future<void> executeWebDAV() async {
+    if (_singleActionLocked.value) {
+      LogService('現在已有其他資料庫操作, 取消執行.', instance: this).d();
+      return;
+    } else if (UnitUtils.nowUnixTime - _lastTimeWebDAVAction < 2000) {
+      LogService('太過頻繁的 WebDAV 操作, 取消執行.', instance: this).d();
+      return;
+    }
+    _singleActionLocked.value = true;
+    try {
+      if (_webDAV.value == null) throw Exception('WebDAV 尚未被初始化!');
+      await _execute(_webDAV.value!);
+      LogService('🟢 executeWebDAV finished.', instance: this).d();
+    } catch (e) {
+      LogService('executeWebDAV failed.', errorObject: e, instance: this).e();
+    } finally {
+      _lastTimeWebDAVAction = UnitUtils.nowUnixTime;
+      _singleActionLocked.value = false;
+    }
+  }
+
+  Future<void> executeDevice(String filePath) async {
+    if (_singleActionLocked.value) {
+      LogService('現在已有其他資料庫操作, 取消執行.', instance: this).d();
+      return;
+    }
+    _singleActionLocked.value = true;
+    try {
+      await _execute(DeviceAdapter(filePath));
+      LogService('🟢 executeDevice finished.', instance: this).d();
+    } catch (e) {
+      LogService('executeDevice failed.', errorObject: e, instance: this).e();
+    } finally {
+      _singleActionLocked.value = false;
+    }
+  }
 }
 
-Future<({String? url, String? user, String? password})> _readWebDAVAccount() async {
+Future<({String? url, String? user, String? password})>
+_readWebDAVAccount() async {
   String? url;
   String? user;
   String? password;
@@ -40,95 +131,19 @@ Future<({String? url, String? user, String? password})> _readWebDAVAccount() asy
   } catch (e) {
     debugPrint('_readWebDAVAccount: $e');
   }
-  return (
-  url: url,
-  user: user,
-  password: password
-  );
+  return (url: url, user: user, password: password);
 }
 
 class PageBackupView extends StatefulWidget {
   const PageBackupView({super.key});
-
-  static Timer? _webDAVConnectSyncTimer;
-  static int _lastTimeWebDAVAction = 0;
-  static final ValueNotifier<bool> _singleActionLocked = ValueNotifier(false);
-  static final ValueNotifier<WebDAV?> _webDAV = ValueNotifier(null);
-
-  static Future<void> connectWebDAV({bool reConnect = false}) async {
-    _webDAVConnectSyncTimer?.cancel();
-    if (reConnect || (_webDAV.value == null && PrefsEnum.isAutoWebDAVSync.get())) {
-      _webDAV.value = null;
-      final account = await _readWebDAVAccount();
-      if (Utils.noEmptyStr(account.url) == null || account.user == null || account.password == null) return;
-      try {
-        _webDAV.value = await WebDAV.connect(account.url!, account.user!, account.password!);
-      } catch (e) {
-        LogService('connectWebDAV failed.', errorObject: e, classType: PageBackupView).e();
-      }
-    }
-    if (_webDAV.value != null && PrefsEnum.isAutoWebDAVSync.get()) {
-      _webDAVConnectSyncTimer = Timer(const Duration(seconds: 4), () => _webDAVAction(.sync));
-    }
-  }
-
-  static Future<void> _webDAVAction(_DriftAction action) async {
-    if (_singleActionLocked.value) {
-      LogService('現在已有其他資料庫操作, 取消執行.', classType: PageBackupView).d();
-      return;
-    } else if (UnitUtils.nowUnixTime - _lastTimeWebDAVAction < 2000) {
-      LogService('太過頻繁的 WebDAV 操作, 取消執行.', classType: PageBackupView).d();
-      return;
-    }
-    _singleActionLocked.value = true;
-    try {
-      if (_webDAV.value == null) throw Exception('WebDAV 尚未被初始化!');
-      final WebDAV webDAV = _webDAV.value!;
-      await switch (action) {
-        .pushForce => DriftServices.pushForce(webDAV.upload),
-        .push => DriftServices.pushMerge(webDAV.download, webDAV.upload),
-        .pullForce => DriftServices.pullForce(webDAV.download),
-        .pull => DriftServices.pullMerge(webDAV.download),
-        .sync => DriftServices.syncMerge(webDAV.download, webDAV.upload),
-      };
-      LogService('_webDAVAction finished.', classType: PageBackupView).d();
-    } catch (e) {
-      LogService('_webDAVAction failed.', errorObject: e, classType: PageBackupView).e();
-    } finally {
-      _lastTimeWebDAVAction = UnitUtils.nowUnixTime;
-      _singleActionLocked.value = false;
-    }
-  }
-
-  static Future<void> _localAction(_DriftAction action, String filePath) async {
-    if (_singleActionLocked.value) {
-      LogService('現在已有其他資料庫操作, 取消執行.', classType: PageBackupView).d();
-      return;
-    }
-    _singleActionLocked.value = true;
-    try {
-      Future<bool> upload(file) => DriftServices.uploadLocal(file, filePath);
-      Future<File?> download() => DriftServices.downloadLocal(filePath);
-      await switch (action) {
-        .pushForce => DriftServices.pushForce(upload),
-        .push => DriftServices.pushMerge(download, upload),
-        .pullForce => DriftServices.pullForce(download),
-        .pull => DriftServices.pullMerge(download),
-        .sync => DriftServices.syncMerge(download, upload),
-      };
-      LogService('_localAction finished.', classType: PageBackupView).d();
-    } catch (e) {
-      LogService('_localAction failed.', errorObject: e, classType: PageBackupView).e();
-    } finally {
-      _singleActionLocked.value = false;
-    }
-  }
 
   @override
   State<StatefulWidget> createState() => _PageBackupViewState();
 }
 
 class _PageBackupViewState extends State<PageBackupView> {
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _logScrollController = ScrollController();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   final List<String> _logs = [];
   late final StreamSubscription<LogService> _logSubscription;
@@ -136,28 +151,36 @@ class _PageBackupViewState extends State<PageBackupView> {
   @override
   void initState() {
     super.initState();
-    _logSubscription = LogService.stream.where((e) => e.level >= .debug).listen((data) {
-      setState(() => _logs.insert(0, data.logString));
-    });
+    _logSubscription = LogService.stream.where((e) => e.level >= .debug).listen(
+      (data) {
+        setState(() => _logs.insert(0, data.logString));
+      },
+    );
   }
 
   @override
   void dispose() {
     super.dispose();
     _logSubscription.cancel();
+    _scrollController.dispose();
+    _logScrollController.dispose();
   }
 
   Future<void> _pressLocalCopy() async {
     final Directory? directory = await getDownloadsDirectory();
-    final String? directoryPath = await FilePicker.getDirectoryPath(initialDirectory:directory?.path);
+    final String? directoryPath = await FilePicker.getDirectoryPath(
+      initialDirectory: directory?.path,
+    );
     if (directoryPath == null) {
       Utils.showToast(DictKey.commonUiCancel.s);
       return;
     }
-    await PageBackupView._localAction(.pushForce, p.join(directoryPath, 'ReceiptFold_${UnitUtils.unixRadix36}.sqlite'));
+    await DriftDispatcher.pushForce.executeDevice(
+      p.join(directoryPath, 'ReceiptFold_${UnitUtils.unixRadix36}.sqlite'),
+    );
   }
 
-  Future<void> _pressLocalAction(_DriftAction action) async {
+  Future<void> _pressLocalAction(DriftDispatcher action) async {
     final FilePickerResult? result = await FilePicker.pickFiles(
       type: .custom,
       allowedExtensions: const ['sqlite'],
@@ -167,7 +190,7 @@ class _PageBackupViewState extends State<PageBackupView> {
       return;
     }
     try {
-      await PageBackupView._localAction(action, result.files.single.path!);
+      await action.executeDevice(result.files.single.path!);
     } catch (e) {
       Utils.showToast(e.toString());
     }
@@ -189,12 +212,14 @@ class _PageBackupViewState extends State<PageBackupView> {
           onPressed: () async {
             if (_formKey.currentState?.saveAndValidate() != true) return;
             Navigator.pop(context);
-            await SecurePrefs.webDAVAccount.write(jsonEncode({
-              'url': _formKey.currentState!.value['url'] ?? '',
-              'user': _formKey.currentState!.value['user'] ?? '',
-              'password': _formKey.currentState!.value['password'] ?? '',
-            }));
-            await PageBackupView.connectWebDAV(reConnect: true);
+            await SecurePrefs.webDAVAccount.write(
+              jsonEncode({
+                'url': _formKey.currentState!.value['url'] ?? '',
+                'user': _formKey.currentState!.value['user'] ?? '',
+                'password': _formKey.currentState!.value['password'] ?? '',
+              }),
+            );
+            await DriftDispatcher.connectWebDAV(reConnect: true);
           },
         ),
       ),
@@ -239,21 +264,24 @@ class _PageBackupViewState extends State<PageBackupView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(DictKey.backupTitle.s),
-      ),
+      appBar: AppBar(title: Text(DictKey.backupTitle.s)),
       body: SafeArea(
         child: Scrollbar(
+          controller: _scrollController,
           child: ListView(
+            controller: _scrollController,
             padding: const .fromLTRB(16.0, 0.0, 16.0, 16.0),
             children: [
               ValueListenableBuilder(
-                valueListenable: PageBackupView._singleActionLocked,
-                builder: (context, value, child) => value ? const LinearProgressIndicator() : const SizedBox.shrink(),
+                valueListenable: DriftDispatcher._singleActionLocked,
+                builder: (context, value, child) => value
+                    ? const LinearProgressIndicator()
+                    : const SizedBox.shrink(),
               ),
               ExpandableCard(
                 iconData: Icons.devices,
                 text: DictKey.backupLocalAction.s,
+                initialExpanded: true,
                 expandedChild: Column(
                   children: [
                     ListTile(
@@ -266,11 +294,12 @@ class _PageBackupViewState extends State<PageBackupView> {
                       title: Text(DictKey.backupPush.s),
                       onTap: () => _pressLocalAction(.push),
                     ),
-                    if (context.readPrefs.get(.isAppDeveloperMode)) ListTile(
-                      leading: const Icon(Icons.download),
-                      title: Text(DictKey.backupPullForce.s),
-                      onTap: () => _pressLocalAction(.pullForce),
-                    ),
+                    if (context.readPrefs.get(.isAppDeveloperMode))
+                      ListTile(
+                        leading: const Icon(Icons.download),
+                        title: Text(DictKey.backupPullForce.s),
+                        onTap: () => _pressLocalAction(.pullForce),
+                      ),
                     ListTile(
                       leading: const Icon(Icons.download_outlined),
                       title: Text(DictKey.backupPull.s),
@@ -287,55 +316,67 @@ class _PageBackupViewState extends State<PageBackupView> {
               ExpandableCard(
                 iconData: Icons.cloud_sync,
                 text: DictKey.backupWebDAV.s,
+                initialExpanded: true,
                 expandedChild: ValueListenableBuilder(
-                  valueListenable: PageBackupView._webDAV,
+                  valueListenable: DriftDispatcher._webDAV,
                   builder: (context, webDAV, child) {
                     final bool isConnected = webDAV != null;
                     return Column(
                       children: [
                         ListTile(
                           leading: isConnected
-                              ? const Icon(Icons.cloud_outlined, color: Colors.green)
+                              ? const Icon(
+                                  Icons.cloud_outlined,
+                                  color: Colors.green,
+                                )
                               : const Icon(Icons.cloud_off, color: Colors.grey),
                           title: Text(DictKey.backupConnectionSetting.s),
                           onTap: _pressSetWebDAV,
                         ),
-                        if (context.readPrefs.get(.isAppDeveloperMode)) ListTile(
-                          leading: const Icon(Icons.upload),
-                          title: Text(DictKey.backupPushForce.s),
-                          enabled: isConnected,
-                          onTap: () => PageBackupView._webDAVAction(.pushForce),
-                        ),
+                        if (context.readPrefs.get(.isAppDeveloperMode))
+                          ListTile(
+                            leading: const Icon(Icons.upload),
+                            title: Text(DictKey.backupPushForce.s),
+                            enabled: isConnected,
+                            onTap: DriftDispatcher.pushForce.executeWebDAV,
+                          ),
                         ListTile(
                           leading: const Icon(Icons.upload_outlined),
                           title: Text(DictKey.backupPush.s),
                           enabled: isConnected,
-                          onTap: () => PageBackupView._webDAVAction(.push),
+                          onTap: DriftDispatcher.push.executeWebDAV,
                         ),
-                        if (context.readPrefs.get(.isAppDeveloperMode)) ListTile(
-                          leading: const Icon(Icons.download),
-                          title: Text(DictKey.backupPullForce.s),
-                          enabled: isConnected,
-                          onTap: () => PageBackupView._webDAVAction(.pullForce),
-                        ),
+                        if (context.readPrefs.get(.isAppDeveloperMode))
+                          ListTile(
+                            leading: const Icon(Icons.download),
+                            title: Text(DictKey.backupPullForce.s),
+                            enabled: isConnected,
+                            onTap: DriftDispatcher.pullForce.executeWebDAV,
+                          ),
                         ListTile(
                           leading: const Icon(Icons.download_outlined),
                           title: Text(DictKey.backupPull.s),
                           enabled: isConnected,
-                          onTap: () => PageBackupView._webDAVAction(.pull),
+                          onTap: DriftDispatcher.pull.executeWebDAV,
                         ),
                         ListTile(
                           leading: const Icon(Icons.sync),
                           title: Text(DictKey.backupSync.s),
                           enabled: isConnected,
-                          onTap: () => PageBackupView._webDAVAction(.sync),
+                          onTap: DriftDispatcher.sync.executeWebDAV,
                         ),
                         ListTileSwitch(
                           iconData: Icons.motion_photos_auto,
                           text: DictKey.backupAutoSync.s,
-                          initialValue: context.readPrefs.get(.isAutoWebDAVSync),
+                          initialValue: context.readPrefs.get(
+                            .isAutoWebDAVSync,
+                          ),
                           onToggle: (value) async {
-                            await context.readPrefs.update(.isAutoWebDAVSync, value, false);
+                            await context.readPrefs.update(
+                              .isAutoWebDAVSync,
+                              value,
+                              false,
+                            );
                             setState(() {});
                           },
                         ),
@@ -354,7 +395,9 @@ class _PageBackupViewState extends State<PageBackupView> {
                     maxHeight: 400.0,
                   ),
                   child: Scrollbar(
+                    controller: _logScrollController,
                     child: SingleChildScrollView(
+                      controller: _logScrollController,
                       child: SelectableText(_logs.join('\n')),
                     ),
                   ),

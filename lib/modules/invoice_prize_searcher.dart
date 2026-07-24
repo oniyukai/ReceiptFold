@@ -63,16 +63,16 @@ class InvoicePrizeSearcher {
       prizes.addAll(await _requestPrizeAward(invQuery));
     } on DioException catch (e) {
       LogService(
-        'findInvoicePrizeAward exception.',
+        '_requestPrizeAward DioException.',
+        errorObject: e,
+        instance: this,
+      ).d();
+    } catch (e) {
+      LogService(
+        '_requestPrizeAward exception.',
         errorObject: e,
         instance: this,
       ).w();
-    } catch (e) {
-      LogService(
-        'findInvoicePrizeAward failed.',
-        errorObject: e,
-        instance: this,
-      ).e();
     }
 
     // 獎金高的放前面，同金額維持插入順序

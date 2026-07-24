@@ -32,7 +32,7 @@ class InvoicePrize {
       debugPrint('$InvoicePrize.fromString: $e');
     }
     return InvoicePrize(
-      amount ?? 0,
+      amount ?? -1,
       name ?? StaticString.nullString,
       number ?? StaticString.nullString,
     );
@@ -76,15 +76,15 @@ class InvoicePrizeAward {
     }
     return InvoicePrizeAward(
       invQuery: invQuery ?? StaticString.nullString,
-      lastWebQueryTime: lastWebQueryTime ?? 0,
+      lastWebQueryTime: lastWebQueryTime ?? -1,
       prizes: [...?prizes],
     );
   }
 
   Period get period => Period.inv(invQuery);
 
-  InvoicePrize? checkAll(String number) {
-    if (number.length < 3) return null;
+  InvoicePrize? checkAll(String? number) {
+    if (number == null || number.length < 3) return null;
     return prizes.firstWhereOrNull((prize) => number.endsWith(prize.number));
   }
 

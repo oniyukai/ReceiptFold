@@ -9,20 +9,8 @@ import 'package:path/path.dart' as p;
 import 'package:receipt_fold/modules/log_service.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
-/// 請確定 [Upload].call([File]) 過程如果不穩定斷連能夠不覆蓋到正常還沒被取代掉的目的地.
-///
-/// 傳入的 [File] 實作時不要手動刪除.
-typedef Upload = Future<bool> Function(File);
-
-/// 請確定 [Download].call() 的 [File] 能夠被刪除的暫存檔, 直接給原檔路徑會被刪.
-///
-/// 請在錯誤時 throw 中斷, 僅當對應無檔案時為 null 表示.
 typedef Download = Future<File?> Function();
-
-Future<File> _copyFileToTemp(File sourceFile, [String? newFileName]) async {
-  final Directory tempDir = await getTemporaryDirectory();
-  return sourceFile.copy(p.join(tempDir.path, newFileName ?? 'copyFileToTemp_${UnitUtils.unixRadix36}.temp'));
-}
+typedef Upload = Future<File> Function(File);
 
 abstract final class DriftServices {
   static late final MyDriftDatabase appDb;
@@ -34,55 +22,33 @@ abstract final class DriftServices {
     ),
   );
 
-  // /.---------------- 傳遞層 ----------------
-  static Future<File?> downloadLocal(String sourceFilePath) async {
-    final File sourceFile = File(sourceFilePath);
-    if (!await sourceFile.exists()) return null;
-    return _copyFileToTemp(sourceFile);
-  }
-
-  static Future<bool> uploadLocal(File file, String targetFilePath) async {
-    final File targetFile = File(targetFilePath);
-    if (!await targetFile.parent.exists()) await targetFile.parent.create(recursive: true);
-    await file.copy(targetFile.path);
-    return true;
-  }
-  // ---------------- 傳遞層 ----------------./
-
-  // /.---------------- 交換層 ----------------
-  static Future<File?> pushForce(Upload upload) async {
+  static Future<File> pushForce(Upload upload) async {
     LogService('pushForce...', classType: DriftServices).d();
-    await appDb.selfTidy();
     final Directory tempDir = await getTemporaryDirectory();
     final File appDbCopyFile = File(p.join(tempDir.path, 'pushForce_${UnitUtils.unixRadix36}.sqlite'));
-    bool success = false;
+    await appDb.selfTidy();
     try {
       await appDb.customStatement("VACUUM INTO '${appDbCopyFile.path}'");
       if (!await appDbCopyFile.exists()) throw Exception('Copy AppDb to ${appDbCopyFile.path} failed.');
-      success = await upload(appDbCopyFile);
-      return success ? appDbCopyFile : null;
-    } finally {
-      if (!success && await appDbCopyFile.exists()) await appDbCopyFile.delete();
+      return await upload(appDbCopyFile);
+    } catch (_) {
+      if (await appDbCopyFile.exists()) await appDbCopyFile.delete();
+      rethrow;
     }
   }
 
-  static Future<File?> pushMerge(Download download, Upload upload) async {
+  static Future<File> pushMerge(Download download, Upload upload) async {
     LogService('pushMerge...', classType: DriftServices).d();
     final File? downloadFile = await download();
     if (downloadFile == null || !await downloadFile.exists()) return await pushForce(upload);
     await appDb.selfTidy();
-    bool success = false;
     try {
       final MyDriftDatabase downloadDb = _openFileDb(downloadFile);
-      try {
-        await downloadDb.mergeFrom(appDb);
-      } finally {
-        await downloadDb.close();
-      }
-      success = await upload(downloadFile);
-      return success ? downloadFile : null;
-    } finally {
-      if (!success && await downloadFile.exists()) await downloadFile.delete();
+      await downloadDb.mergeFrom(appDb).whenComplete(downloadDb.close);
+      return await upload(downloadFile);
+    } catch (_) {
+      if (await downloadFile.exists()) await downloadFile.delete();
+      rethrow;
     }
   }
 
@@ -116,11 +82,7 @@ abstract final class DriftServices {
     }
     try {
       final MyDriftDatabase downloadDb = _openFileDb(downloadFile);
-      try {
-        await appDb.mergeFrom(downloadDb);
-      } finally {
-        await downloadDb.close();
-      }
+      await appDb.mergeFrom(downloadDb).whenComplete(downloadDb.close);
     } finally {
       if (await downloadFile.exists()) await downloadFile.delete();
     }
@@ -128,25 +90,70 @@ abstract final class DriftServices {
 
   static Future<void> syncMerge(Download download, Upload upload) async {
     LogService('syncMerge...', classType: DriftServices).d();
-    final File? downloadFile = await pushMerge(download, upload);
+    final File downloadFile = await pushMerge(download, upload);
     await pullMerge(() => SynchronousFuture(downloadFile));
   }
-// ---------------- 交換層 ----------------./
 }
 
-class WebDAV {
+/// 用於 File I/O 交換層, 請保持 [download] is [Download], [upload] is [Upload] 的型別.
+abstract class TransportAdapter {
+  const TransportAdapter();
+
+  /// 產生的 [File] 應要能夠被刪除的暫存檔, 直接給原檔路徑給 [DriftServices] 會被刪.
+  ///
+  /// 請在錯誤時 throw 中斷, 僅當對應位置無檔案時為 null 表示.
+  Future<File?> download();
+
+  /// 請確定執行過程如果不穩定斷連能夠不覆蓋到正常還沒被取代掉的目的地.
+  ///
+  /// 傳入的 [file] 實踐時不要手動刪除, 上傳成功回傳自己的參數 [file], 失敗 throw.
+  Future<File> upload(File file);
+}
+
+class DeviceAdapter extends TransportAdapter {
+  final String _filePath;
+
+  const DeviceAdapter(this._filePath);
+
+  @override
+  Future<File?> download() async {
+    LogService('download...', instance: this).d();
+    final File sourceFile = File(_filePath);
+    if (!await sourceFile.exists()) return null;
+    final Directory tempDir = await getTemporaryDirectory();
+    return sourceFile.copy(p.join(tempDir.path, 'device_download_${UnitUtils.unixRadix36}.tmp'));
+  }
+
+  @override
+  Future<File> upload(File file) async {
+    LogService('upload...', instance: this).d();
+    final File targetFile = File(_filePath);
+    final File tempFile = File('$_filePath.tmp');
+    try {
+      if (!await targetFile.parent.exists()) await targetFile.parent.create(recursive: true);
+      await file.copy(tempFile.path);
+      await tempFile.rename(targetFile.path);
+      return file;
+    } catch (_) {
+      if (await tempFile.exists()) await tempFile.delete();
+      rethrow;
+    }
+  }
+}
+
+class WebDAVAdapter extends TransportAdapter {
   final webdav.Client client;
   final String remoteDir;
   final String remoteFileName;
   late final String remotePath = p.posix.join(remoteDir, remoteFileName);
 
-  WebDAV._(this.client, this.remoteDir, this.remoteFileName);
+  WebDAVAdapter._(this.client, this.remoteDir, this.remoteFileName);
 
-  static Future<WebDAV> connect(String url, String user, String password, {
+  static Future<WebDAVAdapter> connect(String url, String user, String password, {
     String remoteDir = 'ReceiptFoldSync',
     String remoteFileName = 'drift.sqlite.gz',
   }) async {
-    final WebDAV self = WebDAV._(webdav.newClient(url, user: user, password: password), remoteDir, remoteFileName);
+    final WebDAVAdapter self = WebDAVAdapter._(webdav.newClient(url, user: user, password: password), remoteDir, remoteFileName);
     self.client.setHeaders({'content-type': 'application/octet-stream'});
     await self.client.ping();
     await self.client.mkdirAll(remoteDir);
@@ -156,7 +163,7 @@ class WebDAV {
   /// [converter] 可以傳入 [gzip.decoder] 來壓縮, 或是傳入 [gzip.encoder] 解壓縮.
   static Future<File> convertFile(File sourceFile, Converter<List<int>, List<int>> converter) async {
     final Directory tempDir = await getTemporaryDirectory();
-    final File file = File(p.join(tempDir.path, 'WebDAV_convertFile_${UnitUtils.unixRadix36}.temp'));
+    final File file = File(p.join(tempDir.path, 'WebDAV_convertFile_${UnitUtils.unixRadix36}.tmp'));
     final Stream<List<int>> input = sourceFile.openRead();
     final IOSink output = file.openWrite();
     bool success = false;
@@ -170,6 +177,7 @@ class WebDAV {
     }
   }
 
+  @override
   Future<File?> download([Future<File> Function(File)? fileTransform]) async {
     LogService('download...', instance: this).d();
     late final webdav.File remoteFile;
@@ -182,7 +190,7 @@ class WebDAV {
     }
     if (remoteFile.isDir == true) throw Exception('$this.download: ${remoteFile.path} cannot be directory.');
     final Directory tempDir = await getTemporaryDirectory();
-    final File downloadFile = File(p.join(tempDir.path, 'WebDAV_download_${UnitUtils.unixRadix36}.temp'));
+    final File downloadFile = File(p.join(tempDir.path, 'WebDAV_download_${UnitUtils.unixRadix36}.tmp'));
     try {
       await client.read2File(remoteFile.path!, downloadFile.path);
       return await (fileTransform ?? (file) => convertFile(file, gzip.decoder))(downloadFile);
@@ -191,38 +199,34 @@ class WebDAV {
     }
   }
 
-  Future<bool> upload(File file, [Future<File> Function(File)? fileTransform]) async {
+  @override
+  Future<File> upload(File file, [Future<File> Function(File)? fileTransform]) async {
     LogService('upload...', instance: this).d();
     final String remoteCachePath = '$remotePath.cache';
+    // try {
+    //   await client.remove(remoteCachePath);
+    // } catch (e) {
+    //   LogService('client.remove($remoteCachePath)', errorObject: e, instance: this).t();
+    // }
+    final File convertedFile = await (fileTransform ?? (file) => convertFile(file, gzip.encoder))(file);
     try {
+      await client.writeFromFile(convertedFile.path, remoteCachePath);
       // try {
-      //   await client.remove(remoteCachePath);
+      //   await client.remove(remotePath);
       // } catch (e) {
-      //   LogService('client.remove($remoteCachePath)', errorObject: e, instance: this).t();
+      //   LogService('client.remove($remotePath)', errorObject: e, instance: this).t();
       // }
-      final File convertedFile = await (fileTransform ?? (file) => convertFile(file, gzip.encoder))(file);
+      await client.rename(remoteCachePath, remotePath, true);
+    } catch (_) {
       try {
-        await client.writeFromFile(convertedFile.path, remoteCachePath);
-        // try {
-        //   await client.remove(remotePath);
-        // } catch (e) {
-        //   LogService('client.remove($remotePath)', errorObject: e, instance: this).t();
-        // }
-        await client.rename(remoteCachePath, remotePath, true);
+        await client.remove(remoteCachePath);
       } catch (e) {
-        try {
-          await client.remove(remoteCachePath);
-        } catch (e) {
-          LogService('client.remove($remoteCachePath)', errorObject: e, instance: this).t();
-        }
-        rethrow;
-      } finally {
-        if (await convertedFile.exists()) await convertedFile.delete();
+        LogService('client.remove($remoteCachePath)', errorObject: e, instance: this).t();
       }
-      return true;
-    } catch (e) {
-      LogService('upload exception.', errorObject: e, instance: this).w();
-      return false;
+      rethrow;
+    } finally {
+      if (await convertedFile.exists()) await convertedFile.delete();
     }
+    return file;
   }
 }

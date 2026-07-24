@@ -84,6 +84,7 @@ class _TabMemberViewState extends State<TabMemberView> {
             return Center(child: Text(_errorMessage!));
           }
           return ListView(
+            controller: _scrollController,
             padding: const EdgeInsets.all(8.0),
             children: [
               ListTile(

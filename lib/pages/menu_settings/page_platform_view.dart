@@ -27,9 +27,12 @@ class PagePlatformView extends StatefulWidget {
 }
 
 class _PagePlatformViewState extends State<PagePlatformView> {
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _logScrollController = ScrollController();
+  final InvoicePlatformApi _api = InvoicePlatformApi();
+  final InAppWebViewKeepAlive _inAppWebViewKeepAlive = InAppWebViewKeepAlive();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   final ValueNotifier<bool> _singleActionLocked = ValueNotifier(false);
-  final InvoicePlatformApi _api = InvoicePlatformApi();
   final List<String> _logs = [];
   late final StreamSubscription<LogService> _logSubscription;
 
@@ -49,7 +52,10 @@ class _PagePlatformViewState extends State<PagePlatformView> {
   void dispose() {
     super.dispose();
     _logSubscription.cancel();
-    unawaited(PageBackupView.connectWebDAV());
+    _scrollController.dispose();
+    _logScrollController.dispose();
+    _api.close();
+    unawaited(DriftDispatcher.connectWebDAV());
   }
 
   Future<({String? phone, String? password})> _readPlatformAccount() async {
@@ -148,7 +154,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         scopeStart: .manualImport,
         scopeEnd: .manualImport,
       );
-      LogService('_pressImportCSV finished.', instance: this).d();
+      LogService('🟢 _pressImportCSV finished.', instance: this).d();
       return;
     } catch (e) {
       LogService('_pressImportCSV failed.', errorObject: e, instance: this).e();
@@ -189,7 +195,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         ...carriersMap.values,
         ...oldCarriers,
       ]);
-      LogService('_pressFetchCarrierList finished.', instance: this).d();
+      LogService('🟢 _pressFetchCarrierList finished.', instance: this).d();
       return true;
     } catch (e) {
       LogService('_pressFetchCarrierList failed.', errorObject: e, instance: this).e();
@@ -212,7 +218,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         scopeStart: .platformUnconfirmed,
         scopeEnd: .platformExpired,
       );
-      LogService('_pressFetchAwardList finished.', instance: this).d();
+      LogService('🟢 _pressFetchAwardList finished.', instance: this).d();
       return true;
     } catch (e) {
       LogService('_pressFetchAwardList failed.', errorObject: e, instance: this).e();
@@ -235,7 +241,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         scopeStart: .platformUnconfirmed,
         scopeEnd: .platformExpired,
       );
-      LogService('_pressFetchInvoiceList finished.', instance: this).d();
+      LogService('🟢 _pressFetchInvoiceList finished.', instance: this).d();
       return true;
     } catch (e) {
       LogService('_pressFetchInvoiceList failed.', errorObject: e, instance: this).e();
@@ -251,9 +257,9 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       appBar: AppBar(title: Text(DictKey.platformTitle.s)),
       body: SafeArea(
         child: Scrollbar(
+          controller: _scrollController,
           child: ListView(
-            addAutomaticKeepAlives: false,
-            addRepaintBoundaries: false,
+            controller: _scrollController,
             padding: const .fromLTRB(16.0, 0.0, 16.0, 16.0),
             children: [
               ValueListenableBuilder(
@@ -336,7 +342,9 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                     maxHeight: 400.0,
                   ),
                   child: Scrollbar(
+                    controller: _logScrollController,
                     child: SingleChildScrollView(
+                      controller: _logScrollController,
                       child: SelectableText(_logs.join('\n')),
                     ),
                   ),
@@ -353,6 +361,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                     maxHeight: 400.0,
                   ),
                   child: InAppWebView(
+                    keepAlive: _inAppWebViewKeepAlive,
                     initialUrlRequest: URLRequest(
                       url: WebUri('https://www.einvoice.nat.gov.tw/accounts/login/mw'),
                     ),

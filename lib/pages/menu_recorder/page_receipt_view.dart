@@ -42,6 +42,7 @@ class PageReceiptViewArgs {
 }
 
 class _PageReceiptViewState extends State<PageReceiptView> {
+  final ScrollController _scrollController = ScrollController();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   late final PageReceiptViewArgs _args = widget.getArgs(context)!;
   late List<ReceiptProduct> _products = _args.receiptEntry?.value ?? [];
@@ -54,6 +55,12 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   );
 
   bool get _isCloudPlatform => _receipt.originStatus.sqlValue < OriginStatus.manualImport.sqlValue;
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
 
   // < ---------- 適用於所有狀態的前端接口
   Future<void> _normalStringTileModify({
@@ -360,9 +367,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       ),
       body: SafeArea(
         child: Scrollbar(
+          controller: _scrollController,
           child: ListView(
-            addAutomaticKeepAlives: false,
-            addRepaintBoundaries: false,
+            controller: _scrollController,
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             children: [
               _ReceiptInfoTile(

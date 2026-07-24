@@ -81,12 +81,19 @@ class PageLogsView extends StatefulWidget {
 }
 
 class _PageLogsViewState extends State<PageLogsView> {
+  final ScrollController _scrollController = ScrollController();
   List<String>? _formattedLogs;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _pressRefresh());
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
   }
 
   Future<void> _pressRefresh() async {
@@ -141,7 +148,9 @@ class _PageLogsViewState extends State<PageLogsView> {
       ),
       body: SafeArea(
         child: Scrollbar(
+          controller: _scrollController,
           child: ListView(
+            controller: _scrollController,
             children: [
               if (_formattedLogs == null) const CircularProgressIndicator(),
               if (_formattedLogs != null)

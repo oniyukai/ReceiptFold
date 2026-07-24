@@ -26,8 +26,15 @@ class PageBarcodeFormArgs {
 }
 
 class _PageMobileFormState extends State<PageMobileForm> {
+  final ScrollController _scrollController = ScrollController();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   late final PageBarcodeFormArgs? _args = widget.getArgs(context);
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
 
   Future<void> _deleteItem() {
     assert(_args != null);
@@ -95,7 +102,9 @@ class _PageMobileFormState extends State<PageMobileForm> {
       ),
       body: SafeArea(
         child: Scrollbar(
+          controller: _scrollController,
           child: ListView(
+            controller: _scrollController,
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             children: [
               FormBuilder(

@@ -48,6 +48,7 @@ class _TabManualViewState extends State<TabManualView> {
     return Scrollbar(
       controller: _scrollController,
       child: ListView(
+        controller: _scrollController,
         padding: const EdgeInsets.all(8.0),
         children: [
           Visibility(

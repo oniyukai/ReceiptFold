@@ -48,23 +48,6 @@ class _TabCarrierViewState extends State<TabCarrierView> {
     _scrollController.dispose();
   }
 
-  // Future<void> _writeToAll() {
-  //   return OverlayShow.dialog(
-  //     context: context,
-  //     title: '搜尋發票並寫入資料',
-  //     content: Text('確定要執行此操作嗎?'),
-  //     actions: [
-  //       TextButton(
-  //         child: Text('確認並執行'),
-  //         onPressed: () async {
-  //           Navigator.pop(context);
-  //           // todo: 搜尋發票並寫入資料
-  //         },
-  //       ),
-  //     ],
-  //   );
-  // }
-
   Future<void> _sortCarrierList() => OverlayShow.sortDialog(
     context: context,
     items: _carrierList,
@@ -89,13 +72,10 @@ class _TabCarrierViewState extends State<TabCarrierView> {
             return Center(child: Text(_errorMessage!));
           }
           return ListView(
+            controller: _scrollController,
             padding: const EdgeInsets.all(8.0),
             children: [
               ListTile(
-                // title: ElevatedButton(
-                //   onPressed: _writeToAll,
-                //   child: Text('搜尋發票並寫入資料'),
-                // ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

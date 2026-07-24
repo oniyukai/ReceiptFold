@@ -25,8 +25,15 @@ class PageCarrierFormArgs {
 }
 
 class _PageCarrierFormState extends State<PageCarrierForm> {
+  final ScrollController _scrollController = ScrollController();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   late final PageCarrierFormArgs? _args = widget.getArgs(context);
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
 
   Future<void> _deleteItem() {
     return OverlayShow.dialog(
@@ -114,7 +121,9 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
       ),
       body: SafeArea(
         child: Scrollbar(
+          controller: _scrollController,
           child: ListView(
+            controller: _scrollController,
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             children: [
               ListTile(

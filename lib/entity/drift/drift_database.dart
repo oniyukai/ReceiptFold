@@ -2,9 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/common/utils.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:uuid/v7.dart';
 
 part 'drift_database.g.dart';
@@ -16,15 +16,17 @@ class BasicTypeConverter<R, S> extends TypeConverter<R, S> {
   final S Function(R fromR) _toS;
   final R Function(S fromS) _toR;
 
-  const BasicTypeConverter({
-    required this._toS,
-    required this._toR,
-  });
+  const BasicTypeConverter({required this._toS, required this._toR});
 
   S toS(R fromR) => _toS(fromR);
+
   R toR(S fromS) => _toR(fromS);
-  @override S toSql(R value) => _toS(value);
-  @override R fromSql(S fromDb) => _toR(fromDb);
+
+  @override
+  S toSql(R value) => _toS(value);
+
+  @override
+  R fromSql(S fromDb) => _toR(fromDb);
 }
 
 final dateTimeConverter = BasicTypeConverter<DateTime, int>(
@@ -33,13 +35,17 @@ final dateTimeConverter = BasicTypeConverter<DateTime, int>(
 );
 
 mixin ModifiedMixin on Table {
-  late final modified = integer().clientDefault(() => UnitUtils.nowUnixTime).map(dateTimeConverter)();
+  late final modified = integer()
+      .clientDefault(() => UnitUtils.nowUnixTime)
+      .map(dateTimeConverter)();
 }
 
 mixin UuidMixin on Table {
   static const v7 = UuidV7();
 
-  late final uuid = text().clientDefault(() => UuidMixin.v7.generate()).withLength(max: 36)();
+  late final uuid = text()
+      .clientDefault(() => UuidMixin.v7.generate())
+      .withLength(max: 36)();
 }
 
 /// 保持一個 [Table] 不出現在另一個 [SyncableDao] 中
@@ -55,9 +61,12 @@ abstract class SyncableDao extends DatabaseAccessor<MyDriftDatabase> {
   Future<void> mergeFrom(MyDriftDatabase otherDb);
 }
 
-@DriftDatabase(tables: [KeyValueStores, Receipts, ReceiptProducts, DeletedUuids])
+@DriftDatabase(
+  tables: [KeyValueStores, Receipts, ReceiptProducts, DeletedUuids],
+)
 class MyDriftDatabase extends _$MyDriftDatabase {
-  MyDriftDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection()) {
+  MyDriftDatabase([QueryExecutor? executor])
+    : super(executor ?? _openConnection()) {
     if (executor == null) DriftServices.appDb = this;
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   }
@@ -77,8 +86,9 @@ class MyDriftDatabase extends _$MyDriftDatabase {
 
   Set<SyncableDao> get daoSet => {keyValueStoreDao, receiptDao};
 
-  Future<void> mergeFrom(MyDriftDatabase otherDb) =>
-      transaction(() => Future.wait(daoSet.map((dao) => dao.mergeFrom(otherDb))));
+  Future<void> mergeFrom(MyDriftDatabase otherDb) => transaction(
+    () => Future.wait(daoSet.map((dao) => dao.mergeFrom(otherDb))),
+  );
 
   Future<void> selfTidy() async {
     await transaction(() => Future.wait(daoSet.map((dao) => dao.selfTidy())));

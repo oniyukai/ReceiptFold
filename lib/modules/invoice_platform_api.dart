@@ -19,6 +19,11 @@ class InvoicePlatformApi {
 
   bool get isInitialized => _controller != null && _auth != null;
 
+  void close() {
+    _auth = null;
+    _controller?.dispose();
+  }
+
   OriginStatus? _analyzeOriginStatus(String? extStatus, String? donateMark, String? invoiceStrStatus) {
     if (extStatus == '0') {
       return .platformUnconfirmed;

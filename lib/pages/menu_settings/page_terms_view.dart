@@ -12,6 +12,7 @@ class PageTermsView extends StatefulWidget {
 }
 
 class _PageTermsViewState extends State<PageTermsView> {
+  final ScrollController _scrollController = ScrollController();
   bool _isAgreedAllTerms = false;
   String? _termsText;
 
@@ -19,6 +20,12 @@ class _PageTermsViewState extends State<PageTermsView> {
   void initState() {
     super.initState();
     _loadTerms();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
   }
 
   Future<void> _loadTerms() async {
@@ -41,10 +48,12 @@ class _PageTermsViewState extends State<PageTermsView> {
               child: _termsText == null
                   ? const Center(child: CircularProgressIndicator())
                   : Scrollbar(
+                controller: _scrollController,
                 thumbVisibility: true,
                 child: Card(
                   margin: const .all(8.0),
                   child: SingleChildScrollView(
+                    controller: _scrollController,
                     padding: const .all(8.0),
                     child: Text(_termsText!),
                   ),

@@ -1,31 +1,33 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
 abstract final class OverlayShow {
-
   static Future<void> dialog({
     required BuildContext context,
     required String title,
     required Widget content,
     bool noCancelButton = false,
-    List<Widget>? actions,})
-  {
+    List<Widget>? actions,
+  }) {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title,
-            style:Theme.of(context).textTheme.titleMedium,
-            textAlign: .center
+        title: Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium,
+          textAlign: .center,
         ),
         content: content,
         actions: [
-          if (!noCancelButton) TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(DictKey.commonUiCancel.s),
-          ),
+          if (!noCancelButton)
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(DictKey.commonUiCancel.s),
+            ),
           ...?actions,
         ],
       ),
@@ -37,13 +39,18 @@ abstract final class OverlayShow {
     Widget? title,
     Widget? content,
     bool noCancelButton = false,
-    List<Widget>? actions,})
-  {
+    List<Widget>? actions,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) => SingleChildScrollView(
-        padding: .fromLTRB(16.0, 16.0, 16.0, MediaQuery.of(context).viewInsets.bottom),
+        padding: .fromLTRB(
+          16.0,
+          16.0,
+          16.0,
+          MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: Column(
           children: [
             ?title,
@@ -53,14 +60,16 @@ abstract final class OverlayShow {
             Row(
               mainAxisAlignment: .spaceAround,
               children: [
-                if (!noCancelButton) ElevatedButton(
-                  child: Text(DictKey.commonUiCancel.s),
-                  onPressed: () => Navigator.pop(context),
-                ),
+                if (!noCancelButton)
+                  ElevatedButton(
+                    child: Text(DictKey.commonUiCancel.s),
+                    onPressed: () => Navigator.pop(context),
+                  ),
                 ...?actions,
               ],
             ),
-            if (actions != null && actions.isNotEmpty && !noCancelButton) const SizedBox(height: 16),
+            if (actions != null && actions.isNotEmpty && !noCancelButton)
+              const SizedBox(height: 16),
           ],
         ),
       ),
@@ -71,8 +80,9 @@ abstract final class OverlayShow {
     required BuildContext context,
     required List<T> items,
     required Widget Function(T item) itemBuilder,
-    required ValueChanged<List<T>> saveOnTap,})
-  {
+    required ValueChanged<List<T>> saveOnTap,
+  }) {
+    final ScrollController scrollController = ScrollController();
     return OverlayShow.dialog(
       context: context,
       title: DictKey.commonUiSwipeSort.s,
@@ -80,7 +90,9 @@ abstract final class OverlayShow {
         height: MediaQuery.of(context).size.height * 0.6,
         width: MediaQuery.of(context).size.width * 0.8,
         child: Scrollbar(
+          controller: scrollController,
           child: _ReorderableTiles(
+            scrollController: scrollController,
             padding: const .symmetric(horizontal: 8),
             initialItems: items,
             onReorderFinished: (list) => items = list,
@@ -97,18 +109,20 @@ abstract final class OverlayShow {
           },
         ),
       ],
-    );
+    ).whenComplete(scrollController.dispose);
   }
 
   static _ToastWidget? _lastToastWidget;
 
-  static Future<void> toast(Widget content, {
+  static Future<void> toast(
+    Widget content, {
     int seconds = 2,
     Alignment alignment = .bottomCenter,
     EdgeInsetsGeometry margin = const .all(16),
-    EdgeInsetsGeometry padding = const .symmetric(vertical: 8, horizontal: 16),})
-  {
-    final OverlayState? overlayState = MyRouter.delegate.navigatorKey.currentState?.overlay;
+    EdgeInsetsGeometry padding = const .symmetric(vertical: 8, horizontal: 16),
+  }) {
+    final OverlayState? overlayState =
+        MyRouter.delegate.navigatorKey.currentState?.overlay;
     if (overlayState == null) return SynchronousFuture(null);
     late _ToastWidget toastWidget;
     toastWidget = _ToastWidget(
@@ -116,21 +130,17 @@ abstract final class OverlayShow {
       completer: Completer(),
       overlayEntry: OverlayEntry(
         builder: (context) => SafeArea(
-          child: Align(
-            alignment: alignment,
-            child: toastWidget,
-          ),
+          child: Align(alignment: alignment, child: toastWidget),
         ),
       ),
       builder: (context) => Card(
         margin: margin,
         elevation: 2,
         color: Theme.of(context).colorScheme.secondaryContainer,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-        child: Padding(
-          padding: padding,
-          child: content,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
         ),
+        child: Padding(padding: padding, child: content),
       ),
     );
     _lastToastWidget?.remove();
@@ -140,7 +150,9 @@ abstract final class OverlayShow {
   }
 }
 
-class _ReorderableTiles<T> extends StatefulWidget { // todo debug: 這好像操作第一個排序時怪怪的
+class _ReorderableTiles<T> extends StatefulWidget {
+  // todo debug: 這好像操作第一個排序時怪怪的
+  final ScrollController scrollController;
   final List<T> initialItems;
   final ValueChanged<List<T>> onReorderFinished;
   final Widget Function(T item) itemBuilder;
@@ -148,6 +160,7 @@ class _ReorderableTiles<T> extends StatefulWidget { // todo debug: 這好像操�
 
   const _ReorderableTiles({
     super.key,
+    required this.scrollController,
     required this.initialItems,
     required this.onReorderFinished,
     required this.itemBuilder,
@@ -182,22 +195,21 @@ class _ReorderableTilesState<T> extends State<_ReorderableTiles<T>> {
   @override
   Widget build(context) {
     return ReorderableListView.builder(
+      scrollController: widget.scrollController,
       physics: const ClampingScrollPhysics(),
       shrinkWrap: true,
       itemCount: _items.length,
       padding: widget.padding,
       onReorderItem: _onReorderItem,
       buildDefaultDragHandles: false,
-      proxyDecorator: (child, index, animation) => Material(
-        elevation: 0,
-        color: Colors.transparent,
-        child: child,
-      ),
-      itemBuilder: (BuildContext context, index) => ReorderableDragStartListener(
-        key: ValueKey(index),
-        index: index,
-        child: widget.itemBuilder(_items[index]),
-      ),
+      proxyDecorator: (child, index, animation) =>
+          Material(elevation: 0, color: Colors.transparent, child: child),
+      itemBuilder: (BuildContext context, index) =>
+          ReorderableDragStartListener(
+            key: ValueKey(index),
+            index: index,
+            child: widget.itemBuilder(_items[index]),
+          ),
     );
   }
 }
@@ -224,14 +236,18 @@ class _ToastWidget extends StatefulWidget {
   State<StatefulWidget> createState() => _ToastState();
 }
 
-class _ToastState extends State<_ToastWidget> with SingleTickerProviderStateMixin {
+class _ToastState extends State<_ToastWidget>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _opacity;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
     _opacity = Tween<double>(begin: 0.0, end: 0.9).animate(_controller);
     _controller.forward();
     Future.delayed(Duration(seconds: widget.seconds), () {
@@ -249,9 +265,6 @@ class _ToastState extends State<_ToastWidget> with SingleTickerProviderStateMixi
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _opacity,
-      child: widget.builder(context),
-    );
+    return FadeTransition(opacity: _opacity, child: widget.builder(context));
   }
 }

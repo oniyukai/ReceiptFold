@@ -22,6 +22,12 @@ class MainSettingsView extends StatefulWidget {
 class _MainSettingsPageState extends State<MainSettingsView> {
   final ScrollController _scrollController = ScrollController();
 
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
+
   Future<void> _clearImageCache() async {
     try {
       final cache = DefaultCacheManager();

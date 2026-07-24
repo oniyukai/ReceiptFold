@@ -19,15 +19,16 @@ class Period {
   }
 
   Period.inv(String invQuery) : _iterationType = .inv {
-    int? year;
-    int? month;
+    int year = 0;
+    int month = 1;
     try {
       year = int.parse(invQuery.substring(0, 3));
       month = int.parse(invQuery.substring(3, 5));
     } catch (e) {
       debugPrint('$Period.inv: $e');
     }
-    _localTime = DateTime.utc((year ?? 0) + 1911, month ?? 1, 1, 8);
+    assert(month % 2 != 0);
+    _localTime = DateTime.utc(year + 1911, month, 1, -8);
   }
 
   /// 獲取該期别的開始日期 (該月1日)
@@ -54,7 +55,7 @@ class Period {
     );
   }
 
-  /// 當地年雙月描述, 如 "2025年 7月, 8月"
+  /// 當地年雙月描述, 如 "2025年 11月, 12月"
   String get localString {
     assert(_iterationType != .inv);
     final DateFormat yearFormatter = DateFormat.y(DictKey.languageTag);
@@ -86,7 +87,24 @@ class Period {
       taipeiTime.year,
       taipeiTime.month % 2 + taipeiTime.month - 1,
       1,
-      8,
+      -8,
+    );
+  }
+
+  /// 獲取該期别的台北時間結束日期 (該月1日)
+  DateTime get invEnd {
+    assert(_iterationType != .local);
+    final DateTime taipeiTime = _localTime.toUtc().add(
+      const Duration(hours: 8),
+    );
+    return DateTime.utc(
+      taipeiTime.year,
+      taipeiTime.month % 2 + taipeiTime.month + 1,
+      0,
+      15,
+      59,
+      59,
+      999,
     );
   }
 
@@ -99,7 +117,7 @@ class Period {
   /// 台北時間民國年雙月描述, 如 "113-05/06"
   String get invString {
     assert(_iterationType != .local);
-    final DateTime startTime = invStart;
+    final DateTime startTime = invStart.add(const Duration(hours: 8));
     final String startMonth = startTime.month.toString().padLeft(2, '0');
     final String endMonth = (startTime.month + 1).toString().padLeft(2, '0');
     return '${startTime.year - 1911}-$startMonth/$endMonth';
@@ -108,7 +126,7 @@ class Period {
   /// 台北時間民國年雙月描述, 如 "11305"
   String get invQuery {
     assert(_iterationType != .local);
-    final DateTime startTime = invStart;
+    final DateTime startTime = invStart.add(const Duration(hours: 8));
     return '${(startTime.year - 1911).toString().padLeft(3, '0')}${startTime.month.toString().padLeft(2, '0')}';
   }
 }

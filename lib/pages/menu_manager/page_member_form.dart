@@ -27,10 +27,17 @@ class PageMemberFormArgs {
 }
 
 class _PageMemberFormState extends State<PageMemberForm> {
+  final ScrollController _scrollController = ScrollController();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   late final PageMemberFormArgs? _args = widget.getArgs(context);
   late BarcodeFormat _format =
       _args?.items[_args.index].format ?? BarcodeFormat.code128;
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
 
   Future<void> _deleteItem() {
     assert(_args != null);
@@ -113,7 +120,9 @@ class _PageMemberFormState extends State<PageMemberForm> {
       ),
       body: SafeArea(
         child: Scrollbar(
+          controller: _scrollController,
           child: ListView(
+            controller: _scrollController,
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             children: [
               FormBuilder(

@@ -73,6 +73,7 @@ class _TabNumberViewState extends State<TabNumberView> {
             return Center(child: Text(_errorMessage!));
           }
           return ListView(
+            controller: _scrollController,
             padding: const EdgeInsets.all(8.0),
             children: [
               ListTilePicker<int>(

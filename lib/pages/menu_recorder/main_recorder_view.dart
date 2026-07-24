@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -9,8 +10,11 @@ import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
+import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
+import 'package:receipt_fold/pages/menu_recorder/page_search_form.dart';
 import 'package:receipt_fold/pages/widget/my_menu_button.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
 class MainRecorderView extends StatefulWidget {
   static const int _initialPageIndex = 1024;
@@ -136,11 +140,11 @@ class MainRecorderViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    super.dispose();
     for (final value in _periodDataCache.values) {
       value.dispose();
     }
     _periodDataCache.clear();
-    super.dispose();
   }
 }
 
@@ -153,7 +157,71 @@ class _MainRecorderViewState extends State<MainRecorderView> {
   @override
   void dispose() {
     super.dispose();
+    _scrollController.dispose();
     _pageController.dispose();
+  }
+
+  Future<void> _pressPrizeCheck(Period period) async {
+    period = .inv(
+      '${(period.start.year - 1911).toString().padLeft(3, '0')}${period.start.month.toString().padLeft(2, '0')}',
+    );
+    final receiptMap = await DriftServices.appDb.receiptDao
+        .queryStream(issuedStart: period.invStart, issuedEnd: period.invEnd)
+        .first;
+    if (receiptMap.isEmpty) {
+      Utils.showToast('本期沒有任何一筆交易紀錄');
+      return;
+    }
+    final searcher = InvoicePrizeSearcher();
+    final prizeAward = await searcher.getPrizeAward(period);
+    searcher.close();
+    if (prizeAward == null) Utils.showToast(DictKey.scannerManualNoData.s);
+    final updateReceiptMap = <Receipt, List<ReceiptProduct>>{};
+    int totReceipt = 0;
+    double prizeTotalAmount = 0;
+    for (final entry in receiptMap.entries) {
+      Receipt receipt = entry.key;
+      final prize = prizeAward?.checkAll(receipt.invoiceNumber);
+      if (prize != null && prize.amount > (receipt.prizeAmount ?? 0.0)) {
+        receipt = receipt.copyWith(
+          prizeAmount: Value.absentIfNull(prize.amount.toDouble()),
+          prizeName: Value.absentIfNull(Utils.noEmptyStr(prize.name)),
+        );
+        updateReceiptMap[receipt] = entry.value;
+      }
+      final prizeAmount = receipt.prizeAmount ?? 0.0;
+      if (prizeAmount > 0.0) {
+        totReceipt += 1;
+        prizeTotalAmount += prizeAmount;
+      }
+    }
+    await Future.wait(
+      updateReceiptMap.entries.map(
+        (e) => DriftServices.appDb.receiptDao.upsert(e.key, e.value),
+      ),
+    );
+    await OverlayShow.dialog(
+      context: context,
+      title: '對獎結果',
+      noCancelButton: true,
+      content: Column(
+        mainAxisSize: .min,
+        children: [
+          ListTile(
+            title: Text(period.invString),
+            subtitle: Text(DictKey.receiptHeaderIssuedPeriod.s),
+          ),
+          ListTile(
+            title: Text(Utils.amountToDescription(prizeTotalAmount)),
+            subtitle: Text('中獎總金額'),
+          ),
+          ListTile(
+            title: Text(Utils.amountToDescription(totReceipt)),
+            subtitle: Text('中獎張數'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -177,19 +245,14 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                 MyMenuButton(
                   items: [
                     MyMenuItem(
-                      text: DictKey.recorderMenuPrizeCheck.s,
-                      iconData: Icons.flip,
-                      onTap: () {}, // todo: 該期對獎功能
-                    ),
-                    MyMenuItem(
-                      text: DictKey.recorderMenuStatisticalAnalysis.s,
-                      iconData: Icons.bar_chart,
-                      onTap: () {}, // todo: 統計分析功能
-                    ),
-                    MyMenuItem(
                       text: DictKey.recorderMenuSearch.s,
                       iconData: Icons.search,
-                      onTap: () {}, // todo: 查詢功能
+                      onTap: () => MyRouter.routeTo(PageSearchForm),
+                    ),
+                    MyMenuItem(
+                      text: DictKey.recorderMenuPrizeCheck.s,
+                      iconData: Icons.flip,
+                      onTap: () => _pressPrizeCheck(currentPeriodData.period),
                     ),
                     MyMenuItem(
                       text: DictKey.recorderMenuReturnToday.s,
@@ -261,96 +324,61 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                         child: Scrollbar(
                           controller: _scrollController,
                           child: ListView(
+                            controller: _scrollController,
                             addAutomaticKeepAlives: false,
                             addRepaintBoundaries: false,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8.0,
                             ),
-                            controller: _scrollController,
                             children: [
-                              Card(
-                                child: Column(
-                                  children: [
-                                    ListTile(
-                                      minTileHeight: 0,
-                                      subtitle: Center(
-                                        child: Text(
-                                          Utils.multilingualFiller(
-                                            DictKey
-                                                .recorderMonthTransactionsAndAmount
-                                                .s,
-                                            [
-                                              (
-                                                StaticString.fillObjectMonth,
-                                                UnitUtils.singleMonthText(
-                                                  periodData.period.end,
-                                                ),
-                                              ),
-                                              (
-                                                StaticString.fillObjectNumber,
-                                                '${periodData.evenMonthReceiptMap.length}',
-                                              ),
-                                              (
-                                                StaticString.fillObjectAmount,
-                                                Utils.amountToDescription(
-                                                  periodData
-                                                      .evenMonthTotalAmount,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
+                              ReceiptListCard(
+                                text: Utils.multilingualFiller(
+                                  DictKey.recorderMonthTransactionsAndAmount.s,
+                                  [
+                                    (
+                                      StaticString.fillObjectMonth,
+                                      UnitUtils.singleMonthText(
+                                        periodData.period.end,
                                       ),
                                     ),
-                                    for (final e
-                                        in periodData
-                                            .evenMonthReceiptMap
-                                            .entries)
-                                      ReceiptItemTile(receiptEntry: e),
+                                    (
+                                      StaticString.fillObjectNumber,
+                                      '${periodData.evenMonthReceiptMap.length}',
+                                    ),
+                                    (
+                                      StaticString.fillObjectAmount,
+                                      Utils.amountToDescription(
+                                        periodData.evenMonthTotalAmount,
+                                      ),
+                                    ),
                                   ],
                                 ),
+                                receiptMap: periodData.evenMonthReceiptMap,
                               ),
-                              Card(
-                                child: Column(
-                                  children: [
-                                    ListTile(
-                                      minTileHeight: 0,
-                                      subtitle: Center(
-                                        child: Text(
-                                          Utils.multilingualFiller(
-                                            DictKey
-                                                .recorderMonthTransactionsAndAmount
-                                                .s,
-                                            [
-                                              (
-                                                StaticString.fillObjectMonth,
-                                                UnitUtils.singleMonthText(
-                                                  periodData.period.start,
-                                                ),
-                                              ),
-                                              (
-                                                StaticString.fillObjectNumber,
-                                                '${periodData.oddMonthReceiptMap.length}',
-                                              ),
-                                              (
-                                                StaticString.fillObjectAmount,
-                                                Utils.amountToDescription(
-                                                  periodData
-                                                      .oddMonthTotalAmount,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
+
+                              ReceiptListCard(
+                                text: Utils.multilingualFiller(
+                                  DictKey.recorderMonthTransactionsAndAmount.s,
+                                  [
+                                    (
+                                      StaticString.fillObjectMonth,
+                                      UnitUtils.singleMonthText(
+                                        periodData.period.start,
                                       ),
                                     ),
-                                    for (final e
-                                        in periodData
-                                            .oddMonthReceiptMap
-                                            .entries)
-                                      ReceiptItemTile(receiptEntry: e),
+                                    (
+                                      StaticString.fillObjectNumber,
+                                      '${periodData.oddMonthReceiptMap.length}',
+                                    ),
+                                    (
+                                      StaticString.fillObjectAmount,
+                                      Utils.amountToDescription(
+                                        periodData.oddMonthTotalAmount,
+                                      ),
+                                    ),
                                   ],
                                 ),
+                                receiptMap: periodData.oddMonthReceiptMap,
                               ),
                             ],
                           ),
@@ -368,76 +396,102 @@ class _MainRecorderViewState extends State<MainRecorderView> {
   }
 }
 
-class ReceiptItemTile extends StatelessWidget {
-  final MapEntry<Receipt, List<ReceiptProduct>> receiptEntry;
+class ReceiptListCard extends StatelessWidget {
+  final String text;
+  final Map<Receipt, List<ReceiptProduct>> receiptMap;
 
-  const ReceiptItemTile({super.key, required this.receiptEntry});
+  const ReceiptListCard({
+    super.key,
+    required this.text,
+    required this.receiptMap,
+  });
 
   @override
-  Widget build(context) {
-    final DateTime dateTime = receiptEntry.key.issuedAt;
-    final String shortWeekday = DateFormat.E(
-      DictKey.languageTag,
-    ).format(dateTime);
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    return ListTile(
-      visualDensity: VisualDensity.compact,
-      onTap: () => MyRouter.of<PageReceiptView>().toPass(
-        PageReceiptViewArgs(receiptEntry: receiptEntry),
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      leading: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
         children: [
-          Text(dateTime.day.toString(), style: textTheme.titleMedium),
-          Text(shortWeekday, style: textTheme.bodySmall),
-        ],
-      ),
-      title: Text(
-        receiptEntry.key.sellerName ?? receiptEntry.key.sellerAddress ?? '',
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Card(
-            color: colorScheme.surfaceContainerHigh,
-            elevation: 0,
-            margin: const EdgeInsets.all(0),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              child: Text(
-                receiptEntry.key.originStatus.locale,
-                style: TextStyle(
-                  color: colorScheme.onSurfaceVariant,
-                  fontSize: textTheme.bodySmall?.fontSize,
-                ),
+          ListTile(minTileHeight: 0.0, subtitle: Center(child: Text(text))),
+          ...receiptMap.entries.map((receiptEntry) {
+            final DateTime dateTime = receiptEntry.key.issuedAt;
+            final String shortWeekday = DateFormat.E(
+              DictKey.languageTag,
+            ).format(dateTime);
+            final textTheme = Theme.of(context).textTheme;
+            final colorScheme = Theme.of(context).colorScheme;
+            return ListTile(
+              visualDensity: VisualDensity.compact,
+              onTap: () => MyRouter.of<PageReceiptView>().toPass(
+                PageReceiptViewArgs(receiptEntry: receiptEntry),
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              receiptEntry.key.invoiceNumber ?? '',
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: textTheme.bodyMedium?.fontSize),
-            ),
-          ),
-        ],
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '\$${Utils.amountToDescription(receiptEntry.key.totalAmount)}',
-            style: textTheme.bodyLarge,
-          ),
-          if (receiptEntry.key.prizeName != null)
-            Text('${receiptEntry.key.prizeName}', style: textTheme.bodyMedium),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              leading: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(dateTime.day.toString(), style: textTheme.titleMedium),
+                  Text(shortWeekday, style: textTheme.bodySmall),
+                ],
+              ),
+              title: Text(
+                receiptEntry.key.sellerName ??
+                    receiptEntry.key.sellerAddress ??
+                    '',
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Card(
+                    color: colorScheme.surfaceContainerHigh,
+                    elevation: 0,
+                    margin: const EdgeInsets.all(0),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      child: Text(
+                        receiptEntry.key.originStatus.locale,
+                        style: TextStyle(
+                          color: colorScheme.onSurfaceVariant,
+                          fontSize: textTheme.bodySmall?.fontSize,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      receiptEntry.key.invoiceNumber ?? '',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: textTheme.bodyMedium?.fontSize,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              trailing: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '\$${Utils.amountToDescription(receiptEntry.key.totalAmount)}',
+                    style: textTheme.bodyLarge,
+                  ),
+                  if (receiptEntry.key.prizeName != null)
+                    Text(
+                      '${receiptEntry.key.prizeName}',
+                      style: textTheme.bodyMedium,
+                    ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
