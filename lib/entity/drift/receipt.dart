@@ -33,11 +33,11 @@ enum OriginStatus {
 
   int toJson() => sqlValue;
 
-  static final List<OriginStatus> _sorted = values.toList()..sort((a, b) => a.sqlValue.compareTo(b.sqlValue));
+  static final List<OriginStatus> sorted = List.unmodifiable(values.toList()..sort((a, b) => a.sqlValue.compareTo(b.sqlValue)));
 
   static final converter = BasicTypeConverter<OriginStatus, int>(
     toS: (fromR) => fromR.sqlValue,
-    toR: (fromS) => _sorted.lastWhereOrNull((status) => fromS >= status.sqlValue) ?? _sorted.first,
+    toR: (fromS) => sorted.lastWhereOrNull((status) => fromS >= status.sqlValue) ?? sorted.first,
   );
 }
 
@@ -99,27 +99,42 @@ class ReceiptDao extends SyncableDao {
   $DeletedUuidsTable get _deletedUuids => attachedDatabase.deletedUuids;
 
   Stream<Map<Receipt, List<ReceiptProduct>>> queryStream({
-    DateTime? issuedStart,
-    DateTime? issuedEnd,
-    OrderingMode order = .asc,})
+    DateTime? issuedAtStart,
+    DateTime? issuedAtEnd,
+    List<Expression<bool>> conditionals = const [],
+    int? limit,
+    int? offset,
+    OrderingMode order = .desc,})
   {
+    final uuidSubquery = _receipts.selectOnly(distinct: true)
+      ..addColumns([_receipts.uuid])
+      ..join([
+        leftOuterJoin(_products, _products.receiptUuid.equalsExp(_receipts.uuid)),
+      ]);
+    for (final conditional in [
+      if (issuedAtStart != null)
+        _receipts.issuedAt.isBiggerOrEqualValue(dateTimeConverter.toS(issuedAtStart)),
+      if (issuedAtEnd != null)
+        _receipts.issuedAt.isSmallerOrEqualValue(dateTimeConverter.toS(issuedAtEnd)),
+      ...conditionals,
+    ]) {
+      uuidSubquery.where(conditional);
+    }
+    uuidSubquery.orderBy([
+      OrderingTerm(expression: _receipts.issuedAt, mode: order),
+      OrderingTerm(expression: _receipts.uuid, mode: order),
+    ]);
+    if (limit != null) uuidSubquery.limit(limit, offset: offset);
     final statement = _receipts.select().join([
       leftOuterJoin(_products, _products.receiptUuid.equalsExp(_receipts.uuid)),
     ]);
-    if (issuedStart != null) {
-      statement.where(_receipts.issuedAt.isBiggerOrEqualValue(dateTimeConverter.toS(issuedStart)));
-    }
-    if (issuedEnd != null) {
-      statement.where(_receipts.issuedAt.isSmallerOrEqualValue(dateTimeConverter.toS(issuedEnd)));
-    }
+    statement.where(_receipts.uuid.isInQuery(uuidSubquery));
     statement.orderBy([
       OrderingTerm(expression: _receipts.issuedAt, mode: order),
       OrderingTerm(expression: _receipts.uuid, mode: order),
-      // 產品按照List index順序
       OrderingTerm(expression: _products.sequence, mode: .asc),
       OrderingTerm(expression: _products.uuid, mode: .asc),
     ]);
-
     return statement.watch().map((rows) {
       final groupedData = <Receipt, List<ReceiptProduct>>{};
       for (final row in rows) {
@@ -187,32 +202,21 @@ class ReceiptDao extends SyncableDao {
     };
 
     final uniquePairMap = pairMapToUnique(pairMap);
-    final oldPairMap = <Receipt, List<ReceiptProduct>>{};
-    await Future.wait(uniquePairMap.values.map((e) => e.key.invoiceNumber!).slices(chunkSize).map((chunk) {
-      final statement = _receipts.select().join([
-        leftOuterJoin(_products, _products.receiptUuid.equalsExp(_receipts.uuid)),
-      ])..orderBy([
-        OrderingTerm(expression: _receipts.issuedAt),
-        OrderingTerm(expression: _receipts.uuid),
-        OrderingTerm(expression: _products.sequence),
-        OrderingTerm(expression: _products.uuid),
-      ])..where(_receipts.invoiceNumber.isIn(chunk));
-      if (scopeStart != OriginStatus._sorted.first) {
-        statement.where(_receipts.originStatus.isBiggerOrEqualValue(scopeStart.sqlValue));
-      }
-      final endIndex = OriginStatus._sorted.indexOf(scopeEnd);
-      if (endIndex >= 0 && endIndex < OriginStatus._sorted.length - 1) { // 該算法是為了覆蓋到比 scopeEnd.sqlValue 大一點點的值也算是 scopeEnd 當中
-        statement.where(_receipts.originStatus.isSmallerThanValue(OriginStatus._sorted[endIndex + 1].sqlValue));
-      }
-      return statement.get().then((rows) {
-        for (final row in rows) {
-          final receipt = row.readTable(_receipts);
-          final product = row.readTableOrNull(_products);
-          final productList = oldPairMap.putIfAbsent(receipt, () => []);
-          if (product != null) productList.add(product);
-        }
-      });
-    }));
+    final endIndex = OriginStatus.sorted.indexOf(scopeEnd);
+    final oldPairMap = Map.fromEntries((
+        await Future.wait(
+          uniquePairMap.values.slices(chunkSize).map((chunk) => queryStream(
+            order: .asc,
+            conditionals: [
+              _receipts.invoiceNumber.isIn(chunk.map((e) => e.key.invoiceNumber!)),
+              if (scopeStart != OriginStatus.sorted.first)
+                _receipts.originStatus.isBiggerOrEqualValue(scopeStart.sqlValue),
+              if (scopeEnd != OriginStatus.sorted.last)
+                _receipts.originStatus.isSmallerThanValue(OriginStatus.sorted[endIndex + 1].sqlValue),
+            ],
+          ).first),
+        )
+    ).expand((map) => map.entries));
     final oldUniquePairMap = pairMapToUnique(oldPairMap);
 
     final productDelUuids = <String>[];
@@ -397,13 +401,13 @@ class ReceiptDao extends SyncableDao {
     final inSelfUuids = <String>{...selfReceiptMap.keys, ...selfProductMap.keys};
     final otherReceipts = Future.wait(otherReceiptUuids.slices(chunkSize)
         .map((chunk) => (otherDb.receipts.select()..where((tbl) => tbl.uuid.isIn(chunk))).get())
-    ).then((value) => value.expand((e) => e));
+    ).then((value) => value.expand((ls) => ls));
     final otherProducts = Future.wait(otherProductUuids.slices(chunkSize)
         .map((chunk) => (otherDb.receiptProducts.select()..where((tbl) => tbl.uuid.isIn(chunk))).get())
-    ).then((value) => value.expand((e) => e));
+    ).then((value) => value.expand((ls) => ls));
     final otherDeletedUuids = Future.wait(inSelfUuids.slices(chunkSize)
         .map((chunk) => (otherDb.deletedUuids.select()..where((tbl) => tbl.uuid.isIn(chunk))).get())
-    ).then((value) => value.expand((e) => e));
+    ).then((value) => value.expand((ls) => ls));
 
     await batch((batch) async {
       batch.insertAllOnConflictUpdate(_receipts, await otherReceipts);

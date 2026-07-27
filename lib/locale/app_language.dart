@@ -21,7 +21,8 @@ extension StaticString on DictKey {
     fillObjectOldBytes = '<fillObject.fillObjectOldBytes>',
     fillObjectNewBytes = '<fillObject.fillObjectNewBytes>',
     // Other
-    nullString = 'NULL<String>';
+    nullString = 'NULL<String>',
+    searchSplit = '||';
 }
 
 enum DictKey {
@@ -192,8 +193,8 @@ enum DictKey {
 
   // ===== Backup: 備份同步 =====
   backupTitle,
-  backupLocalAction,
-  backupLocalCopy,
+  backupDeviceAction,
+  backupDevicePushFile,
   backupPush,
   backupPull,
   backupPushForce,

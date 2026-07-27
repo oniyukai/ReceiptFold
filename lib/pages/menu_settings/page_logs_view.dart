@@ -15,7 +15,7 @@ abstract final class LogFileListener {
   static IOSink? _ioSink;
   static Timer? _flushTimer;
   static Future<void> _ioTask = Future.value();
-  static final List<String> _logQueue = [];
+  static final _logQueue = <String>[];
   static final Future<File> _file = () async {
     final Directory dir = await getApplicationSupportDirectory();
     final File file = File(p.join(dir.path, 'logs.txt'));
@@ -47,7 +47,9 @@ abstract final class LogFileListener {
     _flushTimer?.cancel();
     _flushTimer = Timer(const Duration(seconds: 2), () {
       if (_logQueue.isEmpty) return;
-      final String contents = _logQueue.join('\n').replaceAll(LogService.ansiRegex, '');
+      final String contents = _logQueue
+          .join('\n')
+          .replaceAll(LogService.ansiRegex, '');
       _logQueue.clear();
       _ioTask = _ioTask.then((_) async {
         final IOSink sink = await _getSink();

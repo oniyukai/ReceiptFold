@@ -108,7 +108,11 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
         context.readPrefs.get(.isAppDeveloperMode);
     return Scaffold(
       appBar: AppBar(
-        title: Text(_args == null ? DictKey.managerAddCarrier.s : DictKey.managerEditCarrier.s),
+        title: Text(
+          _args == null
+              ? DictKey.managerAddCarrier.s
+              : DictKey.managerEditCarrier.s,
+        ),
         actions: [
           if (_args != null && allowEdit)
             IconButton(
@@ -120,57 +124,53 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
         ],
       ),
       body: SafeArea(
-        child: Scrollbar(
-          controller: _scrollController,
-          child: ListView(
+        child: FormBuilder(
+          key: _formKey,
+          child: Scrollbar(
             controller: _scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            children: [
-              ListTile(
-                subtitle: Text(
-                  _args?.items[_args.index].status.locale ??
-                      CarrierStatus.manual.locale,
-                  overflow: TextOverflow.ellipsis,
+            child: ListView(
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+                ListTile(
+                  subtitle: Text(
+                    _args?.items[_args.index].status.locale ??
+                        CarrierStatus.manual.locale,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  title: Text(DictKey.managerCarrierStatus.s),
                 ),
-                title: Text(DictKey.managerCarrierStatus.s),
-              ),
-              FormBuilder(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    ListTile(minTileHeight: 0, subtitle: Text(DictKey.managerCarrierId2.s)),
-                    MyTextField(
-                      name: 'carrierId2',
-                      initialValue: _args?.items[_args.index].carrierId2,
-                      readOnly: _args != null,
-                    ),
-
-                    ListTile(minTileHeight: 0, subtitle: Text(DictKey.managerCarrierCustomName.s)),
-                    MyTextField(
-                      name: 'name',
-                      initialValue: _args?.items[_args.index].name,
-                      readOnly: !allowEdit,
-                    ),
-
-                    ListTile(minTileHeight: 0, subtitle: Text(DictKey.managerCarrierTypeCode.s)),
-                    MyTextField(
-                      name: 'carrierType',
-                      initialValue: _args?.items[_args.index].carrierType,
-                      required: false,
-                      readOnly: !allowEdit,
-                    ),
-
-                    ListTile(minTileHeight: 0, subtitle: Text(DictKey.managerCarrierTypeName.s)),
-                    MyTextField(
-                      name: 'carrierTypeName',
-                      initialValue: _args?.items[_args.index].carrierTypeName,
-                      required: false,
-                      readOnly: !allowEdit,
-                    ),
-                  ],
+                MyTextField(
+                  labelText: DictKey.managerCarrierId2.s,
+                  name: 'carrierId2',
+                  initialValue: _args?.items[_args.index].carrierId2,
+                  readOnly: _args != null,
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                MyTextField(
+                  labelText: DictKey.managerCarrierCustomName.s,
+                  name: 'name',
+                  initialValue: _args?.items[_args.index].name,
+                  readOnly: !allowEdit,
+                ),
+                const SizedBox(height: 16),
+                MyTextField(
+                  labelText: DictKey.managerCarrierTypeCode.s,
+                  name: 'carrierType',
+                  initialValue: _args?.items[_args.index].carrierType,
+                  required: false,
+                  readOnly: !allowEdit,
+                ),
+                const SizedBox(height: 16),
+                MyTextField(
+                  labelText: DictKey.managerCarrierTypeName.s,
+                  name: 'carrierTypeName',
+                  initialValue: _args?.items[_args.index].carrierTypeName,
+                  required: false,
+                  readOnly: !allowEdit,
+                ),
+              ],
+            ),
           ),
         ),
       ),

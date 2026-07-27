@@ -15,32 +15,30 @@ const int _maxItemLength = 6;
 
 Future<void> updateHomeScreenMember() async {
   if (!Platform.isAndroid && !Platform.isIOS) return;
-  final List<MemberBarcodeItem> memberItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.memberBarcodeList);
+  final List<MemberBarcodeItem> memberItems = await DriftServices
+      .appDb
+      .keyValueStoreDao
+      .getExistDefault(.memberBarcodeList);
   final itemLength = min(memberItems.length, _maxItemLength);
   await HomeWidget.saveWidgetData<int>(_homeWidgetMemberItemLength, itemLength);
   await HomeWidget.saveWidgetData<int>(_homeWidgetMemberItemIndex, -1);
-  for (int index=0; index<itemLength; index++) {
+  for (int index = 0; index < itemLength; index++) {
     await HomeWidget.renderFlutterWidget(
       GadgetBarcode(
         data: memberItems[index].code,
         format: memberItems[index].format,
-        name:  memberItems[index].name,
+        name: memberItems[index].name,
       ),
       key: 'HomeWidgetMemberItemBarcodes[$index]',
       logicalSize: const Size(500, 200),
     );
     await HomeWidget.renderFlutterWidget(
-      ImageBox(
-        item: memberItems[index],
-        needBorderRadius: false,
-      ),
+      ImageBox(item: memberItems[index], needBorderRadius: false),
       key: 'HomeWidgetMemberItemImages[$index]',
       logicalSize: const Size(100, 64),
     );
   }
-  await HomeWidget.updateWidget(
-    androidName: _androidName,
-  );
+  await HomeWidget.updateWidget(androidName: _androidName);
 }
 
 class GadgetMember extends StatefulWidget {
@@ -68,19 +66,20 @@ class _GadgetMemberState extends State<GadgetMember> {
         child: GadgetBarcode(
           data: widget.items[_memberItemIndex].code,
           format: widget.items[_memberItemIndex].format,
-          name:  widget.items[_memberItemIndex].name,
+          name: widget.items[_memberItemIndex].name,
         ),
       );
     } else {
       return Card(
-        child: SingleChildScrollView(
+        child: ListView(
           scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(min(widget.items.length, _maxItemLength), (index) => ImageBox(
+          children: List.generate(
+            min(widget.items.length, _maxItemLength),
+            (index) => ImageBox(
               item: widget.items[index],
               needBorderRadius: false,
               onTap: () => setState(() => _memberItemIndex = index),
-            )),
+            ),
           ),
         ),
       );

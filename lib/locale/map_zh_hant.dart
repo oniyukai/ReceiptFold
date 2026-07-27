@@ -61,11 +61,11 @@ const LocaleInstance mapZhHant = {
 
   // ===== Barcode: 錯誤驗證 =====
   .barcodeErrorEmptyFields: '輸入欄位不得為空白。',
-  .barcodeErrorNotNumber: '條碼只能由數字組成。',
-  .barcodeErrorWrongLength: '條碼要求的數字長度: ',
+  .barcodeErrorNotNumber: '只能由數字組成。',
+  .barcodeErrorWrongLength: '要求的數字長度: ',
   .barcodeErrorWrongCheckDigit: '最後一位數 (校驗碼) 應該是: ',
-  .barcodeErrorUnsupportedCharsIso88591: '此條碼類型不支援特殊字元，應在 ISO 8859-1 範圍內。',
-  .barcodeErrorUnsupportedCharsAscii: '此條碼類型不支援特殊字元，應在 ASCII 範圍內。',
+  .barcodeErrorUnsupportedCharsIso88591: '此類型不支援特殊字元，應在 ISO 8859-1 範圍內。',
+  .barcodeErrorUnsupportedCharsAscii: '此類型不支援特殊字元，應在 ASCII 範圍內。',
   .barcodeErrorRegexCode93:
       'Code 93 可編碼 26 個大寫字母、數字(0–9) 以及 7 個特殊字元 « -, ., space, \$, /, +, % »。',
   .barcodeErrorRegexCode39:
@@ -109,11 +109,11 @@ const LocaleInstance mapZhHant = {
 
   // ===== Origin: 發票來源狀態 =====
   .originStatusPlatformUnconfirmed: '平台 未確認',
-  .originStatusPlatformInvalidated: '平台 確認無效',
-  .originStatusPlatformDonated: '平台 確認捐贈',
-  .originStatusPlatformConfirmed: '平台 確認有效',
-  .originStatusPlatformConfirmedNotDonated: '平台 有效已開獎',
-  .originStatusPlatformExpired: '平台 過期或未知狀態',
+  .originStatusPlatformInvalidated: '平台 無效',
+  .originStatusPlatformDonated: '平台 捐贈',
+  .originStatusPlatformConfirmed: '平台 有效',
+  .originStatusPlatformConfirmedNotDonated: '平台 有效開獎',
+  .originStatusPlatformExpired: '平台 過期',
   .originStatusManualImport: '本地 匯入',
   .originStatusManualScan: '本地 掃描',
   .originStatusManualEntry: '本地 輸入',
@@ -173,8 +173,8 @@ const LocaleInstance mapZhHant = {
 
   // ===== Backup: 備份同步 =====
   .backupTitle: '備份與同步',
-  .backupLocalAction: '本地動作',
-  .backupLocalCopy: '另存新檔',
+  .backupDeviceAction: '本地動作',
+  .backupDevicePushFile: '另存新檔',
   .backupPush: '推送',
   .backupPull: '拉取',
   .backupPushForce: '強推送',

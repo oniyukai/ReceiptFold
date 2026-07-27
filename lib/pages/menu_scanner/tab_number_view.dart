@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/locale/app_language.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 
@@ -21,7 +21,7 @@ class TabNumberView extends StatefulWidget {
 class _TabNumberViewState extends State<TabNumberView> {
   final ScrollController _scrollController = ScrollController();
   late final StreamSubscription<Map<KVStoreKey, dynamic>> _kVStoreSubscription;
-  List<InvoicePrizeAward> _prizeAwardList = const [];
+  late List<InvoicePrizeAward> _prizeAwardList;
   bool _isLoading = true;
   String? _errorMessage;
   int _viewIndex = 0;
@@ -63,62 +63,60 @@ class _TabNumberViewState extends State<TabNumberView> {
 
   @override
   Widget build(context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (_errorMessage != null) {
+      return Center(child: Text(_errorMessage!));
+    }
     return Scrollbar(
       controller: _scrollController,
-      child: Builder(
-        builder: (context) {
-          if (_isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (_errorMessage != null) {
-            return Center(child: Text(_errorMessage!));
-          }
-          return ListView(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(8.0),
-            children: [
-              ListTilePicker<int>(
-                text: DictKey.scannerNumberBrowsePeriod.s,
-                iconData: Icons.calendar_month,
-                selectedOption: _viewIndex,
-                optionMap: Map.fromEntries(
-                  List.generate(
-                    _prizeAwardList.length,
-                    (index) => MapEntry(
-                      index,
-                      _prizeAwardList[index].period.invString,
-                    ),
-                  ),
-                ),
-                onChanged: (value) {
-                  setState(() => _viewIndex = value);
-                },
+      child: ListView(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(8.0),
+        children: [
+          ListTilePicker<int>(
+            text: DictKey.scannerNumberBrowsePeriod.s,
+            iconData: Icons.calendar_month,
+            selectedOption: _viewIndex,
+            optionMap: Map.fromEntries(
+              List.generate(
+                _prizeAwardList.length,
+                (index) =>
+                    MapEntry(index, _prizeAwardList[index].period.invString),
               ),
+            ),
+            onChanged: (value) {
+              setState(() => _viewIndex = value);
+            },
+          ),
 
-              if (_prizeAwardList.isNotEmpty)
-                DataTable(
-                  columns: [
-                    DataColumn(label: Text(DictKey.scannerNumberColumnPrize.s)),
-                    DataColumn(label: Text(DictKey.scannerNumberColumnAmount.s), numeric: true),
-                    DataColumn(label: Text(DictKey.scannerNumberColumnNumber.s), numeric: true),
-                  ],
-                  rows: [
-                    for (final prizes in _prizeAwardList[_viewIndex].prizes)
-                      DataRow(
-                        cells: [
-                          DataCell(Text(prizes.name)),
-                          DataCell(
-                            Text(Utils.amountToDescription(prizes.amount)),
-                          ),
-                          DataCell(Text(prizes.number)),
-                        ],
-                      ),
-                  ],
+          if (_prizeAwardList.isNotEmpty)
+            DataTable(
+              columns: [
+                DataColumn(label: Text(DictKey.scannerNumberColumnPrize.s)),
+                DataColumn(
+                  label: Text(DictKey.scannerNumberColumnAmount.s),
+                  numeric: true,
                 ),
+                DataColumn(
+                  label: Text(DictKey.scannerNumberColumnNumber.s),
+                  numeric: true,
+                ),
+              ],
+              rows: [
+                for (final prizes in _prizeAwardList[_viewIndex].prizes)
+                  DataRow(
+                    cells: [
+                      DataCell(Text(prizes.name)),
+                      DataCell(Text(Utils.amountToDescription(prizes.amount))),
+                      DataCell(Text(prizes.number)),
+                    ],
+                  ),
+              ],
+            ),
 
-              Text(DictKey.scannerNumberRule.s, textAlign: .center),
-            ],
-          );
-        },
+          Text(DictKey.scannerNumberRule.s, textAlign: .center),
+        ],
       ),
     );
   }

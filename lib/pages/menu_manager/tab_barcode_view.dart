@@ -348,7 +348,7 @@ class ImageBox extends StatelessWidget {
   Widget build(context) {
     final double width = 100;
     final double height = 64;
-    if (item.imageUrl == null || item.imageUrl == '') {
+    if (item.imageUrl == null || item.imageUrl!.isEmpty) {
       return nullNeedBuild
           ? SizedBox(
               width: width,
@@ -364,9 +364,7 @@ class ImageBox extends StatelessWidget {
                         ),
                   child: Center(
                     child: Text(
-                      (item.name == '')
-                          ? (item.code)
-                          : (item.name ?? item.code),
+                      Utils.noEmptyStr(item.code) ?? item.code,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

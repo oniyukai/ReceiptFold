@@ -8,11 +8,11 @@ import 'package:receipt_fold/entity/drift/receipt.dart';
 import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/pages/widget/barcode_field.dart';
-import 'package:receipt_fold/pages/widget/overlay_show.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
-class PageReceiptView extends StatefulWidget with RouterBridge<PageReceiptViewArgs> {
+class PageReceiptView extends StatefulWidget
+    with RouterBridge<PageReceiptViewArgs> {
   const PageReceiptView({super.key});
 
   @override
@@ -23,10 +23,7 @@ class PageReceiptViewArgs {
   final Period? period;
   final MapEntry<Receipt, List<ReceiptProduct>>? receiptEntry;
 
-  const PageReceiptViewArgs({
-    this.period,
-    this.receiptEntry,
-  });
+  const PageReceiptViewArgs({this.period, this.receiptEntry});
 
   bool get isAdd => _check(period != null);
 
@@ -35,7 +32,7 @@ class PageReceiptViewArgs {
   bool _check(bool value) {
     assert(
       (period == null) != (receiptEntry == null),
-      'PageReceiptViewArgs(period is ${period.runtimeType}, receiptEntry is ${receiptEntry.runtimeType}), 其中一個必須有，另一個必須為空.'
+      'PageReceiptViewArgs(period is ${period.runtimeType}, receiptEntry is ${receiptEntry.runtimeType}), 其中一個必須有，另一個必須為空.',
     );
     return value;
   }
@@ -45,16 +42,19 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   late final PageReceiptViewArgs _args = widget.getArgs(context)!;
-  late List<ReceiptProduct> _products = _args.receiptEntry?.value ?? [];
-  late Receipt _receipt = _args.receiptEntry?.key ?? Receipt(
-    issuedAt: _args.period!.start,
-    originStatus: .manualEntry,
-    totalAmount: 0.0,
-    modified: .now(),
-    uuid: UuidMixin.v7.generate(),
-  );
+  late var _products = _args.receiptEntry?.value ?? <ReceiptProduct>[];
+  late Receipt _receipt =
+      _args.receiptEntry?.key ??
+      Receipt(
+        issuedAt: _args.period!.start,
+        originStatus: .manualEntry,
+        totalAmount: 0.0,
+        modified: .now(),
+        uuid: UuidMixin.v7.generate(),
+      );
 
-  bool get _isCloudPlatform => _receipt.originStatus.sqlValue < OriginStatus.manualImport.sqlValue;
+  bool get _isCloudPlatform =>
+      _receipt.originStatus.sqlValue < OriginStatus.manualImport.sqlValue;
 
   @override
   void dispose() {
@@ -67,8 +67,8 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     required String titleText,
     required String? initialValue,
     bool openModifyAllTime = false,
-    required ValueChanged<String?> changed,})
-  {
+    required ValueChanged<String?> changed,
+  }) {
     const fieldName = 'normalStringField';
     final allowModify = openModifyAllTime ? true : !_isCloudPlatform;
 
@@ -76,8 +76,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       assert(allowModify);
       if (_formKey.currentState?.saveAndValidate() != true) return;
       Navigator.pop(context);
-      String? changedValue = _formKey.currentState!.value[fieldName];
-      if (changedValue == '') changedValue = null;
+      final String? changedValue = Utils.noEmptyStr(
+        _formKey.currentState!.value[fieldName],
+      );
       if (changedValue == initialValue) return;
       changed(changedValue);
       await _updateInDatabase();
@@ -91,14 +92,10 @@ class _PageReceiptViewState extends State<PageReceiptView> {
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back),
         ),
-        title: Text(
-          titleText,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        trailing: allowModify ? IconButton(
-          onPressed: checkModify,
-          icon: const Icon(Icons.check),
-        ) : null,
+        title: Text(titleText, style: Theme.of(context).textTheme.titleMedium),
+        trailing: allowModify
+            ? IconButton(onPressed: checkModify, icon: const Icon(Icons.check))
+            : null,
       ),
       content: Column(
         children: [
@@ -110,18 +107,20 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               icon: const Icon(Icons.copy),
             ),
           ),
-          if (allowModify) ListTile(
-            minTileHeight: 0,
-            subtitle: Text(DictKey.receiptViewModify.s),
-          ),
-          if (allowModify) FormBuilder(
-            key: _formKey,
-            child: BarcodeField(
-              initialValue: initialValue,
-              format: null,
-              name: fieldName,
+          if (allowModify)
+            ListTile(
+              minTileHeight: 0,
+              subtitle: Text(DictKey.receiptViewModify.s),
             ),
-          ),
+          if (allowModify)
+            FormBuilder(
+              key: _formKey,
+              child: MyTextField(
+                name: fieldName,
+                initialValue: initialValue,
+                required: false,
+              ),
+            ),
         ],
       ),
     );
@@ -165,16 +164,24 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     );
     Future<TimeOfDay?> timePicker() => showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: invoiceDateTime.hour, minute: invoiceDateTime.minute),
+      initialTime: TimeOfDay(
+        hour: invoiceDateTime.hour,
+        minute: invoiceDateTime.minute,
+      ),
     );
     final pickedDate = await datePicker();
     if (pickedDate == null) return;
     final pickedTime = await timePicker();
     if (pickedTime == null) return;
     final combinedDateTime = DateTime(
-      pickedDate.year, pickedDate.month, pickedDate.day,
-      pickedTime.hour, pickedTime.minute,
-      invoiceDateTime.second, invoiceDateTime.millisecond, invoiceDateTime.microsecond,
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+      invoiceDateTime.second,
+      invoiceDateTime.millisecond,
+      invoiceDateTime.microsecond,
     );
     if (combinedDateTime == invoiceDateTime) return;
     _receipt = _receipt.copyWith(issuedAt: combinedDateTime);
@@ -202,7 +209,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
             onPressed: () async {
               Navigator.pop(context);
               Navigator.pop(context);
-              _receipt = _receipt.copyWith(totalAmount: _receipt.totalAmount - product.amount);
+              _receipt = _receipt.copyWith(
+                totalAmount: _receipt.totalAmount - product.amount,
+              );
               _products.removeAt(index);
               await _updateInDatabase();
             },
@@ -213,35 +222,53 @@ class _PageReceiptViewState extends State<PageReceiptView> {
 
     Future<void> checkAddOrModify() async {
       if (_formKey.currentState?.saveAndValidate() != true) return;
-      final String itemDescription = _formKey.currentState!.value[descriptionName];
-      final String unitPriceString = _formKey.currentState!.value[unitPriceName];
+      final String itemDescription =
+          _formKey.currentState!.value[descriptionName];
+      final String unitPriceString =
+          _formKey.currentState!.value[unitPriceName];
       final String quantityString = _formKey.currentState!.value[quantityName];
       final double? unitPrice = double.tryParse(unitPriceString);
       final double? quantity = double.tryParse(quantityString);
-      if (unitPrice==null || quantity==null || itemDescription=='') return;
+      if (unitPrice == null || quantity == null || itemDescription.isEmpty) {
+        return;
+      }
       Navigator.pop(context);
-      if (unitPrice==product?.unitPrice && quantity==product?.quantity && itemDescription==product?.description) return;
-      final tempProduct = (product ?? ReceiptProduct(
-        modified: .now(),
-        uuid: UuidMixin.v7.generate(),
-        receiptUuid: _receipt.uuid,
-        sequence: _products.length + 1,
-        description: '',
-        unitPrice: 0.0,
-        quantity: 0.0,
-        amount: 0.0,
-      )).copyWith(
-        description: itemDescription,
-        unitPrice: unitPrice,
-        quantity: quantity,
-        amount: unitPrice * quantity,
-      );
+      if (unitPrice == product?.unitPrice &&
+          quantity == product?.quantity &&
+          itemDescription == product?.description) {
+        return;
+      }
+      final tempProduct =
+          (product ??
+                  ReceiptProduct(
+                    modified: .now(),
+                    uuid: UuidMixin.v7.generate(),
+                    receiptUuid: _receipt.uuid,
+                    sequence: _products.length + 1,
+                    description: '',
+                    unitPrice: 0.0,
+                    quantity: 0.0,
+                    amount: 0.0,
+                  ))
+              .copyWith(
+                description: itemDescription,
+                unitPrice: unitPrice,
+                quantity: quantity,
+                amount: unitPrice * quantity,
+              );
       if (index != null) {
-        _receipt = _receipt.copyWith(totalAmount: _receipt.totalAmount - _products[index].amount + tempProduct.amount);
+        _receipt = _receipt.copyWith(
+          totalAmount:
+              _receipt.totalAmount -
+              _products[index].amount +
+              tempProduct.amount,
+        );
         _products[index] = tempProduct;
       } else {
         _products.add(tempProduct);
-        _receipt = _receipt.copyWith(totalAmount: _receipt.totalAmount + tempProduct.amount);
+        _receipt = _receipt.copyWith(
+          totalAmount: _receipt.totalAmount + tempProduct.amount,
+        );
       }
       await _updateInDatabase();
     }
@@ -261,10 +288,11 @@ class _PageReceiptViewState extends State<PageReceiptView> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!isAddNotModify) IconButton(
-              onPressed: delete,
-              icon: const Icon(Icons.delete_forever),
-            ),
+            if (!isAddNotModify)
+              IconButton(
+                onPressed: delete,
+                icon: const Icon(Icons.delete_forever),
+              ),
             IconButton(
               onPressed: checkAddOrModify,
               icon: Icon(isAddNotModify ? Icons.add : Icons.check),
@@ -276,16 +304,18 @@ class _PageReceiptViewState extends State<PageReceiptView> {
         key: _formKey,
         child: Column(
           children: [
-            if (product != null) ListTile(
-              minTileHeight: 0,
-              subtitle: Text(DictKey.receiptViewOriginalContent.s),
-            ),
-            if (product != null) _ProductInfoRow(
-              description: product.description,
-              unitPrice: Utils.amountToDescription(product.unitPrice),
-              quantity: Utils.amountToDescription(product.quantity),
-              amount: Utils.amountToDescription(product.amount),
-            ),
+            if (product != null)
+              ListTile(
+                minTileHeight: 0,
+                subtitle: Text(DictKey.receiptViewOriginalContent.s),
+              ),
+            if (product != null)
+              _ProductInfoRow(
+                description: product.description,
+                unitPrice: Utils.amountToDescription(product.unitPrice),
+                quantity: Utils.amountToDescription(product.quantity),
+                amount: Utils.amountToDescription(product.amount),
+              ),
             ListTile(
               minTileHeight: 0,
               subtitle: Text(DictKey.receiptDetailItem.s),
@@ -339,7 +369,12 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   // 適用於特定狀態的前端接口 ---------- >
   // < ---------- 後方函式
   Future<void> _updateInDatabase() async {
-    if (_args.isEdit) _receipt = await DriftServices.appDb.receiptDao.upsert(_receipt, _products);
+    if (_args.isEdit) {
+      _receipt = await DriftServices.appDb.receiptDao.upsert(
+        _receipt,
+        _products,
+      );
+    }
     setState(() {});
   }
 
@@ -350,19 +385,22 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_args.isAdd
-            ? DictKey.receiptViewAddRecord.s
-            : DictKey.receiptViewRecord.s
+        title: Text(
+          _args.isAdd
+              ? DictKey.receiptViewAddRecord.s
+              : DictKey.receiptViewRecord.s,
         ),
         actions: [
-          if (_args.isEdit && !_isCloudPlatform) IconButton(
-            icon: const Icon(Icons.delete_forever),
-            onPressed: _deleteIconPressed,
-          ),
-          if (_args.isAdd) IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _checkIconPressed,
-          ),
+          if (_args.isEdit && !_isCloudPlatform)
+            IconButton(
+              icon: const Icon(Icons.delete_forever),
+              onPressed: _deleteIconPressed,
+            ),
+          if (_args.isAdd)
+            IconButton(
+              icon: const Icon(Icons.check),
+              onPressed: _checkIconPressed,
+            ),
         ],
       ),
       body: SafeArea(
@@ -378,12 +416,14 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 onTap: () => _normalStringTileModify(
                   titleText: DictKey.receiptHeaderSellerName.s,
                   initialValue: _receipt.sellerName,
-                  changed: (value) => _receipt = _receipt.copyWith(sellerName: Value(value)),
+                  changed: (value) =>
+                      _receipt = _receipt.copyWith(sellerName: Value(value)),
                 ),
               ),
               _ReceiptInfoTile(
                 titleText: UnitUtils.fullTimeText(_receipt.issuedAt),
-                subtitleText: '${DictKey.receiptHeaderIssuedPeriod.s} (${Period(_receipt.issuedAt).invString})',
+                subtitleText:
+                    '${DictKey.receiptHeaderIssuedPeriod.s} (${Period(_receipt.issuedAt).invString})',
                 onTap: _isCloudPlatform ? null : _selectDateTime,
               ),
               _RowExpandedTile(
@@ -393,7 +433,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   onTap: () => _normalStringTileModify(
                     titleText: DictKey.receiptHeaderInvoiceNumber.s,
                     initialValue: _receipt.invoiceNumber,
-                    changed: (value) => _receipt = _receipt.copyWith(invoiceNumber: Value(value)),
+                    changed: (value) => _receipt = _receipt.copyWith(
+                      invoiceNumber: Value(value),
+                    ),
                   ),
                 ),
                 secondWidget: _ReceiptInfoTile(
@@ -402,7 +444,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   onTap: () => _normalStringTileModify(
                     titleText: DictKey.receiptHeaderRandomNumber.s,
                     initialValue: _receipt.randomNumber,
-                    changed: (value) => _receipt = _receipt.copyWith(randomNumber: Value(value)),
+                    changed: (value) => _receipt = _receipt.copyWith(
+                      randomNumber: Value(value),
+                    ),
                   ),
                 ),
               ),
@@ -413,7 +457,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   onTap: () => _normalStringTileModify(
                     titleText: DictKey.receiptHeaderSellerAddress.s,
                     initialValue: _receipt.sellerAddress,
-                    changed: (value) => _receipt = _receipt.copyWith(sellerAddress: Value(value)),
+                    changed: (value) => _receipt = _receipt.copyWith(
+                      sellerAddress: Value(value),
+                    ),
                   ),
                 ),
                 secondWidget: _ReceiptInfoTile(
@@ -422,7 +468,8 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   onTap: () => _normalStringTileModify(
                     titleText: DictKey.receiptHeaderSellerTaxId.s,
                     initialValue: _receipt.sellerTaxId,
-                    changed: (value) => _receipt = _receipt.copyWith(sellerTaxId: Value(value)),
+                    changed: (value) =>
+                        _receipt = _receipt.copyWith(sellerTaxId: Value(value)),
                   ),
                 ),
               ),
@@ -434,7 +481,8 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                     titleText: DictKey.receiptHeaderUserNote.s,
                     initialValue: _receipt.userNote,
                     openModifyAllTime: true,
-                    changed: (value) => _receipt = _receipt.copyWith(userNote: Value(value)),
+                    changed: (value) =>
+                        _receipt = _receipt.copyWith(userNote: Value(value)),
                   ),
                 ),
                 secondWidget: _ReceiptInfoTile(
@@ -443,7 +491,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   onTap: () => _normalStringTileModify(
                     titleText: DictKey.receiptHeaderSellerRemark.s,
                     initialValue: _receipt.sellerRemark,
-                    changed: (value) => _receipt = _receipt.copyWith(sellerRemark: Value(value)),
+                    changed: (value) => _receipt = _receipt.copyWith(
+                      sellerRemark: Value(value),
+                    ),
                   ),
                 ),
               ),
@@ -453,7 +503,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   subtitleText: DictKey.receiptHeaderPrizeName.s,
                 ),
                 secondWidget: _ReceiptInfoTile(
-                  titleText: Utils.amountToDescription(_receipt.prizeAmount ?? 0),
+                  titleText: Utils.amountToDescription(
+                    _receipt.prizeAmount ?? 0,
+                  ),
                   subtitleText: DictKey.receiptHeaderPrizeAmount.s,
                 ),
               ),
@@ -465,7 +517,8 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   onTap: () => _normalStringTileModify(
                     titleText: DictKey.receiptHeaderCarrierName.s,
                     initialValue: _receipt.carrierName,
-                    changed: (value) => _receipt = _receipt.copyWith(carrierName: Value(value)),
+                    changed: (value) =>
+                        _receipt = _receipt.copyWith(carrierName: Value(value)),
                   ),
                 ),
                 secondWidget: _ReceiptInfoTile(
@@ -474,7 +527,8 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   onTap: () => _normalStringTileModify(
                     titleText: DictKey.receiptHeaderCarrierType.s,
                     initialValue: _receipt.carrierType,
-                    changed: (value) => _receipt = _receipt.copyWith(carrierType: Value(value)),
+                    changed: (value) =>
+                        _receipt = _receipt.copyWith(carrierType: Value(value)),
                   ),
                 ),
                 thirdWidget: _ReceiptInfoTile(
@@ -483,7 +537,8 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   onTap: () => _normalStringTileModify(
                     titleText: DictKey.receiptHeaderCarrierId2.s,
                     initialValue: _receipt.carrierId2,
-                    changed: (value) => _receipt = _receipt.copyWith(carrierId2: Value(value)),
+                    changed: (value) =>
+                        _receipt = _receipt.copyWith(carrierId2: Value(value)),
                   ),
                 ),
               ),
@@ -517,41 +572,48 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                       ...List.generate(_products.length, (index) {
                         final product = _products[index];
                         return _ProductInfoRow(
-                          onTap: _isCloudPlatform ? null : () => _productAddOrModify(index, product),
-                          onLongPress: () => Utils.copyText(product.description),
+                          onTap: _isCloudPlatform
+                              ? null
+                              : () => _productAddOrModify(index, product),
+                          onLongPress: () =>
+                              Utils.copyText(product.description),
                           description: product.description,
-                          unitPrice: Utils.amountToDescription(product.unitPrice),
+                          unitPrice: Utils.amountToDescription(
+                            product.unitPrice,
+                          ),
                           quantity: Utils.amountToDescription(product.quantity),
                           amount: Utils.amountToDescription(product.amount),
                         );
                       }),
-                      if (!_isCloudPlatform) Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          if (_products.length > 1) ElevatedButton(
-                            onPressed: _sortProducts,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.swap_vert),
-                                const SizedBox(width: 4),
-                                Text(DictKey.commonUiSort.s),
-                              ],
+                      if (!_isCloudPlatform)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            if (_products.length > 1)
+                              ElevatedButton(
+                                onPressed: _sortProducts,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.swap_vert),
+                                    const SizedBox(width: 4),
+                                    Text(DictKey.commonUiSort.s),
+                                  ],
+                                ),
+                              ),
+                            ElevatedButton(
+                              onPressed: _productAddOrModify,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.add),
+                                  const SizedBox(width: 4),
+                                  Text(DictKey.commonUiAdd.s),
+                                ],
+                              ),
                             ),
-                          ),
-                          ElevatedButton(
-                            onPressed: _productAddOrModify,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.add),
-                                const SizedBox(width: 4),
-                                Text(DictKey.commonUiAdd.s),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -570,7 +632,7 @@ class _RowExpandedTile extends StatelessWidget {
   final Widget? thirdWidget;
   final bool equal;
 
-  const _RowExpandedTile ({
+  const _RowExpandedTile({
     required this.firstWidget,
     this.secondWidget,
     this.thirdWidget,
@@ -582,18 +644,11 @@ class _RowExpandedTile extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          flex: equal ? 1 : 6,
-          child: firstWidget,
-        ),
-        if (secondWidget != null) Expanded(
-          flex: equal ? 1 : 4,
-          child: secondWidget!,
-        ),
-        if (thirdWidget != null) Expanded(
-          flex: equal ? 1 : 4,
-          child: thirdWidget!,
-        ),
+        Expanded(flex: equal ? 1 : 6, child: firstWidget),
+        if (secondWidget != null)
+          Expanded(flex: equal ? 1 : 4, child: secondWidget!),
+        if (thirdWidget != null)
+          Expanded(flex: equal ? 1 : 4, child: thirdWidget!),
       ],
     );
   }
@@ -628,14 +683,17 @@ class _ReceiptInfoTile extends StatelessWidget {
             titleText ?? StaticString.nullString,
             overflow: TextOverflow.ellipsis,
             style: textTheme.bodyLarge?.copyWith(
-              color: (titleText != null) ? null : textTheme.bodyLarge?.color?.withValues(alpha: 0.3),
+              color: (titleText != null)
+                  ? null
+                  : textTheme.bodyLarge?.color?.withValues(alpha: 0.3),
             ),
           ),
-          if (subtitleText != null) Text(
-            subtitleText!,
-            style: textTheme.bodySmall,
-            overflow: TextOverflow.ellipsis,
-          ),
+          if (subtitleText != null)
+            Text(
+              subtitleText!,
+              style: textTheme.bodySmall,
+              overflow: TextOverflow.ellipsis,
+            ),
         ],
       ),
       trailing: trailing,
@@ -672,13 +730,7 @@ class _ProductInfoRow extends StatelessWidget {
         padding: const EdgeInsets.all(2.0),
         child: Row(
           children: [
-            Expanded(
-              flex: 5,
-              child: Text(
-                description,
-                style: textStyle,
-              ),
-            ),
+            Expanded(flex: 5, child: Text(description, style: textStyle)),
             Expanded(
               flex: 1,
               child: Text(
@@ -689,19 +741,11 @@ class _ProductInfoRow extends StatelessWidget {
             ),
             Expanded(
               flex: 1,
-              child: Text(
-                quantity,
-                textAlign: TextAlign.end,
-                style: textStyle,
-              ),
+              child: Text(quantity, textAlign: TextAlign.end, style: textStyle),
             ),
             Expanded(
               flex: 2,
-              child: Text(
-                amount,
-                textAlign: TextAlign.end,
-                style: textStyle,
-              ),
+              child: Text(amount, textAlign: TextAlign.end, style: textStyle),
             ),
           ],
         ),

@@ -78,7 +78,7 @@ class MyRouteParser extends RouteInformationParser<MyRouteConfig> {
 }
 
 class MyRouterDelegate extends RouterDelegate<MyRouteConfig> with ChangeNotifier {
-  final List<MyRouteConfig> _stack = [];
+  final _stack = <MyRouteConfig>[];
 
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 

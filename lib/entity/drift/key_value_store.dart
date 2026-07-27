@@ -180,7 +180,7 @@ class KeyValueStoreDao extends SyncableDao {
     if (allowUpdateKeys.isEmpty) return;
     final otherKVStores = await Future.wait(allowUpdateKeys.slices(chunkSize)
         .map((chunk) => (otherDb.keyValueStores.select()..where((tbl) => tbl.key.isIn(chunk))).get())
-    ).then((value) => value.expand((e) => e));
+    ).then((value) => value.expand((ls) => ls));
     await batch((batch) {
       batch.insertAllOnConflictUpdate(_stores, otherKVStores.where((otherKVStore) {
         final modified = keyModifiedMap[otherKVStore.key];

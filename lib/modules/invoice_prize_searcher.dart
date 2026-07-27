@@ -58,7 +58,7 @@ class InvoicePrizeSearcher {
       if (!_matchSpecifiedTimeInterval(result.lastWebQueryTime)) return null;
     }
 
-    final List<InvoicePrize> prizes = [];
+    final prizes = <InvoicePrize>[];
     try {
       prizes.addAll(await _requestPrizeAward(invQuery));
     } on DioException catch (e) {
@@ -104,9 +104,8 @@ class InvoicePrizeSearcher {
     return differenceInMilliseconds >= targetDifferenceInMilliseconds;
   }
 
-  // https://invoice.etax.nat.gov.tw/invoice.xml 其實更好解析，但是最早只有 114年 05~06月
   Future<List<InvoicePrize>> _requestPrizeAward(String invQuery) async {
-    final List<InvoicePrize> prizes = [];
+    final prizes = <InvoicePrize>[];
     final String fullUrl =
         'https://www.etax.nat.gov.tw/etw-main/ETW183W2_$invQuery/';
     LogService('_requestPrizeAward...: $fullUrl', instance: this).d();

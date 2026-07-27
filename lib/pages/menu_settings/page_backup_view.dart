@@ -145,7 +145,7 @@ class _PageBackupViewState extends State<PageBackupView> {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _logScrollController = ScrollController();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
-  final List<String> _logs = [];
+  final _logs = <String>[];
   late final StreamSubscription<LogService> _logSubscription;
 
   @override
@@ -166,7 +166,7 @@ class _PageBackupViewState extends State<PageBackupView> {
     _logScrollController.dispose();
   }
 
-  Future<void> _pressLocalCopy() async {
+  Future<void> _pressDevicePushFile() async {
     final Directory? directory = await getDownloadsDirectory();
     final String? directoryPath = await FilePicker.getDirectoryPath(
       initialDirectory: directory?.path,
@@ -180,7 +180,7 @@ class _PageBackupViewState extends State<PageBackupView> {
     );
   }
 
-  Future<void> _pressLocalAction(DriftDispatcher action) async {
+  Future<void> _pressDeviceAction(DriftDispatcher action) async {
     final FilePickerResult? result = await FilePicker.pickFiles(
       type: .custom,
       allowedExtensions: const ['sqlite'],
@@ -189,11 +189,7 @@ class _PageBackupViewState extends State<PageBackupView> {
       Utils.showToast(DictKey.commonUiCancel.s);
       return;
     }
-    try {
-      await action.executeDevice(result.files.single.path!);
-    } catch (e) {
-      Utils.showToast(e.toString());
-    }
+    await action.executeDevice(result.files.single.path!);
   }
 
   Future<void> _pressSetWebDAV() async {
@@ -226,30 +222,22 @@ class _PageBackupViewState extends State<PageBackupView> {
       content: FormBuilder(
         key: _formKey,
         child: Column(
+          spacing: 16,
           children: [
-            ListTile(
-              minTileHeight: 0,
-              subtitle: Text(DictKey.backupUrlLabel.s),
-            ),
             MyTextField(
+              labelText: DictKey.backupUrlLabel.s,
               name: 'url',
               initialValue: account.url,
               required: false,
             ),
-            ListTile(
-              minTileHeight: 0,
-              subtitle: Text(DictKey.backupUserLabel.s),
-            ),
             MyTextField(
+              labelText: DictKey.backupUserLabel.s,
               name: 'user',
               initialValue: account.user,
               required: false,
             ),
-            ListTile(
-              minTileHeight: 0,
-              subtitle: Text(DictKey.backupPasswordLabel.s),
-            ),
             MyTextField(
+              labelText: DictKey.backupPasswordLabel.s,
               name: 'password',
               initialValue: account.password,
               type: .password,
@@ -280,35 +268,35 @@ class _PageBackupViewState extends State<PageBackupView> {
               ),
               ExpandableCard(
                 iconData: Icons.devices,
-                text: DictKey.backupLocalAction.s,
+                text: DictKey.backupDeviceAction.s,
                 initialExpanded: true,
                 expandedChild: Column(
                   children: [
                     ListTile(
                       leading: const Icon(Icons.upload),
-                      title: Text(DictKey.backupLocalCopy.s),
-                      onTap: _pressLocalCopy,
+                      title: Text(DictKey.backupDevicePushFile.s),
+                      onTap: _pressDevicePushFile,
                     ),
                     ListTile(
                       leading: const Icon(Icons.upload_outlined),
                       title: Text(DictKey.backupPush.s),
-                      onTap: () => _pressLocalAction(.push),
+                      onTap: () => _pressDeviceAction(.push),
                     ),
                     if (context.readPrefs.get(.isAppDeveloperMode))
                       ListTile(
                         leading: const Icon(Icons.download),
                         title: Text(DictKey.backupPullForce.s),
-                        onTap: () => _pressLocalAction(.pullForce),
+                        onTap: () => _pressDeviceAction(.pullForce),
                       ),
                     ListTile(
                       leading: const Icon(Icons.download_outlined),
                       title: Text(DictKey.backupPull.s),
-                      onTap: () => _pressLocalAction(.pull),
+                      onTap: () => _pressDeviceAction(.pull),
                     ),
                     ListTile(
                       leading: const Icon(Icons.sync),
                       title: Text(DictKey.backupSync.s),
-                      onTap: () => _pressLocalAction(.sync),
+                      onTap: () => _pressDeviceAction(.sync),
                     ),
                   ],
                 ),

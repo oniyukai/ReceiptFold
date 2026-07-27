@@ -101,38 +101,34 @@ class _PageMobileFormState extends State<PageMobileForm> {
         ],
       ),
       body: SafeArea(
-        child: Scrollbar(
-          controller: _scrollController,
-          child: ListView(
+        child: FormBuilder(
+          key: _formKey,
+          child: Scrollbar(
             controller: _scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            children: [
-              FormBuilder(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    ListTile(
-                      minTileHeight: 0,
-                      subtitle: Text(DictKey.managerCodeLabel.s),
-                    ),
-                    BarcodeField(
-                      format: BarcodeFormat.code39,
-                      name: 'code',
-                      initialValue: _args?.items[_args.index].code,
-                    ),
-                    ListTile(
-                      minTileHeight: 0,
-                      subtitle: Text(DictKey.managerNameLabel.s),
-                    ),
-                    BarcodeField(
-                      format: null,
-                      name: 'name',
-                      initialValue: _args?.items[_args.index].name,
-                    ),
-                  ],
+            child: ListView(
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              children: [
+                ListTile(
+                  minTileHeight: 0,
+                  subtitle: Text(DictKey.managerCodeLabel.s),
                 ),
-              ),
-            ],
+                BarcodeField(
+                  format: BarcodeFormat.code39,
+                  name: 'code',
+                  initialValue: _args?.items[_args.index].code,
+                ),
+                ListTile(
+                  minTileHeight: 0,
+                  subtitle: Text(DictKey.managerNameLabel.s),
+                ),
+                BarcodeField(
+                  format: null,
+                  name: 'name',
+                  initialValue: _args?.items[_args.index].name,
+                ),
+              ],
+            ),
           ),
         ),
       ),

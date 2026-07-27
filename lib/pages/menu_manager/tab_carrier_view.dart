@@ -19,7 +19,7 @@ class TabCarrierView extends StatefulWidget {
 class _TabCarrierViewState extends State<TabCarrierView> {
   final ScrollController _scrollController = ScrollController();
   late final StreamSubscription<Map<KVStoreKey, dynamic>> _kVStoreSubscription;
-  List<InvoiceCarrier> _carrierList = const [];
+  late List<InvoiceCarrier> _carrierList;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -62,53 +62,47 @@ class _TabCarrierViewState extends State<TabCarrierView> {
 
   @override
   Widget build(context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (_errorMessage != null) {
+      return Center(child: Text(_errorMessage!));
+    }
     return Scrollbar(
       controller: _scrollController,
-      child: Builder(
-        builder: (context) {
-          if (_isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (_errorMessage != null) {
-            return Center(child: Text(_errorMessage!));
-          }
-          return ListView(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(8.0),
-            children: [
-              ListTile(
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_carrierList.length > 1)
-                      IconButton(
-                        padding: const EdgeInsets.all(0),
-                        visualDensity: VisualDensity.compact,
-                        onPressed: _sortCarrierList,
-                        icon: const Icon(Icons.swap_vert),
-                      ),
-                    IconButton(
-                      padding: const EdgeInsets.all(0),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => MyRouter.routeTo(PageCarrierForm),
-                      icon: const Icon(Icons.add),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                children: List.generate(
-                  _carrierList.length,
-                  (index) => CarrierCard(
-                    carrier: _carrierList[index],
-                    onTap: () => MyRouter.of<PageCarrierForm>().toPass(
-                      PageCarrierFormArgs(index: index, items: _carrierList),
-                    ),
+      child: ListView(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(8.0),
+        children: [
+          ListTile(
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_carrierList.length > 1)
+                  IconButton(
+                    padding: const EdgeInsets.all(0),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: _sortCarrierList,
+                    icon: const Icon(Icons.swap_vert),
                   ),
+                IconButton(
+                  padding: const EdgeInsets.all(0),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => MyRouter.routeTo(PageCarrierForm),
+                  icon: const Icon(Icons.add),
                 ),
+              ],
+            ),
+          ),
+          ...List.generate(
+            _carrierList.length,
+            (index) => CarrierCard(
+              carrier: _carrierList[index],
+              onTap: () => MyRouter.of<PageCarrierForm>().toPass(
+                PageCarrierFormArgs(index: index, items: _carrierList),
               ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -24,6 +24,8 @@ enum FieldType {
 class MyTextField extends StatefulWidget {
   final String name;
   final String? initialValue;
+  final String? labelText;
+  final IconData? prefixIconData;
   final FieldType type;
   final bool required;
   final bool readOnly;
@@ -32,6 +34,8 @@ class MyTextField extends StatefulWidget {
     super.key,
     required this.name,
     this.initialValue,
+    this.labelText,
+    this.prefixIconData,
     this.type = .text,
     this.required = true,
     this.readOnly = false,
@@ -55,24 +59,38 @@ class _MyTextFieldState extends State<MyTextField> {
     return FormBuilderTextField(
       name: widget.name,
       maxLines: 1,
+      autovalidateMode: .onUserInteraction,
       initialValue: widget.initialValue,
       obscureText: textHidden,
       readOnly: widget.readOnly,
       decoration: InputDecoration(
-        prefixIcon: Icon(widget.type.iconData),
-        labelText: widget.type.labelText,
+        prefixIcon: Icon(widget.prefixIconData ?? widget.type.iconData),
+        labelText: widget.labelText ?? widget.type.labelText,
         errorMaxLines: 8,
-        suffixIcon: widget.type.isObscure ? IconButton(
-          onPressed: () {
-            setState(() => textHidden = !textHidden);
-          },
-          icon: Icon(textHidden ? Icons.visibility_off_rounded : Icons.visibility_rounded),
-        ) : null,
+        suffixIcon: widget.type.isObscure
+            ? IconButton(
+                onPressed: () {
+                  setState(() => textHidden = !textHidden);
+                },
+                icon: Icon(
+                  textHidden
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
+                ),
+              )
+            : null,
       ),
       keyboardType: widget.type.inputType,
       validator: FormBuilderValidators.compose([
-        if (widget.required) FormBuilderValidators.required(errorText: DictKey.barcodeErrorEmptyFields.s),
-        if (widget.type == .number) FormBuilderValidators.numeric(errorText: DictKey.barcodeErrorNotNumber.s, checkNullOrEmpty: false),
+        if (widget.required)
+          FormBuilderValidators.required(
+            errorText: DictKey.barcodeErrorEmptyFields.s,
+          ),
+        if (widget.type == .number)
+          FormBuilderValidators.numeric(
+            errorText: DictKey.barcodeErrorNotNumber.s,
+            checkNullOrEmpty: false,
+          ),
       ]),
     );
   }

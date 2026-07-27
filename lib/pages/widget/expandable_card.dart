@@ -85,10 +85,12 @@ class _ExpandableCardState extends State<ExpandableCard>
             ),
           SizeTransition(
             sizeFactor: _expandAnimation,
-            child: (widget.expandedChild == null) ? null : Padding(
-              padding: const .fromLTRB(16.0, 4.0, 16.0, 16.0),
-              child: widget.expandedChild,
-            ),
+            child: (widget.expandedChild == null)
+                ? null
+                : Padding(
+                    padding: const .fromLTRB(16.0, 4.0, 16.0, 16.0),
+                    child: widget.expandedChild,
+                  ),
           ),
         ],
       ),

@@ -120,15 +120,14 @@ class ListTilePicker<T> extends StatelessWidget {
         OverlayShow.dialog(
           context: context,
           title: dialogText ?? text,
-          content: Scrollbar(
-            controller: scrollController,
-            child: SingleChildScrollView(
+          content: RadioGroup<T>(
+            groupValue: selectedOption,
+            onChanged: (value) => _onChanged(context, value),
+            child: Scrollbar(
               controller: scrollController,
-              child: RadioGroup<T>(
-                groupValue: selectedOption,
-                onChanged: (value) => _onChanged(context, value),
+              child: SingleChildScrollView(
+                controller: scrollController,
                 child: Column(
-                  mainAxisSize: .min,
                   children: [
                     for (final T value in optionMap.keys)
                       ListTile(

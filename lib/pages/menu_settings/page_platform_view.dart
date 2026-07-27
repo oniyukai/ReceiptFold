@@ -1,16 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/utils.dart';
-import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
+import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/modules/invoice_platform_api.dart';
-import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/modules/log_service.dart';
 import 'package:receipt_fold/modules/secure_prefs.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
@@ -33,7 +34,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
   final InAppWebViewKeepAlive _inAppWebViewKeepAlive = InAppWebViewKeepAlive();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   final ValueNotifier<bool> _singleActionLocked = ValueNotifier(false);
-  final List<String> _logs = [];
+  final _logs = <String>[];
   late final StreamSubscription<LogService> _logSubscription;
 
   bool get _apiReady => _api.isInitialized;
@@ -103,15 +104,16 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       content: FormBuilder(
         key: _formKey,
         child: Column(
+          spacing: 16,
           children: [
-            ListTile(minTileHeight: 0, subtitle: Text(DictKey.platformPhoneLabel.s)),
             MyTextField(
+              labelText: DictKey.platformPhoneLabel.s,
               name: 'phone',
               initialValue: account.phone,
               required: false,
             ),
-            ListTile(minTileHeight: 0, subtitle: Text(DictKey.platformPasswordLabel.s)),
             MyTextField(
+              labelText: DictKey.platformPasswordLabel.s,
               name: 'password',
               initialValue: account.password,
               type: .password,
@@ -129,7 +131,11 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     try {
       await _api.fillLoginForm(account.phone, account.password);
     } catch (e) {
-      LogService('fillLoginForm exception.', errorObject: e, instance: _api).w();
+      LogService(
+        'fillLoginForm exception.',
+        errorObject: e,
+        instance: _api,
+      ).w();
     }
   }
 
@@ -174,9 +180,13 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     try {
       final List<InvoiceCarrier> carriers = await _api.fetchCarrierList();
       final carriersMap = <String, InvoiceCarrier>{
-        for (final InvoiceCarrier carrier in carriers) carrier.carrierId2: carrier,
+        for (final InvoiceCarrier carrier in carriers)
+          carrier.carrierId2: carrier,
       };
-      final List<InvoiceCarrier> oldCarriers = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.invoiceCarrierList);
+      final List<InvoiceCarrier> oldCarriers = await DriftServices
+          .appDb
+          .keyValueStoreDao
+          .getExistDefault(.invoiceCarrierList);
       for (final InvoiceCarrier oldCarrier in oldCarriers) {
         final InvoiceCarrier? carrier = carriersMap[oldCarrier.carrierId2];
         if (carrier != null) {
@@ -184,7 +194,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
             ..name = carrier.name
             ..status = carrier.status
             ..carrierType = carrier.carrierType ?? oldCarrier.carrierType
-            ..carrierTypeName = carrier.carrierTypeName ?? oldCarrier.carrierTypeName
+            ..carrierTypeName =
+                carrier.carrierTypeName ?? oldCarrier.carrierTypeName
             ..fetchJson = carrier.fetchJson ?? oldCarrier.fetchJson;
           carriersMap.remove(oldCarrier.carrierId2);
         } else if (oldCarrier.status == .platform) {
@@ -198,7 +209,11 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       LogService('🟢 _pressFetchCarrierList finished.', instance: this).d();
       return true;
     } catch (e) {
-      LogService('_pressFetchCarrierList failed.', errorObject: e, instance: this).e();
+      LogService(
+        '_pressFetchCarrierList failed.',
+        errorObject: e,
+        instance: this,
+      ).e();
       return false;
     } finally {
       _singleActionLocked.value = false;
@@ -221,7 +236,11 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       LogService('🟢 _pressFetchAwardList finished.', instance: this).d();
       return true;
     } catch (e) {
-      LogService('_pressFetchAwardList failed.', errorObject: e, instance: this).e();
+      LogService(
+        '_pressFetchAwardList failed.',
+        errorObject: e,
+        instance: this,
+      ).e();
       return false;
     } finally {
       _singleActionLocked.value = false;
@@ -237,14 +256,20 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     _singleActionLocked.value = true;
     try {
       await DriftServices.appDb.receiptDao.upsertMany(
-        pairMap: await _api.fetchInvoiceList(context.readPrefs.get(.invoiceQueryMonths)),
+        pairMap: await _api.fetchInvoiceList(
+          context.readPrefs.get(.invoiceQueryMonths),
+        ),
         scopeStart: .platformUnconfirmed,
         scopeEnd: .platformExpired,
       );
       LogService('🟢 _pressFetchInvoiceList finished.', instance: this).d();
       return true;
     } catch (e) {
-      LogService('_pressFetchInvoiceList failed.', errorObject: e, instance: this).e();
+      LogService(
+        '_pressFetchInvoiceList failed.',
+        errorObject: e,
+        instance: this,
+      ).e();
       return false;
     } finally {
       _singleActionLocked.value = false;
@@ -264,7 +289,9 @@ class _PagePlatformViewState extends State<PagePlatformView> {
             children: [
               ValueListenableBuilder(
                 valueListenable: _singleActionLocked,
-                builder: (context, value, child) => value ? const LinearProgressIndicator() : const SizedBox.shrink(),
+                builder: (context, value, child) => value
+                    ? const LinearProgressIndicator()
+                    : const SizedBox.shrink(),
               ),
               ExpandableCard(
                 iconData: Icons.play_circle_outline,
@@ -285,13 +312,27 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                     ListTilePicker<int>(
                       iconData: Icons.calendar_month,
                       text: DictKey.platformQueryMonths.s,
-                      selectedOption: context.readPrefs.get(.invoiceQueryMonths),
-                      optionMap: Map.fromEntries(List.generate(8, (i) => MapEntry(i + 1, Utils.multilingualFiller(
-                        DictKey.platformQueryMonthsOption.s,
-                        [(StaticString.fillObjectMonths, '${i + 1}')]
-                      )))),
+                      selectedOption: context.readPrefs.get(
+                        .invoiceQueryMonths,
+                      ),
+                      optionMap: Map.fromEntries(
+                        List.generate(
+                          8,
+                          (i) => MapEntry(
+                            i + 1,
+                            Utils.multilingualFiller(
+                              DictKey.platformQueryMonthsOption.s,
+                              [(StaticString.fillObjectMonths, '${i + 1}')],
+                            ),
+                          ),
+                        ),
+                      ),
                       onChanged: (value) async {
-                        await context.readPrefs.update(.invoiceQueryMonths, value, false);
+                        await context.readPrefs.update(
+                          .invoiceQueryMonths,
+                          value,
+                          false,
+                        );
                         setState(() {});
                       },
                     ),
@@ -363,7 +404,9 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                   child: InAppWebView(
                     keepAlive: _inAppWebViewKeepAlive,
                     initialUrlRequest: URLRequest(
-                      url: WebUri('https://www.einvoice.nat.gov.tw/accounts/login/mw'),
+                      url: WebUri(
+                        'https://www.einvoice.nat.gov.tw/accounts/login/mw',
+                      ),
                     ),
                     onWebViewCreated: (controller) {
                       setState(() => _api.controller = controller);

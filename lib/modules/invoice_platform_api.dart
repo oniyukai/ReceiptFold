@@ -38,7 +38,7 @@ class InvoicePlatformApi {
   }
 
   Future<String> _fetch({required String url, Map<String, String?> headers = const {}, dynamic body,}) {
-    if (_controller == null) throw Exception('InAppWebViewController 尚未被附值');
+    if (_controller == null) throw Exception('$this: InAppWebViewController 尚未被附值');
     return _controller!.callAsyncJavaScript(
       functionBody: '''
         const response = await fetch(url, {

@@ -188,7 +188,7 @@ class WebDAVAdapter extends TransportAdapter {
       LogService('$remotePath not found.', errorObject: e, instance: this).d();
       return null;
     }
-    if (remoteFile.isDir == true) throw Exception('$this.download: ${remoteFile.path} cannot be directory.');
+    if (remoteFile.isDir == true) throw Exception('$this: ${remoteFile.path} cannot be directory.');
     final Directory tempDir = await getTemporaryDirectory();
     final File downloadFile = File(p.join(tempDir.path, 'WebDAV_download_${UnitUtils.unixRadix36}.tmp'));
     try {
