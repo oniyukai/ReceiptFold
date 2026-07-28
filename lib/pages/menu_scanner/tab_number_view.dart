@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
@@ -79,10 +80,9 @@ class _TabNumberViewState extends State<TabNumberView> {
             iconData: Icons.calendar_month,
             selectedOption: _viewIndex,
             optionMap: Map.fromEntries(
-              List.generate(
-                _prizeAwardList.length,
-                (index) =>
-                    MapEntry(index, _prizeAwardList[index].period.invString),
+              _prizeAwardList.mapIndexed(
+                (index, prizeAward) =>
+                    MapEntry(index, prizeAward.period.invString),
               ),
             ),
             onChanged: (value) {
@@ -115,7 +115,7 @@ class _TabNumberViewState extends State<TabNumberView> {
               ],
             ),
 
-          Text(DictKey.scannerNumberRule.s, textAlign: .center),
+          Text(DictKey.scannerNumberRule.s, textAlign: TextAlign.center),
         ],
       ),
     );

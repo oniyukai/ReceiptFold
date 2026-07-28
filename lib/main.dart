@@ -15,7 +15,7 @@ import 'package:watashi_locale/watashi_locale.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setEnabledSystemUIMode(.edgeToEdge);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(MyAppTheme.systemOverlayStyle);
   await Future.wait([PrefsProvider.init()]);
   runApp(
@@ -23,7 +23,11 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => MenuNavBarProvider()),
         ChangeNotifierProvider(create: (_) => PrefsProvider()),
-        Provider(create: (_) => MyDriftDatabase(), lazy: false, dispose: (_, db) => db.close()),
+        Provider(
+          create: (_) => MyDriftDatabase(),
+          lazy: false,
+          dispose: (_, db) => db.close(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -50,14 +54,20 @@ class _MyAppState extends State<MyApp> {
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
         return ListenableBuilder(
-          listenable: context.readPrefs.listens(const [.selectedColor, .selectedTheme, .selectedLanguage]),
+          listenable: context.readPrefs.listens(const [
+            .selectedColor,
+            .selectedTheme,
+            .selectedLanguage,
+          ]),
           builder: (context, child) {
             return MaterialApp.router(
               title: StaticString.appName,
               theme: MyAppTheme.themeData(context, lightDynamic, darkDynamic),
               debugShowCheckedModeBanner: false,
 
-              locale: context.readPrefs.get<LocaleOption>(.selectedLanguage).locale,
+              locale: context.readPrefs
+                  .get<LocaleOption>(.selectedLanguage)
+                  .locale,
               localizationsDelegates: WatashiLocale.getDelegates(),
               supportedLocales: WatashiLocale.supportedLocales,
 

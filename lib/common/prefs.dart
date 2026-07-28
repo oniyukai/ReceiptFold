@@ -20,18 +20,25 @@ class PrefDef<RUN extends Object, STO extends Object> {
 
   PrefDef._(
     ValueGetter<RUN> defaultValue, [
-      STO Function(RUN fromRUN)? toSTO,
-      RUN? Function(STO fromSTO)? toRUN,])
-    : _defaultValue = defaultValue {
-    assert(const [bool, int, double, String, List<String>].contains(STO), 'STO<${STO.runtimeType}> unsupported.');
-    assert(RUN == STO || toSTO != null && toRUN != null, 'When <$RUN>!=<$STO>: toSTO_ & toRUN_ are required.');
+    STO Function(RUN fromRUN)? toSTO,
+    RUN? Function(STO fromSTO)? toRUN,
+  ]) : _defaultValue = defaultValue {
+    assert(
+      const [bool, int, double, String, List<String>].contains(STO),
+      'STO<${STO.runtimeType}> unsupported.',
+    );
+    assert(
+      RUN == STO || toSTO != null && toRUN != null,
+      'When <$RUN>!=<$STO>: toSTO_ & toRUN_ are required.',
+    );
     _toSTO = toSTO ?? (fromRUN) => fromRUN as STO;
     _toRUN = toRUN != null
         ? (fromSTO) => toRUN(fromSTO) ?? defaultValue()
         : (fromSTO) => fromSTO as RUN;
   }
 
-  static PrefDef<T, T> _same<T extends Object>(T defaultValue) => PrefDef<T, T>._(() => defaultValue);
+  static PrefDef<T, T> _same<T extends Object>(T defaultValue) =>
+      PrefDef<T, T>._(() => defaultValue);
 }
 
 enum PrefsEnum {
@@ -46,8 +53,7 @@ enum PrefsEnum {
   isShowScreenRotation,
   isAutoWebDAVSync,
 
-  invoiceQueryMonths,
-  ;
+  invoiceQueryMonths;
 
   static final _prefDefCache = <PrefsEnum, PrefDef>{};
 
@@ -56,19 +62,19 @@ enum PrefsEnum {
       isAgreedAllTerms => PrefDef._same(false),
       isAppDeveloperMode => PrefDef._same(kDebugMode),
       selectedColor => PrefDef<ColorOption, String>._(
-          () => .sys,
-          (fromRUN) => fromRUN.name,
-          ColorOption.values.fromName,
+        () => ColorOption.sys,
+        (fromRUN) => fromRUN.name,
+        ColorOption.values.fromName,
       ),
       selectedTheme => PrefDef<ThemeOption, String>._(
-          () => .sys,
-          (fromRUN) => fromRUN.name,
-          ThemeOption.values.fromName,
+        () => ThemeOption.sys,
+        (fromRUN) => fromRUN.name,
+        ThemeOption.values.fromName,
       ),
       selectedLanguage => PrefDef<LocaleOption, String>._(
-          () => .sys,
-          (fromRUN) => fromRUN.name,
-          LocaleOption.values.fromName,
+        () => LocaleOption.sys,
+        (fromRUN) => fromRUN.name,
+        LocaleOption.values.fromName,
       ),
       isAutoBrightness => PrefDef._same(false),
       isScanScreenRotation => PrefDef._same(false),
@@ -85,7 +91,9 @@ enum PrefsEnum {
   T get<T>() {
     final prefDef = _getPrefDef;
     final fromSTO = PrefsProvider._instance.get(name);
-    if (prefDef.isSTO(fromSTO) && fromSTO != null) return prefDef.toRUN(fromSTO) as T;
+    if (prefDef.isSTO(fromSTO) && fromSTO != null) {
+      return prefDef.toRUN(fromSTO) as T;
+    }
     return prefDef.defaultValue as T;
   }
 }
@@ -109,7 +117,9 @@ class PrefsProvider extends ChangeNotifier {
 
   static Future<void> init() async {
     _instance = await SharedPreferencesWithCache.create(
-      cacheOptions: SharedPreferencesWithCacheOptions(allowList: PrefsEnum.values.map((e) => e.name).toSet()),
+      cacheOptions: SharedPreferencesWithCacheOptions(
+        allowList: PrefsEnum.values.map((e) => e.name).toSet(),
+      ),
     );
   }
 
@@ -125,9 +135,11 @@ class PrefsProvider extends ChangeNotifier {
     }
   }
 
-  Listenable listens(Iterable<PrefsEnum> keys) => Listenable.merge(keys.map((e) => _prefsNotifierMap[e]));
+  Listenable listens(Iterable<PrefsEnum> keys) =>
+      Listenable.merge(keys.map((e) => _prefsNotifierMap[e]));
 
-  OneNotifier<T> oneNotifier<T>(PrefsEnum key) => _prefsNotifierMap[key] as OneNotifier<T>;
+  OneNotifier<T> oneNotifier<T>(PrefsEnum key) =>
+      _prefsNotifierMap[key] as OneNotifier<T>;
 
   /// 依賴BuildContext
   T get<T>(PrefsEnum key) {
@@ -157,6 +169,8 @@ class PrefsProvider extends ChangeNotifier {
 }
 
 extension Context on BuildContext {
-  PrefsProvider get readPrefs => Provider.of<PrefsProvider>(this, listen: false);
-  PrefsProvider get watchPrefs => Provider.of<PrefsProvider>(this, listen: true);
+  PrefsProvider get readPrefs =>
+      Provider.of<PrefsProvider>(this, listen: false);
+  PrefsProvider get watchPrefs =>
+      Provider.of<PrefsProvider>(this, listen: true);
 }

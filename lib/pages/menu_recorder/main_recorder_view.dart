@@ -16,9 +16,11 @@ import 'package:receipt_fold/pages/menu_recorder/page_search_view.dart';
 import 'package:receipt_fold/pages/widget/my_menu_button.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
-class MainRecorderView extends StatefulWidget {
-  static const int _initialPageIndex = 1024;
+/// 快取半徑，表示當前頁面左右各快取多少頁
+const int _cacheRadius = 1;
+const int _initialPageIndex = 1024;
 
+class MainRecorderView extends StatefulWidget {
   const MainRecorderView({super.key});
 
   @override
@@ -44,16 +46,13 @@ class PeriodData {
 }
 
 class MainRecorderViewModel extends ChangeNotifier {
-  /// 快取半徑，表示當前頁面左右各快取多少頁
-  static const int _cacheRadius = 1;
-
   final Period _todayPeriod;
   final _periodDataCache = <int, PeriodData>{};
-  int _currentPageIndex = MainRecorderView._initialPageIndex;
+  int _currentPageIndex = _initialPageIndex;
 
   int get currentPageIndex => _currentPageIndex;
 
-  MainRecorderViewModel() : _todayPeriod = Period(.now());
+  MainRecorderViewModel() : _todayPeriod = Period(DateTime.now());
 
   PeriodData getPeriodData(int index) =>
       _periodDataCache[index] ?? _loadReceiptsByIndex(index);
@@ -126,7 +125,7 @@ class MainRecorderViewModel extends ChangeNotifier {
   /// 根據 PageView 的索引計算對應的 InvoicePeriod
   Period _getInvoicePeriodByIndex(int index) {
     Period targetPeriod = _todayPeriod;
-    final relativeIndex = index - MainRecorderView._initialPageIndex;
+    final relativeIndex = index - _initialPageIndex;
     if (relativeIndex > 0) {
       for (int i = 0; i < relativeIndex; i += 1) {
         targetPeriod = targetPeriod.next;
@@ -152,7 +151,7 @@ class MainRecorderViewModel extends ChangeNotifier {
 class _MainRecorderViewState extends State<MainRecorderView> {
   final ScrollController _scrollController = ScrollController();
   final PageController _pageController = PageController(
-    initialPage: MainRecorderView._initialPageIndex,
+    initialPage: _initialPageIndex,
   );
 
   @override
@@ -163,14 +162,14 @@ class _MainRecorderViewState extends State<MainRecorderView> {
   }
 
   Future<void> _pressPrizeCheck(Period period) async {
-    period = .inv(
+    period = Period.inv(
       '${(period.start.year - 1911).toString().padLeft(3, '0')}${period.start.month.toString().padLeft(2, '0')}',
     );
     final receiptMap = await DriftServices.appDb.receiptDao
         .queryStream(issuedAtStart: period.invStart, issuedAtEnd: period.invEnd)
         .first;
     if (receiptMap.isEmpty) {
-      Utils.showToast('本期沒有任何一筆交易紀錄');
+      Utils.showToast(DictKey.recorderPrizeCheckNoReceipt.s);
       return;
     }
     final searcher = InvoicePrizeSearcher();
@@ -203,10 +202,10 @@ class _MainRecorderViewState extends State<MainRecorderView> {
     );
     await OverlayShow.dialog(
       context: context,
-      title: '對獎結果',
+      title: DictKey.recorderPrizeCheckResult.s,
       noCancelButton: true,
       content: Column(
-        mainAxisSize: .min,
+        mainAxisSize: MainAxisSize.min,
         children: [
           ListTile(
             title: Text(period.invString),
@@ -214,11 +213,11 @@ class _MainRecorderViewState extends State<MainRecorderView> {
           ),
           ListTile(
             title: Text(Utils.amountToDescription(prizeTotalAmount)),
-            subtitle: Text('中獎總金額'),
+            subtitle: Text(DictKey.recorderPrizeCheckTotalAmount.s),
           ),
           ListTile(
             title: Text(Utils.amountToDescription(totReceipt)),
-            subtitle: Text('中獎張數'),
+            subtitle: Text(DictKey.recorderPrizeCheckReceiptCount.s),
           ),
         ],
       ),
@@ -258,9 +257,8 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                     MyMenuItem(
                       text: DictKey.recorderMenuReturnToday.s,
                       iconData: Icons.arrow_back,
-                      onTap: () => _pageController.jumpToPage(
-                        MainRecorderView._initialPageIndex,
-                      ),
+                      onTap: () =>
+                          _pageController.jumpToPage(_initialPageIndex),
                     ),
                   ],
                 ),
@@ -307,7 +305,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                   ),
                                 ],
                               ),
-                              textAlign: .center,
+                              textAlign: TextAlign.center,
                             ),
                           ),
                           IconButton(
@@ -328,7 +326,9 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                           controller: _scrollController,
                           child: ListView(
                             controller: _scrollController,
-                            padding: const .symmetric(horizontal: 8.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                            ),
                             children: [
                               ReceiptListCard(
                                 text: Utils.multilingualFiller(

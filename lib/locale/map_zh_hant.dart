@@ -10,10 +10,12 @@ const LocaleInstance mapZhHant = {
   .commonUiSort: '排序',
   .commonUiAdd: '新增',
   .commonUiFailure: '失敗',
+  .commonUiError: '錯誤',
 
   // ===== Toast: 提示訊息 =====
   .toastCopied: '已複製',
   .toastNoContentCopy: '無內容可複製',
+  .toastCouldNotLaunch: '無法開啟連結',
 
   // ===== Nav: 導航 =====
   .navTitleRecorder: '紀錄',
@@ -123,10 +125,32 @@ const LocaleInstance mapZhHant = {
   .recorderMenuStatisticalAnalysis: '統計分析',
   .recorderMenuSearch: '查詢',
   .recorderMenuReturnToday: '返回今天',
+  .recorderPrizeCheckNoReceipt: '本期沒有任何一筆交易紀錄',
+  .recorderPrizeCheckResult: '對獎結果',
+  .recorderPrizeCheckTotalAmount: '中獎總金額',
+  .recorderPrizeCheckReceiptCount: '中獎張數',
   .recorderPeriodTransactionsAndAmount:
       '該期有 ${StaticString.fillObjectNumber} 筆, 共 ${StaticString.fillObjectAmount} 元',
   .recorderMonthTransactionsAndAmount:
       '${StaticString.fillObjectMonth} 有 ${StaticString.fillObjectNumber} 筆, 共 ${StaticString.fillObjectAmount} 元',
+
+  // ===== Search: 搜尋條件 =====
+  .searchTitle: '搜尋條件',
+  .searchErrorSplit: '或運算符號請勿超過 ${StaticString.fillObjectNumber} 個。',
+  .searchErrorDateOrder: '日期先後順序相反。',
+  .searchErrorMinMax: '數字最小值請勿超過最大值。',
+  .searchIssuedDate: '開立時間',
+  .searchDateEarliest: '最早日期',
+  .searchDateLatest: '最晚日期',
+  .searchMinValue: '最小值',
+  .searchMaxValue: '最大值',
+  .searchKeyword: '關鍵字',
+  .searchColumnCount: '欄位範圍條件數',
+  .searchColumnScope: '欄位範圍 ${StaticString.fillObjectNumber}',
+  .searchHint: '欄位空值預設沒有限制條件，文本關鍵字使用 "${StaticString.searchSplit}" 符號可以或運算。',
+  .searchResultTitle: '搜尋結果',
+  .searchResultSummary:
+      '第 ${StaticString.fillObjectNumber} 頁，共 ${StaticString.fillObjectCount} 筆',
 
   // ===== Receipt: 發票檢視 =====
   .receiptViewAddRecord: '新的交易紀錄',
@@ -231,7 +255,4 @@ const LocaleInstance mapZhHant = {
   .settingOptionColorYellow: '黄色',
   .settingOptionColorGreen: '綠色',
   .settingOptionColorTeal: '青色',
-
-  // ===== Action: 其他動作 =====
-  .actionCouldNotLaunch: '無法開啟連結',
 };

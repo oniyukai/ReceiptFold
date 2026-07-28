@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -51,20 +52,16 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
     super.didChangeDependencies();
     if (context.watch<MenuNavBarProvider>().onManager) {
       _initLoadItem();
-      _isBrightness = context.readPrefs.get(PrefsEnum.isAutoBrightness);
+      _isBrightness = context.readPrefs.get(.isAutoBrightness);
       _setAppBrightness(_isBrightness);
-      _isLockOrientation = context.readPrefs.get(
-        PrefsEnum.isShowScreenRotation,
-      );
+      _isLockOrientation = context.readPrefs.get(.isShowScreenRotation);
       _setOrientationLock(_isLockOrientation);
       _isLastTimeOnView = true;
     } else if (_isLastTimeOnView) {
       _setAppBrightness(false);
-      _isBrightness = context.readPrefs.get(PrefsEnum.isAutoBrightness);
+      _isBrightness = context.readPrefs.get(.isAutoBrightness);
       _setOrientationLock(false);
-      _isLockOrientation = context.readPrefs.get(
-        PrefsEnum.isShowScreenRotation,
-      );
+      _isLockOrientation = context.readPrefs.get(.isShowScreenRotation);
       _isLastTimeOnView = false;
     }
   }
@@ -115,16 +112,17 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
           controller: scrollController,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: List.generate(
-              _mobileItems.length,
-              ((index) => MobileItemCard(
-                item: _mobileItems[index],
-                onTap: () {
-                  setState(() => _mobileItemIndex = index);
-                  Navigator.pop(context);
-                },
-              )),
-            ),
+            children: _mobileItems
+                .mapIndexed(
+                  (index, item) => MobileItemCard(
+                    item: item,
+                    onTap: () {
+                      setState(() => _mobileItemIndex = index);
+                      Navigator.pop(context);
+                    },
+                  ),
+                )
+                .toList(),
           ),
         ),
       ),

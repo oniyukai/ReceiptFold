@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/locale/app_language.dart';
@@ -20,7 +21,7 @@ abstract final class LogFileListener {
     final Directory dir = await getApplicationSupportDirectory();
     final File file = File(p.join(dir.path, 'logs.txt'));
     LogService.stream
-        .where((e) => e.level >= .info)
+        .where((e) => e.level >= Level.info)
         .map((log) => log.logLines)
         .listen(_enqueue);
     return file;
@@ -31,7 +32,7 @@ abstract final class LogFileListener {
   }
 
   static Future<IOSink> _getSink() async =>
-      _ioSink ?? (_ioSink = (await _file).openWrite(mode: .append));
+      _ioSink ?? (_ioSink = (await _file).openWrite(mode: FileMode.append));
 
   static Future<void> _disposeSink() async {
     await _ioSink?.flush();

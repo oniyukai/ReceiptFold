@@ -46,16 +46,24 @@ class _MenuNavBarState extends State<MenuNavBar> {
       valueListenable: context.readPrefs.oneNotifier(.isAgreedAllTerms),
       builder: (context, value, child) => value
           ? Consumer<MenuNavBarProvider>(
-        builder: (context, state, child) => Scaffold(
-          bottomNavigationBar: isPortrait ? _buildBottomNavigationBar(state) : null,
-          body: Row(
-            children: [
-              if (!isPortrait) _buildSideNavigationBar(state),
-              Expanded(child: IndexedStack(index: state.currentIndex, children: _pages)),
-            ],
-          ),
-        ),
-      ) : const PageTermsView(),
+              builder: (context, state, child) => Scaffold(
+                bottomNavigationBar: isPortrait
+                    ? _buildBottomNavigationBar(state)
+                    : null,
+                body: Row(
+                  children: [
+                    if (!isPortrait) _buildSideNavigationBar(state),
+                    Expanded(
+                      child: IndexedStack(
+                        index: state.currentIndex,
+                        children: _pages,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : const PageTermsView(),
     );
   }
 
@@ -92,7 +100,7 @@ class _MenuNavBarState extends State<MenuNavBar> {
     return NavigationRail(
       selectedIndex: state.currentIndex,
       onDestinationSelected: state.updateIndex,
-      labelType: .all,
+      labelType: NavigationRailLabelType.all,
       groupAlignment: 0.0,
       destinations: [
         NavigationRailDestination(
@@ -103,7 +111,7 @@ class _MenuNavBarState extends State<MenuNavBar> {
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.flip),
           icon: const Icon(Icons.fullscreen),
-          label: Text(DictKey.navTitleScanner.s)
+          label: Text(DictKey.navTitleScanner.s),
         ),
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.inbox),

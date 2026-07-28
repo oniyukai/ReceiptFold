@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:receipt_fold/common/router.dart';
@@ -116,10 +117,9 @@ class _TabMemberViewState extends State<TabMemberView> {
               ],
             ),
           ),
-          ...List.generate(
-            _memberItems.length,
-            (index) => MemberItemCard(
-              item: _memberItems[index],
+          ..._memberItems.mapIndexed(
+            (index, item) => MemberItemCard(
+              item: item,
               onTap: () => MyRouter.of<PageMemberForm>().toPass(
                 PageMemberFormArgs(index: index, items: _memberItems),
               ),
@@ -148,10 +148,9 @@ class _TabMemberViewState extends State<TabMemberView> {
               ],
             ),
           ),
-          ...List.generate(
-            _mobileItems.length,
-            (index) => MobileItemCard(
-              item: _mobileItems[index],
+          ..._mobileItems.mapIndexed(
+            (index, item) => MobileItemCard(
+              item: item,
               onTap: () => MyRouter.of<PageMobileForm>().toPass(
                 PageBarcodeFormArgs(index: index, items: _mobileItems),
               ),

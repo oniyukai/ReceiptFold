@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:logger/logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/common/prefs.dart';
@@ -43,9 +44,13 @@ enum DriftDispatcher {
       }
       try {
         _webDAV.value = await WebDAVAdapter.connect(
-          account.url!,
-          account.user!,
-          account.password!,
+          url: account.url!,
+          user: account.user!,
+          password: account.password!,
+          remoteDir: 'ReceiptFoldSync',
+          remoteFileName: 'drift.sqlite.gz',
+          decodeConverter: TransportAdapter.fileConverter(gzip.decoder),
+          encodeConverter: TransportAdapter.fileConverter(gzip.encoder),
         );
       } catch (e) {
         LogService(
@@ -151,11 +156,11 @@ class _PageBackupViewState extends State<PageBackupView> {
   @override
   void initState() {
     super.initState();
-    _logSubscription = LogService.stream.where((e) => e.level >= .debug).listen(
-      (data) {
-        setState(() => _logs.insert(0, data.logString));
-      },
-    );
+    _logSubscription = LogService.stream
+        .where((e) => e.level >= Level.debug)
+        .listen((data) {
+          setState(() => _logs.insert(0, data.logString));
+        });
   }
 
   @override
@@ -182,7 +187,7 @@ class _PageBackupViewState extends State<PageBackupView> {
 
   Future<void> _pressDeviceAction(DriftDispatcher action) async {
     final FilePickerResult? result = await FilePicker.pickFiles(
-      type: .custom,
+      type: FileType.custom,
       allowedExtensions: const ['sqlite'],
     );
     if (result == null) {
@@ -240,7 +245,7 @@ class _PageBackupViewState extends State<PageBackupView> {
               labelText: DictKey.backupPasswordLabel.s,
               name: 'password',
               initialValue: account.password,
-              type: .password,
+              type: FieldType.password,
               required: false,
             ),
           ],
@@ -258,7 +263,7 @@ class _PageBackupViewState extends State<PageBackupView> {
           controller: _scrollController,
           child: ListView(
             controller: _scrollController,
-            padding: const .fromLTRB(16.0, 0.0, 16.0, 16.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
             children: [
               ValueListenableBuilder(
                 valueListenable: DriftDispatcher._singleActionLocked,

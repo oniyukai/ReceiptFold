@@ -27,7 +27,9 @@ class ListTileText extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
     return ListTile(
-      contentPadding: isSection ? const .only(top: 16, left: 16) : null,
+      contentPadding: isSection
+          ? const EdgeInsets.only(top: 16, left: 16)
+          : null,
       leading: Icon(iconData),
       shape: shape,
       minTileHeight: isSection ? 0 : null,
@@ -129,18 +131,19 @@ class ListTilePicker<T> extends StatelessWidget {
                 controller: scrollController,
                 child: Column(
                   children: [
-                    for (final T value in optionMap.keys)
+                    for (final value in optionMap.keys)
                       ListTile(
                         leading: (leadingBuilder ?? (radio, selected) => radio)(
                           Radio(
                             value: value,
-                            materialTapTargetSize: .shrinkWrap,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
                           ),
                           value == selectedOption,
                         ),
                         title: Text(optionMap[value]!),
                         shape: RoundedRectangleBorder(
-                          borderRadius: .circular(12.0),
+                          borderRadius: BorderRadiusGeometry.circular(12.0),
                         ),
                         onTap: () => _onChanged(context, value),
                       ),
@@ -165,13 +168,13 @@ class ColorfulRadio extends StatelessWidget {
   Widget build(context) {
     final ColorScheme? colorScheme = radio.value.color == null
         ? MyAppTheme.dynamicColorScheme
-        : .fromSeed(seedColor: radio.value.color!);
+        : ColorScheme.fromSeed(seedColor: radio.value.color!);
     if (colorScheme == null) return radio;
     final Color topColor = colorScheme.primaryContainer;
     final Color bottomLeftColor = colorScheme.tertiaryContainer;
     final Color bottomRightColor = colorScheme.primary;
     return Padding(
-      padding: const .symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: AspectRatio(
         aspectRatio: 1.0,
         child: Stack(

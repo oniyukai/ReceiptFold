@@ -29,7 +29,9 @@ class _PageTermsViewState extends State<PageTermsView> {
   }
 
   Future<void> _loadTerms() async {
-    String termsText = await rootBundle.loadString(p.join('assets/', 'license_and_terms.md'));
+    final String termsText = await rootBundle.loadString(
+      p.join('assets/', 'license_and_terms.md'),
+    );
     setState(() => _termsText = termsText);
   }
 
@@ -37,9 +39,7 @@ class _PageTermsViewState extends State<PageTermsView> {
   Widget build(context) {
     final bool isAgreed = context.readPrefs.get(.isAgreedAllTerms);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(DictKey.settingTermsTitle.s),
-      ),
+      appBar: AppBar(title: Text(DictKey.settingTermsTitle.s)),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -48,31 +48,34 @@ class _PageTermsViewState extends State<PageTermsView> {
               child: _termsText == null
                   ? const Center(child: CircularProgressIndicator())
                   : Scrollbar(
-                controller: _scrollController,
-                thumbVisibility: true,
-                child: Card(
-                  margin: const .all(8.0),
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    padding: const .all(8.0),
-                    child: Text(_termsText!),
-                  ),
-                ),
+                      controller: _scrollController,
+                      thumbVisibility: true,
+                      child: Card(
+                        margin: const EdgeInsets.all(8.0),
+                        child: SingleChildScrollView(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(_termsText!),
+                        ),
+                      ),
+                    ),
+            ),
+            if (!isAgreed)
+              CheckboxListTile(
+                title: Text(DictKey.settingTermsAgreedAll.s),
+                value: _isAgreedAllTerms,
+                enabled: _termsText != null,
+                controlAffinity: ListTileControlAffinity.leading,
+                onChanged: (value) =>
+                    setState(() => _isAgreedAllTerms = value ?? false),
               ),
-            ),
-            if (!isAgreed) CheckboxListTile(
-              title: Text(DictKey.settingTermsAgreedAll.s),
-              value: _isAgreedAllTerms,
-              enabled: _termsText != null,
-              controlAffinity: ListTileControlAffinity.leading,
-              onChanged: (value) => setState(() => _isAgreedAllTerms = value ?? false),
-            ),
-            if (!isAgreed) ElevatedButton(
-              onPressed: _termsText != null && _isAgreedAllTerms
-                  ? () => context.readPrefs.update(PrefsEnum.isAgreedAllTerms, true)
-                  : null,
-              child: Text(DictKey.settingTermsContinue.s),
-            ),
+            if (!isAgreed)
+              ElevatedButton(
+                onPressed: _termsText != null && _isAgreedAllTerms
+                    ? () => context.readPrefs.update(.isAgreedAllTerms, true)
+                    : null,
+                child: Text(DictKey.settingTermsContinue.s),
+              ),
             const Row(),
           ],
         ),

@@ -36,7 +36,7 @@ class MyTextField extends StatefulWidget {
     this.initialValue,
     this.labelText,
     this.prefixIconData,
-    this.type = .text,
+    this.type = FieldType.text,
     this.required = true,
     this.readOnly = false,
   });
@@ -59,7 +59,7 @@ class _MyTextFieldState extends State<MyTextField> {
     return FormBuilderTextField(
       name: widget.name,
       maxLines: 1,
-      autovalidateMode: .onUserInteraction,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       initialValue: widget.initialValue,
       obscureText: textHidden,
       readOnly: widget.readOnly,
@@ -86,7 +86,7 @@ class _MyTextFieldState extends State<MyTextField> {
           FormBuilderValidators.required(
             errorText: DictKey.barcodeErrorEmptyFields.s,
           ),
-        if (widget.type == .number)
+        if (widget.type == FieldType.number)
           FormBuilderValidators.numeric(
             errorText: DictKey.barcodeErrorNotNumber.s,
             checkNullOrEmpty: false,

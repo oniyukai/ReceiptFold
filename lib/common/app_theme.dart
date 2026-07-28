@@ -5,14 +5,14 @@ import 'package:receipt_fold/common/prefs.dart';
 
 enum ThemeOption {
   sys,
-  light(.light),
-  dark(.dark);
+  light(Brightness.light),
+  dark(Brightness.dark);
 
   final Brightness? brightness;
 
   const ThemeOption([this.brightness]);
 
-  static Map<ThemeOption, String> get optionMap => <ThemeOption, String>{
+  static Map<ThemeOption, String> get optionMap => {
     sys: DictKey.settingOptionThemeSystem.s,
     light: DictKey.settingOptionThemeLight.s,
     dark: DictKey.settingOptionThemeDark.s,
@@ -35,7 +35,7 @@ enum ColorOption {
 
   const ColorOption([this.color]);
 
-  static Map<ColorOption, String> get optionMap => <ColorOption, String>{
+  static Map<ColorOption, String> get optionMap => {
     sys: DictKey.settingOptionColorMaterialYou.s,
     blue: DictKey.settingOptionColorBlue.s,
     violet: DictKey.settingOptionColorViolet.s,
@@ -61,21 +61,28 @@ abstract final class MyAppTheme {
   );
 
   static ThemeData themeData(
-      BuildContext context,
-      ColorScheme? lightDynamic,
-      ColorScheme? darkDynamic,)
-  {
+    BuildContext context,
+    ColorScheme? lightDynamic,
+    ColorScheme? darkDynamic,
+  ) {
     dynamicColorScheme = lightDynamic ?? darkDynamic;
-    final Color? seedColor = context.readPrefs.get<ColorOption>(.selectedColor).color;
-    final Brightness brightness = context.readPrefs.get<ThemeOption>(.selectedTheme).brightness
-        ?? MediaQuery.platformBrightnessOf(context);
+    final Color? seedColor = context.readPrefs
+        .get<ColorOption>(.selectedColor)
+        .color;
+    final Brightness brightness =
+        context.readPrefs.get<ThemeOption>(.selectedTheme).brightness ??
+        MediaQuery.platformBrightnessOf(context);
     late final ColorScheme colorScheme;
-    if (seedColor == null && brightness == .light && lightDynamic != null) {
+    if (seedColor == null &&
+        brightness == Brightness.light &&
+        lightDynamic != null) {
       colorScheme = lightDynamic;
-    } else if (seedColor == null && brightness == .dark && darkDynamic != null) {
+    } else if (seedColor == null &&
+        brightness == Brightness.dark &&
+        darkDynamic != null) {
       colorScheme = darkDynamic;
     } else {
-      colorScheme = .fromSeed(
+      colorScheme = ColorScheme.fromSeed(
         seedColor: seedColor ?? Colors.blue, // <- sys顏色不支援時會用到
         brightness: brightness,
       );
@@ -84,19 +91,15 @@ abstract final class MyAppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      appBarTheme: const AppBarTheme(
-        systemOverlayStyle: systemOverlayStyle,
-      ),
+      appBarTheme: const AppBarTheme(systemOverlayStyle: systemOverlayStyle),
       scrollbarTheme: ScrollbarThemeData(
-        thumbColor: .all(colorScheme.secondaryContainer),
-        radius: const .circular(10.0),
+        thumbColor: WidgetStateProperty.all(colorScheme.secondaryContainer),
+        radius: const Radius.circular(10.0),
       ),
       inputDecorationTheme: const InputDecorationTheme(
         border: OutlineInputBorder(),
       ),
-      cardTheme: const CardThemeData(
-        clipBehavior: .antiAlias,
-      ),
+      cardTheme: const CardThemeData(clipBehavior: Clip.antiAlias),
     );
   }
 }

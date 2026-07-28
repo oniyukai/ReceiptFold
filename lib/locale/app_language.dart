@@ -20,6 +20,7 @@ extension StaticString on DictKey {
     fillObjectAmount = '<fillObject.fillObjectAmount>',
     fillObjectOldBytes = '<fillObject.fillObjectOldBytes>',
     fillObjectNewBytes = '<fillObject.fillObjectNewBytes>',
+    fillObjectCount = '<fillObject.fillObjectCount>',
     // Other
     nullString = 'NULL<String>',
     searchSplit = '||';
@@ -35,10 +36,12 @@ enum DictKey {
   commonUiSort,
   commonUiAdd,
   commonUiFailure,
+  commonUiError,
 
   // ===== Toast: 提示訊息 =====
   toastCopied,
   toastNoContentCopy,
+  toastCouldNotLaunch,
 
   // ===== Nav: 導航 =====
   navTitleRecorder,
@@ -145,8 +148,29 @@ enum DictKey {
   recorderMenuStatisticalAnalysis,
   recorderMenuSearch,
   recorderMenuReturnToday,
+  recorderPrizeCheckNoReceipt,
+  recorderPrizeCheckResult,
+  recorderPrizeCheckTotalAmount,
+  recorderPrizeCheckReceiptCount,
   recorderPeriodTransactionsAndAmount,
   recorderMonthTransactionsAndAmount,
+
+  // ===== Search: 搜尋 =====
+  searchTitle,
+  searchErrorSplit,
+  searchErrorDateOrder,
+  searchErrorMinMax,
+  searchIssuedDate,
+  searchDateEarliest,
+  searchDateLatest,
+  searchMinValue,
+  searchMaxValue,
+  searchKeyword,
+  searchColumnCount,
+  searchColumnScope,
+  searchHint,
+  searchResultTitle,
+  searchResultSummary,
 
   // ===== Receipt: 發票檢視 =====
   receiptViewAddRecord,
@@ -249,10 +273,7 @@ enum DictKey {
   settingOptionColorOrange,
   settingOptionColorYellow,
   settingOptionColorGreen,
-  settingOptionColorTeal,
-
-  // ===== Action: 其他動作 =====
-  actionCouldNotLaunch;
+  settingOptionColorTeal;
 
   String get s => _instance[this] ?? '<$name>';
 

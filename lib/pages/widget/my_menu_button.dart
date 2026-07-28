@@ -30,7 +30,7 @@ class MyMenuButton extends StatelessWidget {
         return PopupMenuItem<int>(
           value: index,
           child: Row(
-            mainAxisSize: .min,
+            mainAxisSize: MainAxisSize.min,
             children: [
               if (item.iconData != null) Icon(item.iconData),
               if (item.iconData != null) const SizedBox(width: 8),

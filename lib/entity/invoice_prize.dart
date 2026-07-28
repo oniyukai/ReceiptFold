@@ -40,7 +40,8 @@ class InvoicePrize {
 }
 
 class InvoicePrizeAward {
-  final String invQuery; // 台北時間民國期數描述，例如: "11405"
+  /// 與 [Period.invQuery] 對應
+  final String invQuery;
   final int lastWebQueryTime;
   final List<InvoicePrize> prizes;
 
@@ -88,10 +89,8 @@ class InvoicePrizeAward {
     return prizes.firstWhereOrNull((prize) => number.endsWith(prize.number));
   }
 
-  List<InvoicePrize> checkEnd(String number) {
-    return <InvoicePrize>[
-      for (final InvoicePrize prize in prizes)
-        if (prize.number.endsWith(number)) prize,
-    ];
-  }
+  List<InvoicePrize> checkEnd(String number) => [
+    for (final prize in prizes)
+      if (prize.number.endsWith(number)) prize,
+  ];
 }

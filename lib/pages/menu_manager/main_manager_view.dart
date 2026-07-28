@@ -35,9 +35,18 @@ class _MainManagerViewState extends State<MainManagerView>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(icon: const Icon(Icons.dock), text: DictKey.managerTabBarcode.s),
-            Tab(icon: const Icon(Icons.loyalty_outlined), text: DictKey.managerTabMember.s),
-            Tab(icon: const Icon(Icons.payment), text: DictKey.managerTabCarrier.s),
+            Tab(
+              icon: const Icon(Icons.dock),
+              text: DictKey.managerTabBarcode.s,
+            ),
+            Tab(
+              icon: const Icon(Icons.loyalty_outlined),
+              text: DictKey.managerTabMember.s,
+            ),
+            Tab(
+              icon: const Icon(Icons.payment),
+              text: DictKey.managerTabCarrier.s,
+            ),
           ],
         ),
       ),

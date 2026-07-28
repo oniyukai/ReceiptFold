@@ -50,7 +50,7 @@ abstract final class UnitUtils {
 abstract final class Utils {
   /// true:為直屏狀態 false:為橫屏狀態
   static bool isPortrait(BuildContext context) =>
-      MediaQuery.of(context).orientation == .portrait;
+      MediaQuery.of(context).orientation == Orientation.portrait;
 
   /// 震動一下
   static Future<void> deviceVibrate() async {
@@ -68,7 +68,7 @@ abstract final class Utils {
       Platform.isAndroid || Platform.isIOS
       ? Fluttertoast.showToast(
           msg: msg,
-          toastLength: longTime ? .LENGTH_LONG : .LENGTH_SHORT,
+          toastLength: longTime ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT,
           timeInSecForIosWeb: longTime ? 4 : 2,
         )
       : OverlayShow.toast(Text(msg), seconds: longTime ? 4 : 2);
@@ -76,8 +76,8 @@ abstract final class Utils {
   /// 在預設瀏覽器開啟網站
   static Future<void> openUrlInBrowser(String url) async {
     final Uri uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: .externalApplication)) {
-      showToast('${DictKey.actionCouldNotLaunch.s}: $url');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      showToast('${DictKey.toastCouldNotLaunch.s}: $url');
     }
   }
 
@@ -85,13 +85,13 @@ abstract final class Utils {
   static Future<void> lockCurrentOrientation(BuildContext context) {
     if (isPortrait(context)) {
       return SystemChrome.setPreferredOrientations(const [
-        .portraitUp,
-        .portraitDown,
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
       ]);
     } else {
       return SystemChrome.setPreferredOrientations(const [
-        .landscapeLeft,
-        .landscapeRight,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
       ]);
     }
   }
@@ -99,17 +99,17 @@ abstract final class Utils {
   /// 恢復允許螢幕所有旋轉方向
   static Future<void> unlockCurrentOrientation() =>
       SystemChrome.setPreferredOrientations(const [
-        .portraitUp,
-        .portraitDown,
-        .landscapeLeft,
-        .landscapeRight,
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
       ]);
 
   static String multilingualFiller(
     String string,
     List<(String, String)> targets,
   ) {
-    for (final (String, String) target in targets) {
+    for (final target in targets) {
       string = string.replaceAll(target.$1, target.$2);
     }
     return string;

@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
-import 'package:path/path.dart' as p;
 import 'package:receipt_fold/modules/log_service.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
@@ -25,11 +26,15 @@ abstract final class DriftServices {
   static Future<File> pushForce(Upload upload) async {
     LogService('pushForce...', classType: DriftServices).d();
     final Directory tempDir = await getTemporaryDirectory();
-    final File appDbCopyFile = File(p.join(tempDir.path, 'pushForce_${UnitUtils.unixRadix36}.sqlite'));
+    final File appDbCopyFile = File(
+      p.join(tempDir.path, 'pushForce_${UnitUtils.unixRadix36}.sqlite'),
+    );
     await appDb.selfTidy();
     try {
       await appDb.customStatement("VACUUM INTO '${appDbCopyFile.path}'");
-      if (!await appDbCopyFile.exists()) throw Exception('Copy AppDb to ${appDbCopyFile.path} failed.');
+      if (!await appDbCopyFile.exists()) {
+        throw Exception('VACUUM INTO ${appDbCopyFile.path} failed.');
+      }
       return await upload(appDbCopyFile);
     } catch (_) {
       if (await appDbCopyFile.exists()) await appDbCopyFile.delete();
@@ -40,7 +45,9 @@ abstract final class DriftServices {
   static Future<File> pushMerge(Download download, Upload upload) async {
     LogService('pushMerge...', classType: DriftServices).d();
     final File? downloadFile = await download();
-    if (downloadFile == null || !await downloadFile.exists()) return await pushForce(upload);
+    if (downloadFile == null || !await downloadFile.exists()) {
+      return await pushForce(upload);
+    }
     await appDb.selfTidy();
     try {
       final MyDriftDatabase downloadDb = _openFileDb(downloadFile);
@@ -56,7 +63,10 @@ abstract final class DriftServices {
     LogService('pullForce...', classType: DriftServices).d();
     final File? downloadFile = await download();
     if (downloadFile == null || !await downloadFile.exists()) {
-      LogService('downloadFile(${downloadFile?.path}) does not exists.', classType: DriftServices).d();
+      LogService(
+        'downloadFile(${downloadFile?.path}) does not exists.',
+        classType: DriftServices,
+      ).d();
       return;
     }
     try {
@@ -77,7 +87,10 @@ abstract final class DriftServices {
     LogService('pullMerge...', classType: DriftServices).d();
     final File? downloadFile = await download();
     if (downloadFile == null || !await downloadFile.exists()) {
-      LogService('downloadFile(${downloadFile?.path}) does not exists.', classType: DriftServices).d();
+      LogService(
+        'downloadFile(${downloadFile?.path}) does not exists.',
+        classType: DriftServices,
+      ).d();
       return;
     }
     try {
@@ -108,6 +121,30 @@ abstract class TransportAdapter {
   ///
   /// 傳入的 [file] 實踐時不要手動刪除, 上傳成功回傳自己的參數 [file], 失敗 throw.
   Future<File> upload(File file);
+
+  /// [converter] 可以傳入 [gzip.decoder] 來壓縮, 或是傳入 [gzip.encoder] 解壓縮.
+  static Upload fileConverter([Converter<List<int>, List<int>>? converter]) {
+    return (sourceFile) async {
+      final Directory tempDir = await getTemporaryDirectory();
+      final File file = File(
+        p.join(tempDir.path, 'fileConverter_${UnitUtils.unixRadix36}.tmp'),
+      );
+      final Stream<List<int>> input = sourceFile.openRead();
+      final Stream<List<int>> transformedStream = converter != null
+          ? input.transform(converter)
+          : input;
+      final IOSink output = file.openWrite();
+      bool success = false;
+      try {
+        await transformedStream.pipe(output);
+        success = true;
+        return file;
+      } finally {
+        await output.close();
+        if (!success && await file.exists()) await file.delete();
+      }
+    };
+  }
 }
 
 class DeviceAdapter extends TransportAdapter {
@@ -121,7 +158,9 @@ class DeviceAdapter extends TransportAdapter {
     final File sourceFile = File(_filePath);
     if (!await sourceFile.exists()) return null;
     final Directory tempDir = await getTemporaryDirectory();
-    return sourceFile.copy(p.join(tempDir.path, 'device_download_${UnitUtils.unixRadix36}.tmp'));
+    return sourceFile.copy(
+      p.join(tempDir.path, 'device_download_${UnitUtils.unixRadix36}.tmp'),
+    );
   }
 
   @override
@@ -130,7 +169,9 @@ class DeviceAdapter extends TransportAdapter {
     final File targetFile = File(_filePath);
     final File tempFile = File('$_filePath.tmp');
     try {
-      if (!await targetFile.parent.exists()) await targetFile.parent.create(recursive: true);
+      if (!await targetFile.parent.exists()) {
+        await targetFile.parent.create(recursive: true);
+      }
       await file.copy(tempFile.path);
       await tempFile.rename(targetFile.path);
       return file;
@@ -142,86 +183,97 @@ class DeviceAdapter extends TransportAdapter {
 }
 
 class WebDAVAdapter extends TransportAdapter {
-  final webdav.Client client;
-  final String remoteDir;
-  final String remoteFileName;
-  late final String remotePath = p.posix.join(remoteDir, remoteFileName);
+  final webdav.Client _client;
+  final String _remoteDir;
+  final String _remoteFileName;
+  final Upload? _decodeConverter;
+  final Upload? _encodeConverter;
+  late final String _remotePath = p.posix.join(_remoteDir, _remoteFileName);
 
-  WebDAVAdapter._(this.client, this.remoteDir, this.remoteFileName);
+  WebDAVAdapter._({
+    required this._client,
+    required this._remoteDir,
+    required this._remoteFileName,
+    required this._decodeConverter,
+    required this._encodeConverter,
+  });
 
-  static Future<WebDAVAdapter> connect(String url, String user, String password, {
-    String remoteDir = 'ReceiptFoldSync',
-    String remoteFileName = 'drift.sqlite.gz',
+  static Future<WebDAVAdapter> connect({
+    required String url,
+    required String user,
+    required String password,
+    required String remoteDir,
+    required String remoteFileName,
+    Upload? decodeConverter,
+    Upload? encodeConverter,
   }) async {
-    final WebDAVAdapter self = WebDAVAdapter._(webdav.newClient(url, user: user, password: password), remoteDir, remoteFileName);
-    self.client.setHeaders({'content-type': 'application/octet-stream'});
-    await self.client.ping();
-    await self.client.mkdirAll(remoteDir);
+    final WebDAVAdapter self = WebDAVAdapter._(
+      client: webdav.newClient(url, user: user, password: password),
+      remoteDir: remoteDir,
+      remoteFileName: remoteFileName,
+      decodeConverter: decodeConverter,
+      encodeConverter: encodeConverter,
+    );
+    self._client.setHeaders({'content-type': 'application/octet-stream'});
+    await self._client.ping();
+    await self._client.mkdirAll(remoteDir);
     return self;
   }
 
-  /// [converter] 可以傳入 [gzip.decoder] 來壓縮, 或是傳入 [gzip.encoder] 解壓縮.
-  static Future<File> convertFile(File sourceFile, Converter<List<int>, List<int>> converter) async {
-    final Directory tempDir = await getTemporaryDirectory();
-    final File file = File(p.join(tempDir.path, 'WebDAV_convertFile_${UnitUtils.unixRadix36}.tmp'));
-    final Stream<List<int>> input = sourceFile.openRead();
-    final IOSink output = file.openWrite();
-    bool success = false;
-    try {
-      await input.transform(converter).pipe(output);
-      success = true;
-      return file;
-    } finally {
-      await output.close();
-      if (!success && await file.exists()) await file.delete();
-    }
-  }
-
   @override
-  Future<File?> download([Future<File> Function(File)? fileTransform]) async {
+  Future<File?> download() async {
     LogService('download...', instance: this).d();
     late final webdav.File remoteFile;
     try {
-      final remoteFiles = await client.readDir(remoteDir);
-      remoteFile = remoteFiles.firstWhere((f) => f.name == remoteFileName);
+      final remoteFiles = await _client.readDir(_remoteDir);
+      remoteFile = remoteFiles.firstWhere((f) => f.name == _remoteFileName);
     } catch (e) {
-      LogService('$remotePath not found.', errorObject: e, instance: this).d();
+      LogService('$_remotePath not found.', errorObject: e, instance: this).d();
       return null;
     }
-    if (remoteFile.isDir == true) throw Exception('$this: ${remoteFile.path} cannot be directory.');
+    if (remoteFile.isDir == true) {
+      throw Exception('$this: ${remoteFile.path} cannot be directory.');
+    }
     final Directory tempDir = await getTemporaryDirectory();
-    final File downloadFile = File(p.join(tempDir.path, 'WebDAV_download_${UnitUtils.unixRadix36}.tmp'));
+    final File file = File(
+      p.join(tempDir.path, 'WebDAV_download_${UnitUtils.unixRadix36}.tmp'),
+    );
     try {
-      await client.read2File(remoteFile.path!, downloadFile.path);
-      return await (fileTransform ?? (file) => convertFile(file, gzip.decoder))(downloadFile);
+      await _client.read2File(remoteFile.path!, file.path);
+      return await (_decodeConverter ?? TransportAdapter.fileConverter())(file);
     } finally {
-      if (await downloadFile.exists()) await downloadFile.delete();
+      if (await file.exists()) await file.delete();
     }
   }
 
   @override
-  Future<File> upload(File file, [Future<File> Function(File)? fileTransform]) async {
+  Future<File> upload(File file) async {
     LogService('upload...', instance: this).d();
-    final String remoteCachePath = '$remotePath.cache';
+    final String remoteCachePath = '$_remotePath.cache';
     // try {
-    //   await client.remove(remoteCachePath);
+    //   await _client.remove(remoteCachePath);
     // } catch (e) {
     //   LogService('client.remove($remoteCachePath)', errorObject: e, instance: this).t();
     // }
-    final File convertedFile = await (fileTransform ?? (file) => convertFile(file, gzip.encoder))(file);
+    final File convertedFile =
+        await (_encodeConverter ?? TransportAdapter.fileConverter())(file);
     try {
-      await client.writeFromFile(convertedFile.path, remoteCachePath);
+      await _client.writeFromFile(convertedFile.path, remoteCachePath);
       // try {
-      //   await client.remove(remotePath);
+      //   await _client.remove(_remotePath);
       // } catch (e) {
-      //   LogService('client.remove($remotePath)', errorObject: e, instance: this).t();
+      //   LogService('client.remove($_remotePath)', errorObject: e, instance: this).t();
       // }
-      await client.rename(remoteCachePath, remotePath, true);
+      await _client.rename(remoteCachePath, _remotePath, true);
     } catch (_) {
       try {
-        await client.remove(remoteCachePath);
+        await _client.remove(remoteCachePath);
       } catch (e) {
-        LogService('client.remove($remoteCachePath)', errorObject: e, instance: this).t();
+        LogService(
+          'client.remove($remoteCachePath)',
+          errorObject: e,
+          instance: this,
+        ).t();
       }
       rethrow;
     } finally {

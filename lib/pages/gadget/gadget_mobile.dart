@@ -14,14 +14,14 @@ Future<void> updateHomeScreenMobile() async {
   if (!Platform.isAndroid && !Platform.isIOS) return;
   await HomeWidget.renderFlutterWidget(
     GadgetMobile(
-      items: await DriftServices.appDb.keyValueStoreDao.getExistDefault(.mobileBarcodeList),
+      items: await DriftServices.appDb.keyValueStoreDao.getExistDefault(
+        .mobileBarcodeList,
+      ),
     ),
     key: _homeWidgetMobilePath,
     logicalSize: const Size(500, 200),
   );
-  await HomeWidget.updateWidget(
-    androidName: _androidName,
-  );
+  await HomeWidget.updateWidget(androidName: _androidName);
 }
 
 class GadgetMobile extends StatelessWidget {
@@ -70,8 +70,8 @@ class GadgetBarcode extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
           child: Padding(
             padding: EdgeInsets.symmetric(
-              vertical: barcodeWidth/20,
-              horizontal: barcodeWidth/10,
+              vertical: barcodeWidth / 20.0,
+              horizontal: barcodeWidth / 10.0,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -88,10 +88,7 @@ class GadgetBarcode extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        name ?? '',
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      child: Text(name ?? '', overflow: TextOverflow.ellipsis),
                     ),
                     Text(data),
                   ],
@@ -100,7 +97,7 @@ class GadgetBarcode extends StatelessWidget {
             ),
           ),
         );
-      }
+      },
     );
   }
 }

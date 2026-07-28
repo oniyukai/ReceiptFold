@@ -8,14 +8,11 @@ class MobileBarcodeItem {
   final String code;
   final String? name;
 
-  const MobileBarcodeItem({
-    required this.code,
-    this.name,
-  });
+  const MobileBarcodeItem({required this.code, this.name});
 
   Map<String, dynamic> toJson() => {
     'code': code,
-    if (name!=null && name!='') 'name': name,
+    'name': ?Utils.noEmptyStr(name),
   };
 
   factory MobileBarcodeItem.fromString(String jsonString) {
@@ -28,10 +25,7 @@ class MobileBarcodeItem {
     } catch (e) {
       debugPrint('$MobileBarcodeItem.fromString: $e');
     }
-    return MobileBarcodeItem(
-      code: code ?? StaticString.nullString,
-      name: name,
-    );
+    return MobileBarcodeItem(code: code ?? StaticString.nullString, name: name);
   }
 }
 
@@ -45,13 +39,13 @@ class MemberBarcodeItem {
     required this.code,
     this.name,
     this.imageUrl,
-    this.format = .code128,
+    this.format = BarcodeFormat.code128,
   });
 
   Map<String, dynamic> toJson() => {
     'code': code,
-    if (name!=null && name!='') 'name': name,
-    if (imageUrl!=null && imageUrl!='') 'imageUrl': imageUrl,
+    'name': ?Utils.noEmptyStr(name),
+    'imageUrl': ?Utils.noEmptyStr(imageUrl),
     'format': format,
   };
 
@@ -73,7 +67,7 @@ class MemberBarcodeItem {
       code: code ?? StaticString.nullString,
       name: name,
       imageUrl: imageUrl,
-      format: format ?? .code128,
+      format: format ?? BarcodeFormat.code128,
     );
   }
 }

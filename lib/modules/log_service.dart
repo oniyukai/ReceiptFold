@@ -9,12 +9,14 @@ class _LogOutput extends LogOutput {
   void output(event) {
     final LogService logInfo = event.origin.error as LogService;
     if (kDebugMode) event.lines.forEach(debugPrint);
-    LogService._controller.add(logInfo..logLines = List.unmodifiable(event.lines));
+    LogService._controller.add(
+      logInfo..logLines = List<String>.unmodifiable(event.lines),
+    );
   }
 }
 
 class LogService {
-  static final Logger _logger = Logger(
+  static final _logger = Logger(
     filter: ProductionFilter(),
     output: _LogOutput(),
     printer: PrettyPrinter(
@@ -24,7 +26,7 @@ class LogService {
       noBoxingByDefault: true,
     ),
   );
-  static final Logger _warnLogger = Logger(
+  static final _warnLogger = Logger(
     filter: ProductionFilter(),
     output: _LogOutput(),
     printer: PrettyPrinter(
@@ -34,25 +36,26 @@ class LogService {
       noBoxingByDefault: false,
     ),
   );
-  static final StreamController<LogService> _controller = .broadcast();
+  static final _controller = StreamController<LogService>.broadcast();
 
   static Stream<LogService> get stream => _controller.stream;
 
-  static final RegExp ansiRegex = RegExp(r'\x1B\[[0-9;]*m');
+  static final ansiRegex = RegExp(r'\x1B\[[0-9;]*m');
 
   final String? msg;
   final String? errorMsg;
   final Object? errorObject;
   final Type? classType;
   final Object? instance;
-  final DateTime time = .now();
+  final DateTime time = DateTime.now();
   late final Level level;
   late final String levelTag;
   late final List<String> logLines;
 
   String get logString => logLines.join('\n').replaceAll(ansiRegex, '');
 
-  LogService(this.msg, {
+  LogService(
+    this.msg, {
     this.errorMsg,
     this.errorObject,
     this.classType,
@@ -61,11 +64,11 @@ class LogService {
     unawaited(LogFileListener.init());
   }
 
-  void t() => _log(.trace, '·');
-  void d() => _log(.debug, '🐛');
-  void i() => _log(.info, '💡');
-  void w() => _log(.warning, '⚠️');
-  void e() => _log(.error, '⛔');
+  void t() => _log(Level.trace, '·');
+  void d() => _log(Level.debug, '🐛');
+  void i() => _log(Level.info, '💡');
+  void w() => _log(Level.warning, '⚠️');
+  void e() => _log(Level.error, '⛔');
   void f() => _log(.fatal, '👾');
 
   void _log(Level level, String levelTag) {
@@ -77,10 +80,7 @@ class LogService {
     ].join(', ');
     return (level < .warning ? _logger : _warnLogger).log(
       level,
-      <String>[
-        if (where.isNotEmpty) where,
-        ?Utils.noEmptyStr(msg),
-      ].join('\n'),
+      <String>[if (where.isNotEmpty) where, ?Utils.noEmptyStr(msg)].join('\n'),
       time: time,
       error: this,
     );

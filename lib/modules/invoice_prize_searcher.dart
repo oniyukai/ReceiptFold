@@ -26,7 +26,7 @@ class InvoicePrizeSearcher {
 
   Future<InvoicePrizeAward?> getByDistance(int distance) async {
     assert(distance >= 0);
-    Period nowPeriod = Period(.now()).invPrevious;
+    Period nowPeriod = Period(DateTime.now()).invPrevious;
     InvoicePrizeAward? lastPrizeAward;
     for (int i = 0; i < 2; i += 1) {
       lastPrizeAward = await getPrizeAward(nowPeriod);
@@ -95,13 +95,12 @@ class InvoicePrizeSearcher {
     return invoicePrizeAward.prizes.isNotEmpty ? invoicePrizeAward : null;
   }
 
-  bool _matchSpecifiedTimeInterval(int unixMilliseconds) {
-    final int currentUnixMilliseconds = UnitUtils.nowUnixTime;
-    final int differenceInMilliseconds =
-        (unixMilliseconds - currentUnixMilliseconds).abs();
-    const int targetDifferenceInSeconds = 1000;
-    const int targetDifferenceInMilliseconds = targetDifferenceInSeconds * 1000;
-    return differenceInMilliseconds >= targetDifferenceInMilliseconds;
+  bool _matchSpecifiedTimeInterval(int unixMillisec) {
+    final int currentUnixMillisec = UnitUtils.nowUnixTime;
+    final int differenceInMillisec = (unixMillisec - currentUnixMillisec).abs();
+    const int targetDifferenceInSec = 1000;
+    const int targetDifferenceInMillisec = targetDifferenceInSec * 1000;
+    return differenceInMillisec >= targetDifferenceInMillisec;
   }
 
   Future<List<InvoicePrize>> _requestPrizeAward(String invQuery) async {

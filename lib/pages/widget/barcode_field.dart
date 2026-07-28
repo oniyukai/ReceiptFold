@@ -20,16 +20,28 @@ class BarcodeField extends StatelessWidget {
 
   @override
   Widget build(context) {
-    final int? maxLines = const <BarcodeFormat?>[
-      .qrCode, .dataMatrix, .aztec, .pdf417, .code128, null,
-    ].contains(format) ? null : 1;
+    final int? maxLines =
+        const <BarcodeFormat?>[
+          .qrCode,
+          .dataMatrix,
+          .aztec,
+          .pdf417,
+          .code128,
+          null,
+        ].contains(format)
+        ? null
+        : 1;
     final bool isNumbers = const <BarcodeFormat>[
-      .ean13, .ean8, .upcA, .upcE, .itf
+      .ean13,
+      .ean8,
+      .upcA,
+      .upcE,
+      .itf,
     ].contains(format);
     return FormBuilderTextField(
       name: name,
-      keyboardType: isNumbers ? .number : .text,
-      autovalidateMode: .onUserInteraction,
+      keyboardType: isNumbers ? TextInputType.number : TextInputType.text,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       maxLines: maxLines,
       initialValue: initialValue,
       decoration: InputDecoration(
@@ -80,6 +92,7 @@ String? barcodeValidator(String? value, BarcodeFormat? format) {
     }
     return null;
   }
+
   String? tryCheckDigit() {
     String? errorText = tryVerify();
     final String valueNoCheck = value.substring(0, value.length - 1);

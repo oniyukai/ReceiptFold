@@ -81,7 +81,7 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
         InvoiceCarrier(
           carrierId2: carrierId2,
           name: name,
-          status: .manual,
+          status: CarrierStatus.manual,
           carrierType: carrierType,
           carrierTypeName: carrierTypeName,
         ),
@@ -104,7 +104,7 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
   @override
   Widget build(context) {
     final bool allowEdit =
-        _args?.items[_args.index].status != .platform ||
+        _args?.items[_args.index].status != CarrierStatus.platform ||
         context.readPrefs.get(.isAppDeveloperMode);
     return Scaffold(
       appBar: AppBar(

@@ -52,7 +52,7 @@ class _PageSearchFormState extends State<PageSearchForm> {
     try {
       _submitForm();
     } catch (e) {
-      Utils.showToast('錯誤: $e');
+      Utils.showToast('${DictKey.commonUiError.s}: $e');
     }
   }
 
@@ -67,7 +67,11 @@ class _PageSearchFormState extends State<PageSearchForm> {
           .toSet()
           .toList();
       if (list.length > _maxSplitString) {
-        throw Exception('或運算符號請勿超過 $_maxSplitString 個。');
+        throw Exception(
+          Utils.multilingualFiller(DictKey.searchErrorSplit.s, [
+            (StaticString.fillObjectNumber, '$_maxSplitString'),
+          ]),
+        );
       }
       return list;
     }
@@ -81,25 +85,25 @@ class _PageSearchFormState extends State<PageSearchForm> {
     final double? minPrizeAmount = double.tryParse(map['minPrizeAmount'] ?? '');
     final double? maxPrizeAmount = double.tryParse(map['maxPrizeAmount'] ?? '');
     final List<String> descriptions = splitSearchStr(map['description'] ?? '');
-    final List<List<GeneratedColumn<String>>> columnsScopes = List.generate(
+    final columnsScopes = List<List<GeneratedColumn<String>>>.generate(
       _keywordColumnCount,
       (index) => map['scopeColumn$index'] ?? const [],
     );
-    final List<List<String>> columnsKeywords = List.generate(
+    final columnsKeywords = List<List<String>>.generate(
       _keywordColumnCount,
       (index) => splitSearchStr(map['keywordColumn$index'] ?? ''),
     );
 
     if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-      throw Exception('日期先後順序相反。');
+      throw Exception(DictKey.searchErrorDateOrder.s);
     } else if (minTotalAmount != null &&
         maxTotalAmount != null &&
         minTotalAmount > maxTotalAmount) {
-      throw Exception('數字最小值請勿超過最大值。');
+      throw Exception(DictKey.searchErrorMinMax.s);
     } else if (minPrizeAmount != null &&
         maxPrizeAmount != null &&
         minPrizeAmount > maxPrizeAmount) {
-      throw Exception('數字最小值請勿超過最大值。');
+      throw Exception(DictKey.searchErrorMinMax.s);
     }
 
     MyRouter.of<PageSearchView>().toPass([
@@ -170,7 +174,7 @@ class _PageSearchFormState extends State<PageSearchForm> {
     final FormBuilderFields? formFields = _formKey.currentState?.fields;
     return Scaffold(
       appBar: AppBar(
-        title: Text('搜尋條件'),
+        title: Text(DictKey.searchTitle.s),
         actions: [
           IconButton(onPressed: _pressCheck, icon: const Icon(Icons.check)),
         ],
@@ -188,10 +192,10 @@ class _PageSearchFormState extends State<PageSearchForm> {
                   name: 'originStatus',
                   decoration: InputDecoration(
                     labelText: DictKey.receiptHeaderOriginStatus.s,
-                    border: .none,
+                    border: InputBorder.none,
                   ),
                   options: [
-                    for (final OriginStatus value in OriginStatus.values)
+                    for (final value in OriginStatus.values)
                       FormBuilderChipOption(
                         value: value,
                         child: Text(value.locale),
@@ -199,17 +203,20 @@ class _PageSearchFormState extends State<PageSearchForm> {
                   ],
                 ),
 
-                ListTile(minTileHeight: 0, subtitle: Text('開立時間')),
+                ListTile(
+                  minTileHeight: 0,
+                  subtitle: Text(DictKey.searchIssuedDate.s),
+                ),
                 Row(
                   children: [
                     Expanded(
                       child: FormBuilderDateTimePicker(
                         name: 'startDate',
-                        inputType: .date,
+                        inputType: InputType.date,
                         format: DateFormat('yyyy-MM-dd'),
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
-                          labelText: '最早日期',
+                          labelText: DictKey.searchDateEarliest.s,
                           prefixIcon: const Icon(Icons.event),
                           suffixIcon: formFields?['startDate']?.value == null
                               ? null
@@ -225,11 +232,11 @@ class _PageSearchFormState extends State<PageSearchForm> {
                     Expanded(
                       child: FormBuilderDateTimePicker(
                         name: 'endDate',
-                        inputType: .date,
+                        inputType: InputType.date,
                         format: DateFormat('yyyy-MM-dd'),
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
-                          labelText: '最晚日期',
+                          labelText: DictKey.searchDateLatest.s,
                           prefixIcon: const Icon(Icons.event),
                           suffixIcon: formFields?['endDate']?.value == null
                               ? null
@@ -253,20 +260,20 @@ class _PageSearchFormState extends State<PageSearchForm> {
                     Expanded(
                       child: MyTextField(
                         name: 'minTotalAmount',
-                        labelText: '最小值',
+                        labelText: DictKey.searchMinValue.s,
                         prefixIconData: Icons.attach_money,
                         required: false,
-                        type: .number,
+                        type: FieldType.number,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: MyTextField(
                         name: 'maxTotalAmount',
-                        labelText: '最大值',
+                        labelText: DictKey.searchMaxValue.s,
                         prefixIconData: Icons.attach_money,
                         required: false,
-                        type: .number,
+                        type: FieldType.number,
                       ),
                     ),
                   ],
@@ -281,20 +288,20 @@ class _PageSearchFormState extends State<PageSearchForm> {
                     Expanded(
                       child: MyTextField(
                         name: 'minPrizeAmount',
-                        labelText: '最小值',
+                        labelText: DictKey.searchMinValue.s,
                         prefixIconData: Icons.attach_money,
                         required: false,
-                        type: .number,
+                        type: FieldType.number,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: MyTextField(
                         name: 'maxPrizeAmount',
-                        labelText: '最大值',
+                        labelText: DictKey.searchMaxValue.s,
                         prefixIconData: Icons.attach_money,
                         required: false,
-                        type: .number,
+                        type: FieldType.number,
                       ),
                     ),
                   ],
@@ -306,14 +313,14 @@ class _PageSearchFormState extends State<PageSearchForm> {
                 ),
                 MyTextField(
                   name: 'description',
-                  labelText: '關鍵字',
+                  labelText: DictKey.searchKeyword.s,
                   required: false,
                 ),
 
                 const SizedBox(height: 16),
                 ListTilePicker<int>(
                   iconData: Icons.format_list_numbered,
-                  text: '欄位範圍關鍵字條件數',
+                  text: DictKey.searchColumnCount.s,
                   selectedOption: _keywordColumnCount,
                   optionMap: Map.fromEntries(
                     List.generate(4, (i) => MapEntry(i + 1, '${i + 1}')),
@@ -327,8 +334,9 @@ class _PageSearchFormState extends State<PageSearchForm> {
                     FormBuilderCheckboxGroup<GeneratedColumn<String>>(
                       name: 'scopeColumn$index',
                       decoration: InputDecoration(
-                        labelText: '欄位範圍 ${index + 1}',
-                        border: .none,
+                        labelText:
+                            '${DictKey.searchColumnScope.s} ${index + 1}',
+                        border: InputBorder.none,
                       ),
                       options: [
                         for (final column in _stringDriftColumn)
@@ -340,17 +348,14 @@ class _PageSearchFormState extends State<PageSearchForm> {
                     ),
                     MyTextField(
                       name: 'keywordColumn$index',
-                      labelText: '關鍵字',
+                      labelText: DictKey.searchKeyword.s,
                       required: false,
                     ),
                     const SizedBox(height: 16),
                   ];
                 }).expand((ls) => ls),
 
-                Text(
-                  '欄位空值預設沒有限制條件，文本關鍵字使用 "${StaticString.searchSplit}" 符號可以或運算。',
-                  textAlign: .center,
-                ),
+                Text(DictKey.searchHint.s, textAlign: TextAlign.center),
               ],
             ),
           ),

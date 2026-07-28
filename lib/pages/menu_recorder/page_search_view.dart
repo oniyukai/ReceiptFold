@@ -28,6 +28,7 @@ class _PageSearchViewState extends State<PageSearchView> {
   StreamSubscription<Map<Receipt, List<ReceiptProduct>>>? _subscription;
   late Map<Receipt, List<ReceiptProduct>> _receiptMap;
   late Map<DateTime, Map<Receipt, List<ReceiptProduct>>> _dateReceiptMap;
+  int _itemCount = 1;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -71,6 +72,7 @@ class _PageSearchViewState extends State<PageSearchView> {
                 () => {},
               )[entry.key] = entry.value;
             }
+            _itemCount = data.length < _maxSearchLimit ? index + 1 : index + 2;
             _isLoading = false;
             _errorMessage = null;
           }),
@@ -84,9 +86,10 @@ class _PageSearchViewState extends State<PageSearchView> {
   @override
   Widget build(context) {
     return Scaffold(
-      appBar: AppBar(title: Text('搜尋結果')),
+      appBar: AppBar(title: Text(DictKey.searchResultTitle.s)),
       body: SafeArea(
         child: PageView.builder(
+          itemCount: _itemCount,
           controller: _pageController,
           onPageChanged: _onPageChanged,
           itemBuilder: (context, index) {
@@ -114,15 +117,24 @@ class _PageSearchViewState extends State<PageSearchView> {
                     ),
                     Expanded(
                       child: Text(
-                        '第 ${index + 1} 頁，共 ${_receiptMap.length} 筆',
-                        textAlign: .center,
+                        Utils.multilingualFiller(
+                          DictKey.searchResultSummary.s,
+                          [
+                            (StaticString.fillObjectNumber, '${index + 1}'),
+                            (
+                              StaticString.fillObjectCount,
+                              '${_receiptMap.length}',
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                     IconButton(
                       padding: const EdgeInsets.all(0),
                       visualDensity: VisualDensity.compact,
                       icon: const Icon(Icons.arrow_right),
-                      onPressed: _receiptMap.length < _maxSearchLimit
+                      onPressed: index >= _itemCount - 1
                           ? null
                           : () {
                               _pageController.nextPage(
@@ -138,7 +150,7 @@ class _PageSearchViewState extends State<PageSearchView> {
                     controller: _scrollController,
                     child: ListView(
                       controller: _scrollController,
-                      padding: const .symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       children: _dateReceiptMap.entries.map((dateEntry) {
                         final DateFormat yearFormatter = DateFormat.y(
                           DictKey.languageTag,
@@ -183,7 +195,7 @@ class ReceiptListCard extends StatelessWidget {
         children: [
           ListTile(
             minTileHeight: 0.0,
-            subtitle: Text(text, textAlign: .center),
+            subtitle: Text(text, textAlign: TextAlign.center),
           ),
           ...receiptMap.entries.map((receiptEntry) {
             final DateTime dateTime = receiptEntry.key.issuedAt;

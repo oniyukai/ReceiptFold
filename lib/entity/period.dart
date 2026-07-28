@@ -18,7 +18,7 @@ class Period {
     _localTime = dateTime.toLocal();
   }
 
-  Period.inv(String invQuery) : _iterationType = .inv {
+  Period.inv(String invQuery) : _iterationType = _PeriodIterationType.inv {
     int year = 0;
     int month = 1;
     try {
@@ -33,7 +33,7 @@ class Period {
 
   /// 獲取該期别的開始日期 (該月1日)
   DateTime get start {
-    assert(_iterationType != .inv);
+    assert(_iterationType != _PeriodIterationType.inv);
     return DateTime(
       _localTime.year,
       _localTime.month % 2 + _localTime.month - 1,
@@ -43,7 +43,7 @@ class Period {
 
   /// 獲取該期别的結束日期 (下兩個月的前一天，並包含當天所有時間)
   DateTime get end {
-    assert(_iterationType != .inv);
+    assert(_iterationType != _PeriodIterationType.inv);
     return DateTime(
       _localTime.year,
       _localTime.month % 2 + _localTime.month + 1,
@@ -57,7 +57,7 @@ class Period {
 
   /// 當地年雙月描述, 如 "2025年 11月, 12月"
   String get localString {
-    assert(_iterationType != .inv);
+    assert(_iterationType != _PeriodIterationType.inv);
     final DateFormat yearFormatter = DateFormat.y(DictKey.languageTag);
     final String yearPart = yearFormatter.format(start);
     final String month1Name = UnitUtils.singleMonthText(start);
@@ -67,19 +67,25 @@ class Period {
 
   /// 獲取下一期
   Period get next {
-    assert(_iterationType != .inv);
-    return Period._iteration(end.add(const Duration(days: 1)), .local);
+    assert(_iterationType != _PeriodIterationType.inv);
+    return Period._iteration(
+      end.add(const Duration(days: 1)),
+      _PeriodIterationType.local,
+    );
   }
 
   /// 獲取上一期
   Period get previous {
-    assert(_iterationType != .inv);
-    return Period._iteration(start.subtract(const Duration(days: 1)), .local);
+    assert(_iterationType != _PeriodIterationType.inv);
+    return Period._iteration(
+      start.subtract(const Duration(days: 1)),
+      _PeriodIterationType.local,
+    );
   }
 
   /// 獲取該期别的台北時間開始日期 (該月1日)
   DateTime get invStart {
-    assert(_iterationType != .local);
+    assert(_iterationType != _PeriodIterationType.local);
     final DateTime taipeiTime = _localTime.toUtc().add(
       const Duration(hours: 8),
     );
@@ -93,7 +99,7 @@ class Period {
 
   /// 獲取該期别的台北時間結束日期 (該月1日)
   DateTime get invEnd {
-    assert(_iterationType != .local);
+    assert(_iterationType != _PeriodIterationType.local);
     final DateTime taipeiTime = _localTime.toUtc().add(
       const Duration(hours: 8),
     );
@@ -110,13 +116,16 @@ class Period {
 
   /// 獲取基於台北時間的上一期，不建議與本地時間混用
   Period get invPrevious {
-    assert(_iterationType != .local);
-    return Period._iteration(invStart.subtract(const Duration(days: 1)), .inv);
+    assert(_iterationType != _PeriodIterationType.local);
+    return Period._iteration(
+      invStart.subtract(const Duration(days: 1)),
+      _PeriodIterationType.inv,
+    );
   }
 
   /// 台北時間民國年雙月描述, 如 "113-05/06"
   String get invString {
-    assert(_iterationType != .local);
+    assert(_iterationType != _PeriodIterationType.local);
     final DateTime startTime = invStart.add(const Duration(hours: 8));
     final String startMonth = startTime.month.toString().padLeft(2, '0');
     final String endMonth = (startTime.month + 1).toString().padLeft(2, '0');
@@ -125,7 +134,7 @@ class Period {
 
   /// 台北時間民國年雙月描述, 如 "11305"
   String get invQuery {
-    assert(_iterationType != .local);
+    assert(_iterationType != _PeriodIterationType.local);
     final DateTime startTime = invStart.add(const Duration(hours: 8));
     return '${(startTime.year - 1911).toString().padLeft(3, '0')}${startTime.month.toString().padLeft(2, '0')}';
   }

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -47,9 +48,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       _args.receiptEntry?.key ??
       Receipt(
         issuedAt: _args.period!.start,
-        originStatus: .manualEntry,
+        originStatus: OriginStatus.manualEntry,
         totalAmount: 0.0,
-        modified: .now(),
+        modified: DateTime.now(),
         uuid: UuidMixin.v7.generate(),
       );
 
@@ -241,7 +242,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       final tempProduct =
           (product ??
                   ReceiptProduct(
-                    modified: .now(),
+                    modified: DateTime.now(),
                     uuid: UuidMixin.v7.generate(),
                     receiptUuid: _receipt.uuid,
                     sequence: _products.length + 1,
@@ -569,9 +570,8 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                         quantity: DictKey.receiptDetailQuantity.s,
                         amount: DictKey.receiptDetailAmount.s,
                       ),
-                      ...List.generate(_products.length, (index) {
-                        final product = _products[index];
-                        return _ProductInfoRow(
+                      ..._products.mapIndexed(
+                        (index, product) => _ProductInfoRow(
                           onTap: _isCloudPlatform
                               ? null
                               : () => _productAddOrModify(index, product),
@@ -583,8 +583,8 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                           ),
                           quantity: Utils.amountToDescription(product.quantity),
                           amount: Utils.amountToDescription(product.amount),
-                        );
-                      }),
+                        ),
+                      ),
                       if (!_isCloudPlatform)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

@@ -34,13 +34,12 @@ class _MainSettingsPageState extends State<MainSettingsView> {
       final oldSize = await cache.store.getCacheSize();
       await cache.emptyCache();
       final newSize = await cache.store.getCacheSize();
-      Utils.showToast(Utils.multilingualFiller(
-        DictKey.settingCacheClearedMsg.s,
-        [
+      Utils.showToast(
+        Utils.multilingualFiller(DictKey.settingCacheClearedMsg.s, [
           (StaticString.fillObjectOldBytes, UnitUtils.shortBytesText(oldSize)),
           (StaticString.fillObjectNewBytes, UnitUtils.shortBytesText(newSize)),
-        ]
-      ));
+        ]),
+      );
     } catch (e) {
       Utils.showToast('${DictKey.commonUiFailure.s}: $e');
     }
@@ -56,28 +55,35 @@ class _MainSettingsPageState extends State<MainSettingsView> {
           builder: (context, prefs, child) => ListView(
             controller: _scrollController,
             children: [
-              ListTileText(text: DictKey.settingGroupAppearance.s, isSection: true),
+              ListTileText(
+                text: DictKey.settingGroupAppearance.s,
+                isSection: true,
+              ),
               ListTilePicker<ColorOption>(
                 text: DictKey.settingOptionColor.s,
                 selectedOption: prefs.get(.selectedColor),
                 optionMap: ColorOption.optionMap,
-                leadingBuilder: (radio, selected) => ColorfulRadio(radio, selected),
+                leadingBuilder: (radio, selected) =>
+                    ColorfulRadio(radio, selected),
                 onChanged: (value) => prefs.update(.selectedColor, value),
               ),
               ListTilePicker<ThemeOption>(
                 text: DictKey.settingOptionTheme.s,
-                selectedOption: prefs.get(PrefsEnum.selectedTheme),
+                selectedOption: prefs.get(.selectedTheme),
                 optionMap: ThemeOption.optionMap,
-                onChanged: (value) => prefs.update(PrefsEnum.selectedTheme, value),
+                onChanged: (value) => prefs.update(.selectedTheme, value),
               ),
               ListTilePicker<LocaleOption>(
                 text: DictKey.settingGroupLanguages.s,
-                selectedOption: prefs.get(PrefsEnum.selectedLanguage),
+                selectedOption: prefs.get(.selectedLanguage),
                 optionMap: LocaleOption.optionMap,
-                onChanged: (value) => prefs.update(PrefsEnum.selectedLanguage, value),
+                onChanged: (value) => prefs.update(.selectedLanguage, value),
               ),
 
-              ListTileText(text: DictKey.settingGroupDataAutomation.s, isSection: true),
+              ListTileText(
+                text: DictKey.settingGroupDataAutomation.s,
+                isSection: true,
+              ),
               ListTileText(
                 text: DictKey.settingDataPlatform.s,
                 trailing: const Icon(Icons.chevron_right),
@@ -91,24 +97,27 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 onTap: () => MyRouter.routeTo(PageBackupView),
               ),
 
-              ListTileText(text: DictKey.settingGroupPreferences.s, isSection: true),
+              ListTileText(
+                text: DictKey.settingGroupPreferences.s,
+                isSection: true,
+              ),
               ListTileSwitch(
                 text: DictKey.settingSwitchAutoBrightness.s,
                 iconData: Icons.brightness_6_outlined,
-                initialValue: prefs.get(PrefsEnum.isAutoBrightness),
-                onToggle: (value) => prefs.update(PrefsEnum.isAutoBrightness, value),
+                initialValue: prefs.get(.isAutoBrightness),
+                onToggle: (value) => prefs.update(.isAutoBrightness, value),
               ),
               ListTileSwitch(
                 text: DictKey.settingOptionScanLockOrient.s,
                 iconData: Icons.screen_rotation,
-                initialValue: prefs.get(PrefsEnum.isScanScreenRotation),
-                onToggle: (value) => prefs.update(PrefsEnum.isScanScreenRotation, value),
+                initialValue: prefs.get(.isScanScreenRotation),
+                onToggle: (value) => prefs.update(.isScanScreenRotation, value),
               ),
               ListTileSwitch(
                 text: DictKey.settingSwitchShowLockRotation.s,
                 iconData: Icons.screen_rotation,
-                initialValue: prefs.get(PrefsEnum.isShowScreenRotation),
-                onToggle: (value) => prefs.update(PrefsEnum.isShowScreenRotation, value),
+                initialValue: prefs.get(.isShowScreenRotation),
+                onToggle: (value) => prefs.update(.isShowScreenRotation, value),
               ),
               ListTileText(
                 text: DictKey.settingActionClearCache.s,
@@ -120,7 +129,7 @@ class _MainSettingsPageState extends State<MainSettingsView> {
               ListTileText(
                 text: StaticString.appName,
                 trailing: const Icon(Icons.chevron_right),
-                onTap:() => MyRouter.routeTo(PageAboutView),
+                onTap: () => MyRouter.routeTo(PageAboutView),
               ),
             ],
           ),

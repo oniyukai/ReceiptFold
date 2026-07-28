@@ -6,8 +6,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:logger/logger.dart';
 import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/utils.dart';
+import 'package:receipt_fold/entity/drift/receipt.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
@@ -42,11 +44,11 @@ class _PagePlatformViewState extends State<PagePlatformView> {
   @override
   void initState() {
     super.initState();
-    _logSubscription = LogService.stream.where((e) => e.level >= .debug).listen(
-      (data) {
-        setState(() => _logs.insert(0, data.logString));
-      },
-    );
+    _logSubscription = LogService.stream
+        .where((e) => e.level >= Level.debug)
+        .listen((data) {
+          setState(() => _logs.insert(0, data.logString));
+        });
   }
 
   @override
@@ -116,7 +118,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
               labelText: DictKey.platformPasswordLabel.s,
               name: 'password',
               initialValue: account.password,
-              type: .password,
+              type: FieldType.password,
               required: false,
             ),
           ],
@@ -147,7 +149,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     _singleActionLocked.value = true;
     try {
       final FilePickerResult? result = await FilePicker.pickFiles(
-        type: .custom,
+        type: FileType.custom,
         allowedExtensions: const ['csv'],
       );
       if (result == null) {
@@ -157,8 +159,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       final File file = File(result.files.single.path!);
       await DriftServices.appDb.receiptDao.upsertMany(
         pairMap: _api.decodeImportCSV(await file.readAsString()),
-        scopeStart: .manualImport,
-        scopeEnd: .manualImport,
+        scopeStart: OriginStatus.manualImport,
+        scopeEnd: OriginStatus.manualImport,
       );
       LogService('🟢 _pressImportCSV finished.', instance: this).d();
       return;
@@ -180,14 +182,13 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     try {
       final List<InvoiceCarrier> carriers = await _api.fetchCarrierList();
       final carriersMap = <String, InvoiceCarrier>{
-        for (final InvoiceCarrier carrier in carriers)
-          carrier.carrierId2: carrier,
+        for (final carrier in carriers) carrier.carrierId2: carrier,
       };
       final List<InvoiceCarrier> oldCarriers = await DriftServices
           .appDb
           .keyValueStoreDao
           .getExistDefault(.invoiceCarrierList);
-      for (final InvoiceCarrier oldCarrier in oldCarriers) {
+      for (final oldCarrier in oldCarriers) {
         final InvoiceCarrier? carrier = carriersMap[oldCarrier.carrierId2];
         if (carrier != null) {
           oldCarrier
@@ -198,8 +199,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                 carrier.carrierTypeName ?? oldCarrier.carrierTypeName
             ..fetchJson = carrier.fetchJson ?? oldCarrier.fetchJson;
           carriersMap.remove(oldCarrier.carrierId2);
-        } else if (oldCarrier.status == .platform) {
-          oldCarrier.status = .platformExpired;
+        } else if (oldCarrier.status == CarrierStatus.platform) {
+          oldCarrier.status = CarrierStatus.platformExpired;
         }
       }
       await DriftServices.appDb.keyValueStoreDao.upsert(.invoiceCarrierList, [
@@ -230,8 +231,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     try {
       await DriftServices.appDb.receiptDao.upsertMany(
         pairMap: await _api.fetchAwardList(),
-        scopeStart: .platformUnconfirmed,
-        scopeEnd: .platformExpired,
+        scopeStart: OriginStatus.platformUnconfirmed,
+        scopeEnd: OriginStatus.platformExpired,
       );
       LogService('🟢 _pressFetchAwardList finished.', instance: this).d();
       return true;
@@ -259,8 +260,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         pairMap: await _api.fetchInvoiceList(
           context.readPrefs.get(.invoiceQueryMonths),
         ),
-        scopeStart: .platformUnconfirmed,
-        scopeEnd: .platformExpired,
+        scopeStart: OriginStatus.platformUnconfirmed,
+        scopeEnd: OriginStatus.platformExpired,
       );
       LogService('🟢 _pressFetchInvoiceList finished.', instance: this).d();
       return true;
@@ -285,7 +286,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
           controller: _scrollController,
           child: ListView(
             controller: _scrollController,
-            padding: const .fromLTRB(16.0, 0.0, 16.0, 16.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
             children: [
               ValueListenableBuilder(
                 valueListenable: _singleActionLocked,
@@ -317,7 +318,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                       ),
                       optionMap: Map.fromEntries(
                         List.generate(
-                          8,
+                          InvoicePlatformApi.maxQueryMonths,
                           (i) => MapEntry(
                             i + 1,
                             Utils.multilingualFiller(

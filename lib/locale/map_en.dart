@@ -1,4 +1,3 @@
 import 'package:receipt_fold/locale/app_language.dart';
 
-const LocaleInstance mapEn = {
-};
+const LocaleInstance mapEn = {};

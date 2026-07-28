@@ -26,9 +26,7 @@ class _PageAboutViewState extends State<PageAboutView> {
   @override
   Widget build(context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(DictKey.settingGroupAbout.s),
-      ),
+      appBar: AppBar(title: Text(DictKey.settingGroupAbout.s)),
       body: SafeArea(
         child: Scrollbar(
           controller: _scrollController,
@@ -49,10 +47,18 @@ class _PageAboutViewState extends State<PageAboutView> {
                 title: Text(DictKey.settingOptionVersion.s),
                 subtitle: Text(StaticString.appVersion),
                 onLongPress: () async {
-                  final bool newMode = !context.readPrefs.get(.isAppDeveloperMode);
-                  await context.readPrefs.update(.isAppDeveloperMode, newMode, false);
-                  Utils.showToast('set ${PrefsEnum.isAppDeveloperMode.name} $newMode, '
-                      'default: ${PrefsEnum.isAppDeveloperMode.defaultValue()}');
+                  final bool newMode = !context.readPrefs.get(
+                    .isAppDeveloperMode,
+                  );
+                  await context.readPrefs.update(
+                    .isAppDeveloperMode,
+                    newMode,
+                    false,
+                  );
+                  Utils.showToast(
+                    'set ${PrefsEnum.isAppDeveloperMode.name} $newMode, '
+                    'default: ${PrefsEnum.isAppDeveloperMode.defaultValue()}',
+                  );
                 },
               ),
               ListTile(
@@ -81,12 +87,13 @@ class _PageAboutViewState extends State<PageAboutView> {
                 title: Text(DictKey.settingOptionSourceCode.s),
                 subtitle: Text(StaticString.sourceCodeLink),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Utils.openUrlInBrowser(StaticString.sourceCodeLink),
+                onTap: () =>
+                    Utils.openUrlInBrowser(StaticString.sourceCodeLink),
               ),
             ],
-          )
-        )
-      )
+          ),
+        ),
+      ),
     );
   }
 }

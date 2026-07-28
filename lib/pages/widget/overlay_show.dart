@@ -19,7 +19,7 @@ abstract final class OverlayShow {
         title: Text(
           title,
           style: Theme.of(context).textTheme.titleMedium,
-          textAlign: .center,
+          textAlign: TextAlign.center,
         ),
         content: content,
         actions: [
@@ -45,7 +45,7 @@ abstract final class OverlayShow {
       context: context,
       isScrollControlled: true,
       builder: (context) => SingleChildScrollView(
-        padding: .fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           16.0,
           16.0,
           16.0,
@@ -58,7 +58,7 @@ abstract final class OverlayShow {
             ?content,
             if (content != null) const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: .spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 if (!noCancelButton)
                   ElevatedButton(
@@ -93,7 +93,7 @@ abstract final class OverlayShow {
           controller: scrollController,
           child: _ReorderableTiles(
             scrollController: scrollController,
-            padding: const .symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             initialItems: items,
             onReorderFinished: (list) => items = list,
             itemBuilder: itemBuilder,
@@ -117,9 +117,12 @@ abstract final class OverlayShow {
   static Future<void> toast(
     Widget content, {
     int seconds = 2,
-    Alignment alignment = .bottomCenter,
-    EdgeInsetsGeometry margin = const .all(16),
-    EdgeInsetsGeometry padding = const .symmetric(vertical: 8, horizontal: 16),
+    Alignment alignment = Alignment.bottomCenter,
+    EdgeInsetsGeometry margin = const EdgeInsets.all(16),
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+      vertical: 8,
+      horizontal: 16,
+    ),
   }) {
     final OverlayState? overlayState =
         MyRouter.delegate.navigatorKey.currentState?.overlay;
@@ -151,7 +154,6 @@ abstract final class OverlayShow {
 }
 
 class _ReorderableTiles<T> extends StatefulWidget {
-  // todo debug: 這好像操作第一個排序時怪怪的
   final ScrollController scrollController;
   final List<T> initialItems;
   final ValueChanged<List<T>> onReorderFinished;
@@ -177,17 +179,16 @@ class _ReorderableTilesState<T> extends State<_ReorderableTiles<T>> {
   @override
   void initState() {
     super.initState();
-    _items = List.from(widget.initialItems);
+    _items = List<T>.from(widget.initialItems);
   }
 
   @override
   void didUpdateWidget(oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _items = List.from(widget.initialItems);
+    _items = List<T>.from(widget.initialItems);
   }
 
   void _onReorderItem(int oldIndex, int newIndex) {
-    if (newIndex > oldIndex) newIndex -= 1;
     setState(() => _items.insert(newIndex, _items.removeAt(oldIndex)));
     widget.onReorderFinished(_items);
   }

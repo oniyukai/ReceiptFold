@@ -2501,10 +2501,7 @@ final class $$ReceiptsTableReferences
   _receiptProductsRefsTable(_$MyDriftDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.receiptProducts,
-        aliasName: $_aliasNameGenerator(
-          db.receipts.uuid,
-          db.receiptProducts.receiptUuid,
-        ),
+        aliasName: 'receipts__uuid__receipt_products__receipt_uuid',
       );
 
   $$ReceiptProductsTableProcessedTableManager get receiptProductsRefs {
@@ -3131,9 +3128,7 @@ final class $$ReceiptProductsTableReferences
   );
 
   static $ReceiptsTable _receiptUuidTable(_$MyDriftDatabase db) =>
-      db.receipts.createAlias(
-        $_aliasNameGenerator(db.receiptProducts.receiptUuid, db.receipts.uuid),
-      );
+      db.receipts.createAlias('receipt_products__receipt_uuid__receipts__uuid');
 
   $$ReceiptsTableProcessedTableManager get receiptUuid {
     final $_column = $_itemColumn<String>('receipt_uuid')!;

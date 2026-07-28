@@ -64,7 +64,7 @@ class InvoiceCarrier {
     return InvoiceCarrier(
       carrierId2: carrierId2 ?? StaticString.nullString,
       name: name ?? StaticString.nullString,
-      status: status ?? .manual,
+      status: status ?? CarrierStatus.manual,
       carrierType: carrierType,
       carrierTypeName: carrierTypeName,
       fetchJson: fetchJson,
