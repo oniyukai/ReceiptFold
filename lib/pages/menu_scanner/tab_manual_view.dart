@@ -43,7 +43,7 @@ class _TabManualViewState extends State<TabManualView> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Scrollbar(

@@ -67,11 +67,9 @@ class _PageSearchFormState extends State<PageSearchForm> {
           .toSet()
           .toList();
       if (list.length > _maxSplitString) {
-        throw Exception(
-          Utils.multilingualFiller(DictKey.searchErrorSplit.s, [
-            (StaticString.fillObjectNumber, '$_maxSplitString'),
-          ]),
-        );
+        throw Utils.multilingualFiller(DictKey.searchErrorSplit.s, [
+          (StaticString.fillObjectNumber, '$_maxSplitString'),
+        ]);
       }
       return list;
     }
@@ -95,15 +93,15 @@ class _PageSearchFormState extends State<PageSearchForm> {
     );
 
     if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-      throw Exception(DictKey.searchErrorDateOrder.s);
+      throw DictKey.searchErrorDateOrder.s;
     } else if (minTotalAmount != null &&
         maxTotalAmount != null &&
         minTotalAmount > maxTotalAmount) {
-      throw Exception(DictKey.searchErrorMinMax.s);
+      throw DictKey.searchErrorMinMax.s;
     } else if (minPrizeAmount != null &&
         maxPrizeAmount != null &&
         minPrizeAmount > maxPrizeAmount) {
-      throw Exception(DictKey.searchErrorMinMax.s);
+      throw DictKey.searchErrorMinMax.s;
     }
 
     MyRouter.of<PageSearchView>().toPass([
@@ -170,7 +168,7 @@ class _PageSearchFormState extends State<PageSearchForm> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final FormBuilderFields? formFields = _formKey.currentState?.fields;
     return Scaffold(
       appBar: AppBar(
@@ -214,7 +212,7 @@ class _PageSearchFormState extends State<PageSearchForm> {
                         name: 'startDate',
                         inputType: InputType.date,
                         format: DateFormat('yyyy-MM-dd'),
-                        onChanged: (_) => setState(() {}),
+                        onChanged: (v) => setState(() {}),
                         decoration: InputDecoration(
                           labelText: DictKey.searchDateEarliest.s,
                           prefixIcon: const Icon(Icons.event),
@@ -234,7 +232,7 @@ class _PageSearchFormState extends State<PageSearchForm> {
                         name: 'endDate',
                         inputType: InputType.date,
                         format: DateFormat('yyyy-MM-dd'),
-                        onChanged: (_) => setState(() {}),
+                        onChanged: (v) => setState(() {}),
                         decoration: InputDecoration(
                           labelText: DictKey.searchDateLatest.s,
                           prefixIcon: const Icon(Icons.event),

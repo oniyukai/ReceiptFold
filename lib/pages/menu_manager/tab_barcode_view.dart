@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/utils.dart';
@@ -29,40 +30,48 @@ class TabBarcodeView extends StatefulWidget {
 }
 
 class _TabBarcodeViewState extends State<TabBarcodeView> {
+  late final List<MobileBarcodeItem> _mobileItems;
+  late final List<MemberBarcodeItem> _memberItems;
   final ScrollController _scrollController = ScrollController();
-  late List<MobileBarcodeItem> _mobileItems;
-  late List<MemberBarcodeItem> _memberItems;
+  final _isScreenBrightness = ValueNotifier(false);
+  bool _isLockScreenRotation = false;
+  bool _isInitialized = false;
+  bool _isLastTimeOnView = false;
   int? _mobileItemIndex;
   int? _memberItemIndex;
-  bool _isBrightness = PrefsEnum.isAutoBrightness.defaultValue();
-  bool _isLockOrientation = PrefsEnum.isAutoBrightness.defaultValue();
-  bool _isLastTimeOnView = false;
-  bool _isInitialized = false;
 
   @override
   void dispose() {
     super.dispose();
     _scrollController.dispose();
-    _setAppBrightness(false);
+    _setScreenBrightness(false);
     _setOrientationLock(false);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (context.watch<MenuNavBarProvider>().onManager) {
-      _initLoadItem();
-      _isBrightness = context.readPrefs.get(.isAutoBrightness);
-      _setAppBrightness(_isBrightness);
-      _isLockOrientation = context.readPrefs.get(.isShowScreenRotation);
-      _setOrientationLock(_isLockOrientation);
+    _viewEntryExitEvent(context.watch<MenuNavBarProvider>().onManager);
+  }
+
+  Future<void> _viewEntryExitEvent(bool onManager) async {
+    if (onManager && !_isLastTimeOnView) {
       _isLastTimeOnView = true;
-    } else if (_isLastTimeOnView) {
-      _setAppBrightness(false);
-      _isBrightness = context.readPrefs.get(.isAutoBrightness);
-      _setOrientationLock(false);
-      _isLockOrientation = context.readPrefs.get(.isShowScreenRotation);
+      final bool isAutoBrightness = context.readPrefs.get(.isAutoBrightness);
+      final bool isShowScreenRotation = context.readPrefs.get(
+        .isShowScreenRotation,
+      );
+      await Future.wait([
+        _initLoadItem(),
+        _setScreenBrightness(isAutoBrightness),
+        _setOrientationLock(isShowScreenRotation),
+      ]);
+    } else if (!onManager && _isLastTimeOnView) {
       _isLastTimeOnView = false;
+      await Future.wait([
+        _setScreenBrightness(false),
+        _setOrientationLock(false),
+      ]);
     }
   }
 
@@ -80,24 +89,28 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _setAppBrightness(bool toBrightness) async {
-    try {
-      if (toBrightness) {
-        await ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
-      } else if (_isBrightness) {
-        await ScreenBrightness.instance.resetApplicationScreenBrightness();
-      }
-    } catch (e) {
-      Utils.showToast(e.toString());
+  Future<void> _setScreenBrightness(bool toBrightness) async {
+    if (_isScreenBrightness.value == toBrightness) return;
+    if (toBrightness) {
+      await ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
+    } else if (_isScreenBrightness.value) {
+      await ScreenBrightness.instance.resetApplicationScreenBrightness();
     }
+    _isScreenBrightness.value = toBrightness;
   }
 
   Future<void> _setOrientationLock(bool toLock) async {
+    if (_isLockScreenRotation == toLock) return;
     if (toLock) {
-      await Utils.lockCurrentOrientation(context);
-    } else if (_isLockOrientation) {
-      await Utils.unlockCurrentOrientation();
+      await Utils.lockOrientation(
+        context: context,
+        orientation: (await NativeDeviceOrientationCommunicator().orientation())
+            .deviceOrientation,
+      );
+    } else if (_isLockScreenRotation) {
+      await Utils.unlockOrientation();
     }
+    _isLockScreenRotation = toLock;
   }
 
   Future<void> _changeMobileItem() {
@@ -130,7 +143,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final barcodeWidth = MediaQuery.of(context).size.shortestSide / 2;
     final isPortrait = Utils.isPortrait(context);
     return Scrollbar(
@@ -269,17 +282,17 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
                     ],
                   ),
           ),
-          ListTileSwitch(
-            text: DictKey.managerBrightenScreen.s,
-            iconData: Icons.brightness_6_outlined,
-            initialValue: _isBrightness,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(64.0),
+          ValueListenableBuilder(
+            valueListenable: _isScreenBrightness,
+            builder: (context, isScreenBrightness, child) => ListTileSwitch(
+              text: DictKey.managerBrightenScreen.s,
+              iconData: Icons.brightness_6_outlined,
+              initialValue: isScreenBrightness,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(64.0),
+              ),
+              onToggle: _setScreenBrightness,
             ),
-            onToggle: (value) {
-              _setAppBrightness(value);
-              setState(() => _isBrightness = value);
-            },
           ),
         ],
       ),
@@ -302,7 +315,7 @@ class BarcodeSvgPicture extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     String? checkMsg = barcodeValidator(data, format);
     Widget? svgWidget;
     try {
@@ -343,7 +356,7 @@ class ImageBox extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final double width = 100;
     final double height = 64;
     if (item.imageUrl == null || item.imageUrl!.isEmpty) {

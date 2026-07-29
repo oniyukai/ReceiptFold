@@ -30,7 +30,7 @@ class GadgetMobile extends StatelessWidget {
   const GadgetMobile({super.key, required this.items});
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     MobileBarcodeItem? firstCode;
     if (items.isNotEmpty) firstCode = items.first;
     if (firstCode == null) {
@@ -60,7 +60,7 @@ class GadgetBarcode extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final barcodeWidth = constraints.biggest.shortestSide;
@@ -101,5 +101,3 @@ class GadgetBarcode extends StatelessWidget {
     );
   }
 }
-
-// todo debug: 當APP位於路由中, 在用小工具進入會push路由

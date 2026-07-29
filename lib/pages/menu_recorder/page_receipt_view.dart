@@ -382,7 +382,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   // 後方函式 ---------- >
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
@@ -640,7 +640,7 @@ class _RowExpandedTile extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -668,7 +668,7 @@ class _ReceiptInfoTile extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
@@ -721,7 +721,7 @@ class _ProductInfoRow extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(8.0),
       onTap: onTap,

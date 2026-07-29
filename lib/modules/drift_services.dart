@@ -232,7 +232,7 @@ class WebDAVAdapter extends TransportAdapter {
       return null;
     }
     if (remoteFile.isDir == true) {
-      throw Exception('$this: ${remoteFile.path} cannot be directory.');
+      throw Exception('${remoteFile.path} cannot be directory.');
     }
     final Directory tempDir = await getTemporaryDirectory();
     final File file = File(
@@ -270,7 +270,7 @@ class WebDAVAdapter extends TransportAdapter {
         await _client.remove(remoteCachePath);
       } catch (e) {
         LogService(
-          'client.remove($remoteCachePath)',
+          '_client.remove($remoteCachePath)',
           errorObject: e,
           instance: this,
         ).t();

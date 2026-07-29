@@ -46,7 +46,7 @@ class _MainSettingsPageState extends State<MainSettingsView> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     DictKey.load(context);
     return SafeArea(
       child: Scrollbar(
@@ -108,16 +108,16 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 onToggle: (value) => prefs.update(.isAutoBrightness, value),
               ),
               ListTileSwitch(
-                text: DictKey.settingOptionScanLockOrient.s,
-                iconData: Icons.screen_rotation,
-                initialValue: prefs.get(.isScanScreenRotation),
-                onToggle: (value) => prefs.update(.isScanScreenRotation, value),
-              ),
-              ListTileSwitch(
                 text: DictKey.settingSwitchShowLockRotation.s,
                 iconData: Icons.screen_rotation,
                 initialValue: prefs.get(.isShowScreenRotation),
                 onToggle: (value) => prefs.update(.isShowScreenRotation, value),
+              ),
+              ListTileSwitch(
+                text: DictKey.settingOptionScanLockOrient.s,
+                iconData: Icons.screen_rotation,
+                initialValue: prefs.get(.isScanScreenRotation),
+                onToggle: (value) => prefs.update(.isScanScreenRotation, value),
               ),
               ListTileText(
                 text: DictKey.settingActionClearCache.s,

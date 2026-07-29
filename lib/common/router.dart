@@ -14,7 +14,6 @@ import 'package:receipt_fold/pages/menu_settings/page_about_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_backup_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_platform_view.dart';
-import 'package:receipt_fold/pages/menu_settings/page_terms_view.dart';
 
 typedef _InitialPage = MenuNavBar;
 
@@ -45,7 +44,6 @@ final _routingTable = Map<Type, RouteEntry>.fromEntries(
     PageBackupView: PageBackupView(),
     PageAboutView: PageAboutView(),
     PageLogsView: PageLogsView(),
-    PageTermsView: PageTermsView(),
   }.entries.mapIndexed(
     (index, entry) => MapEntry(
       entry.key,
@@ -58,7 +56,7 @@ final _routingTable = Map<Type, RouteEntry>.fromEntries(
 );
 
 final Map<String, RouteEntry> routeEntries =
-    _routingTable.map((k, v) => MapEntry(v.route, v))
+    _routingTable.map((_, v) => MapEntry(v.route, v))
       ..[_initialRoute] = RouteEntry(
         _initialRoute,
         _routingTable[_InitialPage]!.widget,
@@ -80,15 +78,16 @@ class MyRouteConfig<A, R> {
 
 class MyRouteParser extends RouteInformationParser<MyRouteConfig> {
   @override
-  Future<MyRouteConfig> parseRouteInformation(routeInformation) =>
-      SynchronousFuture(
-        MyRouteConfig(
-          routeEntries[routeInformation.uri.path]?.route ?? _initialRoute,
-        ),
-      );
+  Future<MyRouteConfig> parseRouteInformation(
+    RouteInformation routeInformation,
+  ) => SynchronousFuture(
+    MyRouteConfig(
+      routeEntries[routeInformation.uri.path]?.route ?? _initialRoute,
+    ),
+  );
 
   @override
-  RouteInformation restoreRouteInformation(configuration) =>
+  RouteInformation restoreRouteInformation(MyRouteConfig configuration) =>
       RouteInformation(uri: Uri.parse(configuration.route));
 }
 
@@ -102,7 +101,7 @@ class MyRouterDelegate extends RouterDelegate<MyRouteConfig>
   MyRouteConfig? get currentConfiguration => _stack.lastOrNull;
 
   @override
-  Future<void> setNewRoutePath(configuration) async {
+  Future<void> setNewRoutePath(MyRouteConfig configuration) async {
     if (_stack.lastOrNull?.route == configuration.route) return;
     _stack
       ..clear()
@@ -155,7 +154,7 @@ class MyRouterDelegate extends RouterDelegate<MyRouteConfig>
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     if (_stack.isEmpty) {
       return const Center(child: Text('Navigator _stack.isEmpty'));
     }
@@ -183,7 +182,7 @@ class _RouteConfigScope extends InheritedWidget {
   const _RouteConfigScope({required this.config, required super.child});
 
   @override
-  bool updateShouldNotify(oldWidget) => false;
+  bool updateShouldNotify(covariant InheritedWidget oldWidget) => false;
 }
 
 abstract final class MyRouter {

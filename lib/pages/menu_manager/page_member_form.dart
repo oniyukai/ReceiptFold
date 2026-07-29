@@ -102,7 +102,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final barcodeWidth = MediaQuery.of(context).size.shortestSide / 2;
     return Scaffold(
       appBar: AppBar(

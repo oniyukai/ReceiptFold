@@ -84,7 +84,7 @@ class _PageSearchViewState extends State<PageSearchView> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(DictKey.searchResultTitle.s)),
       body: SafeArea(

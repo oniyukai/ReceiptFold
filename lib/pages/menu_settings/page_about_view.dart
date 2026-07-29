@@ -4,7 +4,6 @@ import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
-import 'package:receipt_fold/pages/menu_settings/page_terms_view.dart';
 import 'package:path/path.dart' as p;
 
 class PageAboutView extends StatefulWidget {
@@ -24,7 +23,7 @@ class _PageAboutViewState extends State<PageAboutView> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(DictKey.settingGroupAbout.s)),
       body: SafeArea(
@@ -77,11 +76,6 @@ class _PageAboutViewState extends State<PageAboutView> {
                   context: context,
                   applicationName: DictKey.settingOptionLicenses.s,
                 ),
-              ),
-              ListTile(
-                title: Text(DictKey.settingTermsTitle.s),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => MyRouter.routeTo(PageTermsView),
               ),
               ListTile(
                 title: Text(DictKey.settingOptionSourceCode.s),

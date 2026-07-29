@@ -146,7 +146,7 @@ const LocaleInstance mapZhHant = {
   .searchMaxValue: '最大值',
   .searchKeyword: '關鍵字',
   .searchColumnCount: '欄位範圍條件數',
-  .searchColumnScope: '欄位範圍 ${StaticString.fillObjectNumber}',
+  .searchColumnScope: '欄位範圍',
   .searchHint: '欄位空值預設沒有限制條件，文本關鍵字使用 "${StaticString.searchSplit}" 符號可以或運算。',
   .searchResultTitle: '搜尋結果',
   .searchResultSummary:

@@ -10,7 +10,7 @@ class MobileItemCard extends StatelessWidget {
   const MobileItemCard({super.key, required this.item, this.onTap});
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return Card(
       child: ListTile(
         minTileHeight: 0,
@@ -29,7 +29,7 @@ class MemberItemCard extends StatelessWidget {
   const MemberItemCard({super.key, required this.item, this.onTap});
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return Card(
       child: ListTile(
         onTap: onTap,
@@ -55,7 +55,7 @@ class CarrierCard extends StatelessWidget {
   const CarrierCard({super.key, required this.carrier, this.onTap});
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     return Card(

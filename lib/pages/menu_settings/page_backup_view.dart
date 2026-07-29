@@ -92,7 +92,7 @@ enum DriftDispatcher {
     }
     _singleActionLocked.value = true;
     try {
-      if (_webDAV.value == null) throw Exception('WebDAV 尚未被初始化!');
+      if (_webDAV.value == null) throw Exception('WebDAV cannot be null.');
       await _execute(_webDAV.value!);
       LogService('🟢 executeWebDAV finished.', instance: this).d();
     } catch (e) {
@@ -186,7 +186,7 @@ class _PageBackupViewState extends State<PageBackupView> {
   }
 
   Future<void> _pressDeviceAction(DriftDispatcher action) async {
-    final FilePickerResult? result = await FilePicker.pickFiles(
+    final PlatformFile? result = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: const ['sqlite'],
     );
@@ -194,7 +194,7 @@ class _PageBackupViewState extends State<PageBackupView> {
       Utils.showToast(DictKey.commonUiCancel.s);
       return;
     }
-    await action.executeDevice(result.files.single.path!);
+    await action.executeDevice(result.path!);
   }
 
   Future<void> _pressSetWebDAV() async {

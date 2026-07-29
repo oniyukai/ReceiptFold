@@ -20,12 +20,12 @@ dependencies:
   fluttertoast: ^9.1.0
   intl: ^0.20.2
   url_launcher: ^6.3.2
-  share_plus: ^13.2.0
+  share_plus: ^13.3.0
   shared_preferences: ^2.5.5
   flutter_secure_storage: ^10.3.1
   flutter_vector_icons: ^2.0.0
   screen_brightness: ^2.1.11
-  flutter_cache_manager: ^3.4.1
+  flutter_cache_manager: ^3.4.2
   cached_network_image: ^3.4.1
   barcode: ^2.2.9
   flutter_svg: ^2.3.0
@@ -34,20 +34,25 @@ dependencies:
   home_widget: ^0.9.3
   path: ^1.9.1
   path_provider: ^2.1.6
-  dio: ^5.10.0
+  dio: ^5.11.0
   html: ^0.15.6
   watashi_locale:
     git:
       url: https://github.com/oniyukai/watashi_locale.git
       ref: main
-  uuid: ^4.5.3
-  drift: ^2.34.1
-  drift_flutter: ^0.3.0
+  uuid: ^4.6.0
+  drift: ^2.34.3
+  drift_flutter: ^0.3.1
   logger: ^2.7.0
   webdav_client: ^1.2.2
   file_picker: ^12.0.0-beta.7
   flutter_inappwebview: ^6.1.5
   csv: ^8.0.0
+  native_device_orientation: ^2.1.1
+  camera: ^0.11.1
+  google_mlkit_barcode_scanning: ^0.15.0
+  google_mlkit_text_recognition: ^0.16.0
+  google_mlkit_commons: ^0.12.0
 
 dev_dependencies:
   flutter_test:
@@ -56,7 +61,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.15.1
   flutter_launcher_icons: ^0.14.4
-  drift_dev: ^2.34.2+1
+  drift_dev: any
 
 flutter:
   uses-material-design: true

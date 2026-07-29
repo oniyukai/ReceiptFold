@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -134,7 +136,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       await _api.fillLoginForm(account.phone, account.password);
     } catch (e) {
       LogService(
-        'fillLoginForm exception.',
+        'fillLoginForm $Exception.',
         errorObject: e,
         instance: _api,
       ).w();
@@ -404,6 +406,11 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                   ),
                   child: InAppWebView(
                     keepAlive: _inAppWebViewKeepAlive,
+                    gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                      Factory<OneSequenceGestureRecognizer>(
+                        () => EagerGestureRecognizer(),
+                      ),
+                    },
                     initialUrlRequest: URLRequest(
                       url: WebUri(
                         'https://www.einvoice.nat.gov.tw/accounts/login/mw',

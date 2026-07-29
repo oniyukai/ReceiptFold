@@ -139,7 +139,7 @@ class _PageLogsViewState extends State<PageLogsView> {
   );
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(DictKey.settingOptionDebugLog.s),

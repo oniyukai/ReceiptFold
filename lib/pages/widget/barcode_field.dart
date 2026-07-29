@@ -19,7 +19,7 @@ class BarcodeField extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final int? maxLines =
         const <BarcodeFormat?>[
           .qrCode,

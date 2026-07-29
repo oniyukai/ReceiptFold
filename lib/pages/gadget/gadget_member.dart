@@ -54,7 +54,7 @@ class _GadgetMemberState extends State<GadgetMember> {
   int _memberItemIndex = 0;
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     if (widget.items.isEmpty) {
       return Container(
         color: Colors.white,

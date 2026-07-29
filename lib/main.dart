@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/app_theme.dart';
 import 'package:receipt_fold/common/router.dart';
+import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
@@ -17,7 +18,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(MyAppTheme.systemOverlayStyle);
-  await Future.wait([PrefsProvider.init()]);
+  await Future.wait([PrefsProvider.init(), Utils.unlockOrientation()]);
   runApp(
     MultiProvider(
       providers: [
@@ -50,7 +51,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
         return ListenableBuilder(

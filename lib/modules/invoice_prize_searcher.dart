@@ -8,8 +8,8 @@ import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/modules/log_service.dart';
 
 class InvoicePrizeSearcher {
-  static List<InvoicePrizeAward>? _awardListCache;
-
+  static Map<String, InvoicePrizeAward>? _awardMapCache;
+  static final _pendingRequests = <String, Future<List<InvoicePrize>>>{};
   static int _instanceCounter = 0;
 
   late final Dio _dio = Dio();
@@ -20,7 +20,7 @@ class InvoicePrizeSearcher {
 
   void close() {
     if (_instanceCounter > 0) _instanceCounter -= 1;
-    if (_instanceCounter <= 0) _awardListCache = null;
+    if (_instanceCounter <= 0) _awardMapCache = null;
     _dio.close();
   }
 
@@ -41,66 +41,69 @@ class InvoicePrizeSearcher {
   }
 
   Future<InvoicePrizeAward?> getPrizeAward(Period period) async {
+    final awardMap =
+        _awardMapCache ??
+        <String, InvoicePrizeAward>{
+          for (final award
+              in await DriftServices.appDb.keyValueStoreDao
+                  .getExistDefault<List<InvoicePrizeAward>>(
+                    .invoicePrizeAwardList,
+                  ))
+            award.invQuery: award,
+        };
+    _awardMapCache = awardMap;
     final String invQuery = period.invQuery;
-    final List<InvoicePrizeAward> awardList =
-        _awardListCache ??
-        await DriftServices.appDb.keyValueStoreDao.getExistDefault(
-          .invoicePrizeAwardList,
-        );
-    _awardListCache = awardList;
-    final int historyWhere = awardList.indexWhere(
-      (item) => item.invQuery == invQuery,
-    );
-    if (historyWhere >= 0) {
-      final InvoicePrizeAward result = awardList[historyWhere];
-      if (result.prizes.isNotEmpty) return result;
-      // 如果上次查詢未冷卻完畢不再查詢網頁
-      if (!_matchSpecifiedTimeInterval(result.lastWebQueryTime)) return null;
+    final InvoicePrizeAward? award = awardMap[invQuery];
+    if (award != null) {
+      if (award.prizes.isNotEmpty) return award;
+      if (!_matchSpecifiedTimeInterval(award.lastWebQueryTime)) return null;
     }
-
     final prizes = <InvoicePrize>[];
     try {
-      prizes.addAll(await _requestPrizeAward(invQuery));
+      prizes.addAll(
+        await _pendingRequests.putIfAbsent(
+          invQuery,
+          () => _requestPrizeAward(invQuery),
+        ),
+      );
     } on DioException catch (e) {
       LogService(
-        '_requestPrizeAward DioException.',
+        '_requestPrizeAward $DioException.',
         errorObject: e,
         instance: this,
       ).d();
     } catch (e) {
       LogService(
-        '_requestPrizeAward exception.',
+        '_requestPrizeAward $Exception.',
         errorObject: e,
         instance: this,
       ).w();
+    } finally {
+      _pendingRequests.remove(invQuery);
     }
-
-    // 獎金高的放前面，同金額維持插入順序
-    prizes.sort((a, b) => b.amount.compareTo(a.amount));
-
-    final InvoicePrizeAward invoicePrizeAward = InvoicePrizeAward(
-      invQuery: invQuery,
-      lastWebQueryTime: UnitUtils.nowUnixTime,
-      prizes: prizes,
-    );
-    if (historyWhere >= 0) {
-      awardList[historyWhere] = invoicePrizeAward;
+    if (awardMap[invQuery]?.prizes.isNotEmpty != true) {
+      prizes.sort((a, b) => b.amount.compareTo(a.amount)); // 獎金高的放前面，同金額維持插入順序
+      final invoicePrizeAward = awardMap[invQuery] = InvoicePrizeAward(
+        invQuery: invQuery,
+        lastWebQueryTime: UnitUtils.nowUnixTime,
+        prizes: prizes,
+      );
+      await DriftServices.appDb.keyValueStoreDao.upsert(
+        .invoicePrizeAwardList,
+        awardMap.values.toList(),
+      );
+      return invoicePrizeAward.prizes.isNotEmpty ? invoicePrizeAward : null;
     } else {
-      awardList.add(invoicePrizeAward);
+      return awardMap[invQuery];
     }
-    await DriftServices.appDb.keyValueStoreDao.upsert(
-      .invoicePrizeAwardList,
-      awardList,
-    );
-    return invoicePrizeAward.prizes.isNotEmpty ? invoicePrizeAward : null;
   }
 
-  bool _matchSpecifiedTimeInterval(int unixMillisec) {
-    final int currentUnixMillisec = UnitUtils.nowUnixTime;
-    final int differenceInMillisec = (unixMillisec - currentUnixMillisec).abs();
+  bool _matchSpecifiedTimeInterval(int unixMilliSec) {
+    final int currentUnixMilliSec = UnitUtils.nowUnixTime;
+    final int differenceInMilliSec = (unixMilliSec - currentUnixMilliSec).abs();
     const int targetDifferenceInSec = 1000;
-    const int targetDifferenceInMillisec = targetDifferenceInSec * 1000;
-    return differenceInMillisec >= targetDifferenceInMillisec;
+    const int targetDifferenceInMilliSec = targetDifferenceInSec * 1000;
+    return differenceInMilliSec >= targetDifferenceInMilliSec;
   }
 
   Future<List<InvoicePrize>> _requestPrizeAward(String invQuery) async {
@@ -110,7 +113,7 @@ class InvoicePrizeSearcher {
     LogService('_requestPrizeAward...: $fullUrl', instance: this).d();
     final Response response = await _dio
         .get(fullUrl)
-        .timeout(const Duration(seconds: 4));
+        .timeout(const Duration(seconds: 6));
     if (response.statusCode != 200) {
       LogService('response.statusCode != 200.', instance: this).d();
       return prizes;

@@ -28,7 +28,7 @@ class _MainManagerViewState extends State<MainManagerView>
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,

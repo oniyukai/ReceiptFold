@@ -54,7 +54,7 @@ class InvoicePlatformApi {
     dynamic body,
   }) {
     if (_controller == null) {
-      throw Exception('$this: InAppWebViewController 尚未被附值');
+      throw Exception('$this: InAppWebViewController cannot be null.');
     }
     return _controller!
         .callAsyncJavaScript(
@@ -205,7 +205,7 @@ class InvoicePlatformApi {
       ),
     );
     final periodNames = jsonPeriod.take(3).map((e) => e['awardInvoicePeriod']);
-    LogService('getAwardPeriod = $periodNames', instance: this).d();
+    LogService('periodNames = $periodNames', instance: this).d();
     final responses = await Future.wait(
       periodNames.map(
         (periodName) =>

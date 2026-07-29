@@ -23,7 +23,7 @@ class ListTileText extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
     return ListTile(
@@ -66,7 +66,7 @@ class ListTileSwitch extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(iconData),
       title: Text(text),
@@ -111,7 +111,7 @@ class ListTilePicker<T> extends StatelessWidget {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(iconData),
       title: Text(text),
@@ -165,7 +165,7 @@ class ColorfulRadio extends StatelessWidget {
   const ColorfulRadio(this.radio, this.selected, {super.key});
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final ColorScheme? colorScheme = radio.value.color == null
         ? MyAppTheme.dynamicColorScheme
         : ColorScheme.fromSeed(seedColor: radio.value.color!);

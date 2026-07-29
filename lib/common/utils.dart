@@ -82,22 +82,29 @@ abstract final class Utils {
   }
 
   /// 鎖定螢幕轉向
-  static Future<void> lockCurrentOrientation(BuildContext context) {
-    if (isPortrait(context)) {
-      return SystemChrome.setPreferredOrientations(const [
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-    } else {
-      return SystemChrome.setPreferredOrientations(const [
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
+  static Future<void> lockOrientation({
+    DeviceOrientation? orientation,
+    BuildContext? context,
+  }) async {
+    if (orientation != null) {
+      await SystemChrome.setPreferredOrientations([orientation]);
+    } else if (context != null) {
+      if (isPortrait(context)) {
+        await SystemChrome.setPreferredOrientations(const [
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+      } else {
+        await SystemChrome.setPreferredOrientations(const [
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ]);
+      }
     }
   }
 
   /// 恢復允許螢幕所有旋轉方向
-  static Future<void> unlockCurrentOrientation() =>
+  static Future<void> unlockOrientation() =>
       SystemChrome.setPreferredOrientations(const [
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,

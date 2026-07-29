@@ -6,7 +6,7 @@ extension StaticString on DictKey {
   static const String
     appName = 'ReceiptFold',
     appVersion = '0.0.1+1',
-    appVersionTag = 'v0.1.alpha_26.04.27+1',
+    appVersionTag = 'v0.1.alpha_26.07.30+1',
     // Language
     localeLanguageEn = 'English',
     localeLanguageJa = '日本語',

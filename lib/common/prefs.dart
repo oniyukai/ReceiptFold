@@ -42,7 +42,6 @@ class PrefDef<RUN extends Object, STO extends Object> {
 }
 
 enum PrefsEnum {
-  isAgreedAllTerms,
   isAppDeveloperMode,
 
   selectedColor,
@@ -59,7 +58,6 @@ enum PrefsEnum {
 
   PrefDef get _getPrefDef => _prefDefCache.putIfAbsent(this, () {
     final prefDef = switch (this) {
-      isAgreedAllTerms => PrefDef._same(false),
       isAppDeveloperMode => PrefDef._same(kDebugMode),
       selectedColor => PrefDef<ColorOption, String>._(
         () => ColorOption.sys,

@@ -6,7 +6,7 @@ import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 
 class _LogOutput extends LogOutput {
   @override
-  void output(event) {
+  void output(OutputEvent event) {
     final LogService logInfo = event.origin.error as LogService;
     if (kDebugMode) event.lines.forEach(debugPrint);
     LogService._controller.add(
@@ -31,7 +31,7 @@ class LogService {
     output: _LogOutput(),
     printer: PrettyPrinter(
       stackTraceBeginIndex: 2,
-      lineLength: 32,
+      lineLength: 24,
       printEmojis: false,
       noBoxingByDefault: false,
     ),

@@ -183,7 +183,7 @@ class _ReorderableTilesState<T> extends State<_ReorderableTiles<T>> {
   }
 
   @override
-  void didUpdateWidget(oldWidget) {
+  void didUpdateWidget(covariant _ReorderableTiles<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     _items = List<T>.from(widget.initialItems);
   }
@@ -194,7 +194,7 @@ class _ReorderableTilesState<T> extends State<_ReorderableTiles<T>> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return ReorderableListView.builder(
       scrollController: widget.scrollController,
       physics: const ClampingScrollPhysics(),

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/utils.dart';
-import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_manager/main_manager_view.dart';
 import 'package:receipt_fold/pages/menu_recorder/main_recorder_view.dart';
 import 'package:receipt_fold/pages/menu_scanner/main_scanner_view.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_view.dart';
-import 'package:receipt_fold/pages/menu_settings/page_terms_view.dart';
 
 class MenuNavBar extends StatefulWidget {
   const MenuNavBar({super.key});
@@ -39,31 +37,23 @@ class _MenuNavBarState extends State<MenuNavBar> {
   ];
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     DictKey.load(context);
     final bool isPortrait = Utils.isPortrait(context);
-    return ValueListenableBuilder(
-      valueListenable: context.readPrefs.oneNotifier(.isAgreedAllTerms),
-      builder: (context, value, child) => value
-          ? Consumer<MenuNavBarProvider>(
-              builder: (context, state, child) => Scaffold(
-                bottomNavigationBar: isPortrait
-                    ? _buildBottomNavigationBar(state)
-                    : null,
-                body: Row(
-                  children: [
-                    if (!isPortrait) _buildSideNavigationBar(state),
-                    Expanded(
-                      child: IndexedStack(
-                        index: state.currentIndex,
-                        children: _pages,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : const PageTermsView(),
+    return Consumer<MenuNavBarProvider>(
+      builder: (context, state, child) => Scaffold(
+        bottomNavigationBar: isPortrait
+            ? _buildBottomNavigationBar(state)
+            : null,
+        body: Row(
+          children: [
+            if (!isPortrait) _buildSideNavigationBar(state),
+            Expanded(
+              child: IndexedStack(index: state.currentIndex, children: _pages),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

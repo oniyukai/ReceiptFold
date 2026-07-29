@@ -31,7 +31,7 @@ class _MainScannerViewState extends State<MainScannerView>
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,

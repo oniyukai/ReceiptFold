@@ -225,10 +225,10 @@ class _MainRecorderViewState extends State<MainRecorderView> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     DictKey.load(context);
     return ChangeNotifierProvider(
-      create: (context) => MainRecorderViewModel(),
+      create: (_) => MainRecorderViewModel(),
       child: Consumer<MainRecorderViewModel>(
         builder: (context, model, child) {
           final currentPeriodData = model.getPeriodData(model.currentPageIndex);
