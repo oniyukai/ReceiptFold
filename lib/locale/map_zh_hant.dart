@@ -33,7 +33,7 @@ const LocaleInstance mapZhHant = {
   .scannerNumberColumnPrize: '獎項',
   .scannerNumberColumnAmount: '獎金',
   .scannerNumberColumnNumber: '號碼',
-  .scannerNumberRule: '發票號碼尾數與開獎號碼全數一致的發票，得符合之獎項獎金最大者。',
+  .scannerNumberRule: '發票號碼尾數與開獎號碼全數一致的發票, 得符合之獎項獎金最大者。',
 
   // ===== Barcode: 格式 =====
   .barcodeFormatQrCode: 'QR 圖碼',
@@ -66,8 +66,8 @@ const LocaleInstance mapZhHant = {
   .barcodeErrorNotNumber: '只能由數字組成。',
   .barcodeErrorWrongLength: '要求的數字長度: ',
   .barcodeErrorWrongCheckDigit: '最後一位數 (校驗碼) 應該是: ',
-  .barcodeErrorUnsupportedCharsIso88591: '此類型不支援特殊字元，應在 ISO 8859-1 範圍內。',
-  .barcodeErrorUnsupportedCharsAscii: '此類型不支援特殊字元，應在 ASCII 範圍內。',
+  .barcodeErrorUnsupportedCharsIso88591: '此類型不支援特殊字元, 應在 ISO 8859-1 範圍內。',
+  .barcodeErrorUnsupportedCharsAscii: '此類型不支援特殊字元, 應在 ASCII 範圍內。',
   .barcodeErrorRegexCode93:
       'Code 93 可編碼 26 個大寫字母、數字(0–9) 以及 7 個特殊字元 « -, ., space, \$, /, +, % »。',
   .barcodeErrorRegexCode39:
@@ -147,10 +147,10 @@ const LocaleInstance mapZhHant = {
   .searchKeyword: '關鍵字',
   .searchColumnCount: '欄位範圍條件數',
   .searchColumnScope: '欄位範圍',
-  .searchHint: '欄位空值預設沒有限制條件，文本關鍵字使用 "${StaticString.searchSplit}" 符號可以或運算。',
+  .searchHint: '欄位空值預設沒有限制條件, 文本關鍵字使用 "${StaticString.searchSplit}" 符號可以或運算。',
   .searchResultTitle: '搜尋結果',
   .searchResultSummary:
-      '第 ${StaticString.fillObjectNumber} 頁，共 ${StaticString.fillObjectCount} 筆',
+      '第 ${StaticString.fillObjectNumber} 頁, 共 ${StaticString.fillObjectCount} 筆',
 
   // ===== Receipt: 發票檢視 =====
   .receiptViewAddRecord: '新的交易紀錄',
@@ -171,7 +171,7 @@ const LocaleInstance mapZhHant = {
   .receiptHeaderPrizeName: '中獎獎項',
   .receiptHeaderPrizeAmount: '中獎金額',
   .receiptHeaderTotalAmount: '總金額',
-  .receiptHeaderItemLength: '項目數',
+  .receiptHeaderItemLength: '品項數',
   .receiptHeaderIssuedPeriod: '發票期別',
   .receiptDetailItem: '品項',
   .receiptDetailUnitPrice: '單價',
@@ -183,8 +183,8 @@ const LocaleInstance mapZhHant = {
   .platformFunctionAction: '功能操作',
   .platformAccountSetting: '帳號設定',
   .platformFillAccount: '填入帳號',
-  .platformPhoneLabel: 'Phone',
-  .platformPasswordLabel: 'Password',
+  .platformPhoneLabel: '手機號碼',
+  .platformPasswordLabel: '密碼',
   .platformQueryMonths: '查詢發票距離',
   .platformQueryMonthsOption: '${StaticString.fillObjectMonths} 個月',
   .platformImportCsv: '從定期 CSV 匯入',
@@ -228,12 +228,12 @@ const LocaleInstance mapZhHant = {
   .settingDataPlatform: '發票平台',
   .settingDataBackup: '備份與同步',
   .settingGroupPreferences: '偏好',
-  .settingSwitchAutoBrightness: '螢幕自動調亮',
+  .settingSwitchShowBrighten: '展示時螢幕調亮',
   .settingOptionScanLockOrient: '掃描時禁用螢幕旋轉',
-  .settingSwitchShowLockRotation: '展示時禁用螢幕旋轉',
+  .settingSwitchShowLockOrient: '展示時禁用螢幕旋轉',
   .settingActionClearCache: '清除所有圖片緩存',
   .settingCacheClearedMsg:
-      '已清除 ${StaticString.fillObjectOldBytes} 圖片緩存，還剩 ${StaticString.fillObjectNewBytes}',
+      '已清除 ${StaticString.fillObjectOldBytes} 圖片緩存, 還剩 ${StaticString.fillObjectNewBytes}',
   .settingGroupAbout: '關於',
   .settingOptionVersion: '應用版本',
   .settingOptionVersionTag: '版本標籤',

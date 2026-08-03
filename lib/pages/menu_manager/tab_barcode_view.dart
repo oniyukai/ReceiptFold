@@ -33,8 +33,8 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
   late final List<MobileBarcodeItem> _mobileItems;
   late final List<MemberBarcodeItem> _memberItems;
   final ScrollController _scrollController = ScrollController();
-  final _isScreenBrightness = ValueNotifier(false);
-  bool _isLockScreenRotation = false;
+  final _isBrighten = ValueNotifier(false);
+  bool _isLockOrient = false;
   bool _isInitialized = false;
   bool _isLastTimeOnView = false;
   int? _mobileItemIndex;
@@ -57,14 +57,12 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
   Future<void> _viewEntryExitEvent(bool onManager) async {
     if (onManager && !_isLastTimeOnView) {
       _isLastTimeOnView = true;
-      final bool isAutoBrightness = context.readPrefs.get(.isAutoBrightness);
-      final bool isShowScreenRotation = context.readPrefs.get(
-        .isShowScreenRotation,
-      );
+      final bool isShowBrighten = context.readPrefs.get(.isShowBrighten);
+      final bool isShowLockOrient = context.readPrefs.get(.isShowLockOrient);
       await Future.wait([
         _initLoadItem(),
-        _setScreenBrightness(isAutoBrightness),
-        _setOrientationLock(isShowScreenRotation),
+        _setScreenBrightness(isShowBrighten),
+        _setOrientationLock(isShowLockOrient),
       ]);
     } else if (!onManager && _isLastTimeOnView) {
       _isLastTimeOnView = false;
@@ -89,28 +87,28 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _setScreenBrightness(bool toBrightness) async {
-    if (_isScreenBrightness.value == toBrightness) return;
-    if (toBrightness) {
+  Future<void> _setScreenBrightness(bool toBrighten) async {
+    if (_isBrighten.value == toBrighten) return;
+    if (toBrighten) {
       await ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
-    } else if (_isScreenBrightness.value) {
+    } else if (_isBrighten.value) {
       await ScreenBrightness.instance.resetApplicationScreenBrightness();
     }
-    _isScreenBrightness.value = toBrightness;
+    _isBrighten.value = toBrighten;
   }
 
   Future<void> _setOrientationLock(bool toLock) async {
-    if (_isLockScreenRotation == toLock) return;
+    if (_isLockOrient == toLock) return;
     if (toLock) {
       await Utils.lockOrientation(
         context: context,
         orientation: (await NativeDeviceOrientationCommunicator().orientation())
             .deviceOrientation,
       );
-    } else if (_isLockScreenRotation) {
+    } else if (_isLockOrient) {
       await Utils.unlockOrientation();
     }
-    _isLockScreenRotation = toLock;
+    _isLockOrient = toLock;
   }
 
   Future<void> _changeMobileItem() {
@@ -153,7 +151,6 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
         padding: const EdgeInsets.all(8.0),
         children: [
           ExpandableCard(
-            initialExpanded: true,
             text: DictKey.managerMembershipCard.s,
             iconData: Icons.loyalty_outlined,
             expandedChild: (_memberItemIndex == null)
@@ -230,7 +227,6 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
                   ),
           ),
           ExpandableCard(
-            initialExpanded: true,
             text: DictKey.managerMobileCarrier.s,
             iconData: MaterialCommunityIcons.barcode,
             expandedChild: _mobileItemIndex == null
@@ -283,7 +279,7 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
                   ),
           ),
           ValueListenableBuilder(
-            valueListenable: _isScreenBrightness,
+            valueListenable: _isBrighten,
             builder: (context, isScreenBrightness, child) => ListTileSwitch(
               text: DictKey.managerBrightenScreen.s,
               iconData: Icons.brightness_6_outlined,

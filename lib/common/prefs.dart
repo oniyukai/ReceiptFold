@@ -47,11 +47,12 @@ enum PrefsEnum {
   selectedColor,
   selectedTheme,
   selectedLanguage,
-  isAutoBrightness,
-  isScanScreenRotation,
-  isShowScreenRotation,
-  isAutoWebDAVSync,
+  isScanAutoAdd,
+  isScanLockOrient,
+  isShowLockOrient,
+  isShowBrighten,
 
+  isAutoWebDAVSync,
   invoiceQueryMonths;
 
   static final _prefDefCache = <PrefsEnum, PrefDef>{};
@@ -74,9 +75,10 @@ enum PrefsEnum {
         (fromRUN) => fromRUN.name,
         LocaleOption.values.fromName,
       ),
-      isAutoBrightness => PrefDef._same(false),
-      isScanScreenRotation => PrefDef._same(false),
-      isShowScreenRotation => PrefDef._same(false),
+      isScanAutoAdd => PrefDef._same(false),
+      isScanLockOrient => PrefDef._same(false),
+      isShowLockOrient => PrefDef._same(false),
+      isShowBrighten => PrefDef._same(false),
       isAutoWebDAVSync => PrefDef._same(false),
       invoiceQueryMonths => PrefDef._same(2),
     };

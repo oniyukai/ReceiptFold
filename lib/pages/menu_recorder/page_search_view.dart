@@ -265,7 +265,7 @@ class ReceiptListCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '\$${Utils.amountToDescription(receiptEntry.key.totalAmount)}',
+                    '\$${UnitUtils.amountText(receiptEntry.key.totalAmount)}',
                     style: textTheme.bodyLarge,
                   ),
                   if (receiptEntry.key.prizeName != null)

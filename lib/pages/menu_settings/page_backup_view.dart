@@ -274,7 +274,6 @@ class _PageBackupViewState extends State<PageBackupView> {
               ExpandableCard(
                 iconData: Icons.devices,
                 text: DictKey.backupDeviceAction.s,
-                initialExpanded: true,
                 expandedChild: Column(
                   children: [
                     ListTile(
@@ -309,7 +308,6 @@ class _PageBackupViewState extends State<PageBackupView> {
               ExpandableCard(
                 iconData: Icons.cloud_sync,
                 text: DictKey.backupWebDAV.s,
-                initialExpanded: true,
                 expandedChild: ValueListenableBuilder(
                   valueListenable: DriftDispatcher._webDAV,
                   builder: (context, webDAV, child) {
@@ -381,7 +379,6 @@ class _PageBackupViewState extends State<PageBackupView> {
               ExpandableCard(
                 iconData: Icons.terminal,
                 text: DictKey.backupRealTimeLog.s,
-                initialExpanded: true,
                 expandedChild: ConstrainedBox(
                   constraints: const BoxConstraints(
                     minWidth: double.infinity,

@@ -108,7 +108,7 @@ class _TabNumberViewState extends State<TabNumberView> {
                   DataRow(
                     cells: [
                       DataCell(Text(prizes.name)),
-                      DataCell(Text(Utils.amountToDescription(prizes.amount))),
+                      DataCell(Text(UnitUtils.amountText(prizes.amount))),
                       DataCell(Text(prizes.number)),
                     ],
                   ),

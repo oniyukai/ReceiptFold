@@ -313,9 +313,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
             if (product != null)
               _ProductInfoRow(
                 description: product.description,
-                unitPrice: Utils.amountToDescription(product.unitPrice),
-                quantity: Utils.amountToDescription(product.quantity),
-                amount: Utils.amountToDescription(product.amount),
+                unitPrice: UnitUtils.amountText(product.unitPrice),
+                quantity: UnitUtils.amountText(product.quantity),
+                amount: UnitUtils.amountText(product.amount),
               ),
             ListTile(
               minTileHeight: 0,
@@ -356,9 +356,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       items: _products,
       itemBuilder: (product) => _ProductInfoRow(
         description: product.description,
-        unitPrice: Utils.amountToDescription(product.unitPrice),
-        quantity: Utils.amountToDescription(product.quantity),
-        amount: Utils.amountToDescription(product.amount),
+        unitPrice: UnitUtils.amountText(product.unitPrice),
+        quantity: UnitUtils.amountText(product.quantity),
+        amount: UnitUtils.amountText(product.amount),
       ),
       saveOnTap: (items) async {
         _products = items;
@@ -504,9 +504,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   subtitleText: DictKey.receiptHeaderPrizeName.s,
                 ),
                 secondWidget: _ReceiptInfoTile(
-                  titleText: Utils.amountToDescription(
-                    _receipt.prizeAmount ?? 0,
-                  ),
+                  titleText: UnitUtils.amountText(_receipt.prizeAmount ?? 0),
                   subtitleText: DictKey.receiptHeaderPrizeAmount.s,
                 ),
               ),
@@ -549,11 +547,11 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                   subtitleText: DictKey.receiptHeaderOriginStatus.s,
                 ),
                 secondWidget: _ReceiptInfoTile(
-                  titleText: Utils.amountToDescription(_receipt.totalAmount),
+                  titleText: UnitUtils.amountText(_receipt.totalAmount),
                   subtitleText: DictKey.receiptHeaderTotalAmount.s,
                 ),
                 thirdWidget: _ReceiptInfoTile(
-                  titleText: Utils.amountToDescription(_products.length),
+                  titleText: UnitUtils.amountText(_products.length),
                   subtitleText: DictKey.receiptHeaderItemLength.s,
                 ),
               ),
@@ -578,11 +576,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                           onLongPress: () =>
                               Utils.copyText(product.description),
                           description: product.description,
-                          unitPrice: Utils.amountToDescription(
-                            product.unitPrice,
-                          ),
-                          quantity: Utils.amountToDescription(product.quantity),
-                          amount: Utils.amountToDescription(product.amount),
+                          unitPrice: UnitUtils.amountText(product.unitPrice),
+                          quantity: UnitUtils.amountText(product.quantity),
+                          amount: UnitUtils.amountText(product.amount),
                         ),
                       ),
                       if (!_isCloudPlatform)

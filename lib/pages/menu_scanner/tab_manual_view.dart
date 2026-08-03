@@ -122,9 +122,7 @@ class _TabManualViewState extends State<TabManualView> {
                     DataRow(
                       cells: [
                         DataCell(Text(prizes.name)),
-                        DataCell(
-                          Text(Utils.amountToDescription(prizes.amount)),
-                        ),
+                        DataCell(Text(UnitUtils.amountText(prizes.amount))),
                         DataCell(Text(prizes.number)),
                       ],
                     ),

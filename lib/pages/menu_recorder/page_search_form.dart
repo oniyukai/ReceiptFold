@@ -215,7 +215,6 @@ class _PageSearchFormState extends State<PageSearchForm> {
                         onChanged: (v) => setState(() {}),
                         decoration: InputDecoration(
                           labelText: DictKey.searchDateEarliest.s,
-                          prefixIcon: const Icon(Icons.event),
                           suffixIcon: formFields?['startDate']?.value == null
                               ? null
                               : IconButton(
@@ -235,7 +234,6 @@ class _PageSearchFormState extends State<PageSearchForm> {
                         onChanged: (v) => setState(() {}),
                         decoration: InputDecoration(
                           labelText: DictKey.searchDateLatest.s,
-                          prefixIcon: const Icon(Icons.event),
                           suffixIcon: formFields?['endDate']?.value == null
                               ? null
                               : IconButton(

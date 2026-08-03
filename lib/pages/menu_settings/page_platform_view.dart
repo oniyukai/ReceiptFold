@@ -299,7 +299,6 @@ class _PagePlatformViewState extends State<PagePlatformView> {
               ExpandableCard(
                 iconData: Icons.play_circle_outline,
                 text: DictKey.platformFunctionAction.s,
-                initialExpanded: true,
                 expandedChild: Column(
                   children: [
                     ListTile(
@@ -379,7 +378,6 @@ class _PagePlatformViewState extends State<PagePlatformView> {
               ExpandableCard(
                 iconData: Icons.terminal,
                 text: DictKey.platformRealTimeLog.s,
-                initialExpanded: true,
                 expandedChild: ConstrainedBox(
                   constraints: const BoxConstraints(
                     minWidth: double.infinity,
@@ -398,7 +396,6 @@ class _PagePlatformViewState extends State<PagePlatformView> {
               ExpandableCard(
                 iconData: Icons.web,
                 text: DictKey.platformWebView.s,
-                initialExpanded: true,
                 expandedChild: ConstrainedBox(
                   constraints: const BoxConstraints(
                     minWidth: double.infinity,

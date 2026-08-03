@@ -11,7 +11,7 @@ class ExpandableCard extends StatefulWidget {
     super.key,
     required this.text,
     this.iconData,
-    this.initialExpanded = false,
+    this.initialExpanded = true,
     this.collapsedChild,
     this.expandedChild,
   });

@@ -212,11 +212,11 @@ class _MainRecorderViewState extends State<MainRecorderView> {
             subtitle: Text(DictKey.receiptHeaderIssuedPeriod.s),
           ),
           ListTile(
-            title: Text(Utils.amountToDescription(prizeTotalAmount)),
+            title: Text(UnitUtils.amountText(prizeTotalAmount)),
             subtitle: Text(DictKey.recorderPrizeCheckTotalAmount.s),
           ),
           ListTile(
-            title: Text(Utils.amountToDescription(totReceipt)),
+            title: Text(UnitUtils.amountText(totReceipt)),
             subtitle: Text(DictKey.recorderPrizeCheckReceiptCount.s),
           ),
         ],
@@ -299,7 +299,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                   ),
                                   (
                                     StaticString.fillObjectAmount,
-                                    Utils.amountToDescription(
+                                    UnitUtils.amountText(
                                       periodData.totalAmount,
                                     ),
                                   ),
@@ -346,7 +346,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                     ),
                                     (
                                       StaticString.fillObjectAmount,
-                                      Utils.amountToDescription(
+                                      UnitUtils.amountText(
                                         periodData.evenMonthTotalAmount,
                                       ),
                                     ),
@@ -370,7 +370,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                                     ),
                                     (
                                       StaticString.fillObjectAmount,
-                                      Utils.amountToDescription(
+                                      UnitUtils.amountText(
                                         periodData.oddMonthTotalAmount,
                                       ),
                                     ),

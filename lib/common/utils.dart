@@ -2,6 +2,7 @@ import 'dart:core';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,6 +30,9 @@ abstract final class UnitUtils {
   static String fullTimeText(DateTime dateTime) =>
       DateFormat.yMMMMEEEEd(DictKey.languageTag).add_jm().format(dateTime);
 
+  static String singleTimeText(DateTime dateTime) =>
+      DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime.toLocal());
+
   static String shortBytesText(int bytes, {int decimals = 2}) {
     if (bytes <= 0) return '0B';
     const suffixes = <String>[
@@ -45,12 +49,26 @@ abstract final class UnitUtils {
     final int i = (log(bytes) / log(1024)).floor();
     return '${(bytes / pow(1024, i)).toStringAsFixed(decimals)} ${suffixes[i]}';
   }
+
+  /// 將數字修飾, 如果有小數會才顯示小數後，正數每3位數一個","隔開
+  static String amountText(num amount) =>
+      NumberFormat.decimalPattern().format(amount);
 }
 
 abstract final class Utils {
   /// true:為直屏狀態 false:為橫屏狀態
   static bool isPortrait(BuildContext context) =>
       MediaQuery.of(context).orientation == Orientation.portrait;
+
+  /// 一個簡易的Toast訊息提示
+  static Future<void> showToast(String msg, [bool longTime = false]) =>
+      Platform.isAndroid || Platform.isIOS
+      ? Fluttertoast.showToast(
+          msg: msg,
+          toastLength: longTime ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT,
+          timeInSecForIosWeb: longTime ? 4 : 2,
+        )
+      : OverlayShow.toast(Text(msg), seconds: longTime ? 4 : 2);
 
   /// 震動一下
   static Future<void> deviceVibrate() async {
@@ -63,15 +81,14 @@ abstract final class Utils {
     }
   }
 
-  /// 一個簡易的Toast訊息提示
-  static Future<void> showToast(String msg, [bool longTime = false]) =>
-      Platform.isAndroid || Platform.isIOS
-      ? Fluttertoast.showToast(
-          msg: msg,
-          toastLength: longTime ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT,
-          timeInSecForIosWeb: longTime ? 4 : 2,
-        )
-      : OverlayShow.toast(Text(msg), seconds: longTime ? 4 : 2);
+  /// 嗶的一聲
+  static Future<void> audioPlayBeep(AudioPlayer audioPlayer) async {
+    try {
+      await audioPlayer.play(AssetSource('short_beep_tone.mp3'));
+    } catch (e) {
+      await showToast(e.toString());
+    }
+  }
 
   /// 在預設瀏覽器開啟網站
   static Future<void> openUrlInBrowser(String url) async {
@@ -112,6 +129,7 @@ abstract final class Utils {
         DeviceOrientation.landscapeRight,
       ]);
 
+  /// 方便多重目標替換字串
   static String multilingualFiller(
     String string,
     List<(String, String)> targets,
@@ -122,10 +140,7 @@ abstract final class Utils {
     return string;
   }
 
-  /// 將數字修飾, 如果有小數會才顯示小數後，正數每3位數一個","隔開
-  static String amountToDescription(num amount) =>
-      NumberFormat.decimalPattern().format(amount);
-
+  /// 統一個給 [String] 用的複製
   static Future<void> copyText(String? text) async {
     if (text == null || text.isEmpty) {
       showToast(DictKey.toastNoContentCopy.s);
@@ -135,6 +150,7 @@ abstract final class Utils {
     }
   }
 
+  /// 如果 [String.isNotEmpty] 回傳 null
   static String? noEmptyStr(String? s) =>
       s?.trim().isNotEmpty == true ? s : null;
 }
