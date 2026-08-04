@@ -14,7 +14,7 @@ import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/pages/menu_manager/main_manager_widgets.dart';
+import 'package:receipt_fold/pages/menu_manager/tab_member_view.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';

@@ -81,7 +81,7 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
         InvoiceCarrier(
           carrierId2: carrierId2,
           name: name,
-          status: CarrierStatus.manual,
+          status: CarrierStatus.device,
           carrierType: carrierType,
           carrierTypeName: carrierTypeName,
         ),
@@ -135,13 +135,13 @@ class _PageCarrierFormState extends State<PageCarrierForm> {
                 ListTile(
                   subtitle: Text(
                     _args?.items[_args.index].status.locale ??
-                        CarrierStatus.manual.locale,
+                        CarrierStatus.device.locale,
                     overflow: TextOverflow.ellipsis,
                   ),
                   title: Text(DictKey.managerCarrierStatus.s),
                 ),
                 MyTextField(
-                  labelText: DictKey.managerCarrierId2.s,
+                  labelText: DictKey.receiptHeaderCarrierId2.s,
                   name: 'carrierId2',
                   initialValue: _args?.items[_args.index].carrierId2,
                   readOnly: _args != null,

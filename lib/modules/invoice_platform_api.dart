@@ -35,15 +35,15 @@ class InvoicePlatformApi {
     String? invoiceStrStatus,
   ) {
     if (extStatus == '0') {
-      return OriginStatus.platformUnconfirmed;
+      return OriginStatus.platformUnverified;
     } else if (extStatus == '1') {
       return OriginStatus.platformInvalidated;
     } else if (extStatus == '2' && donateMark == '1') {
       return OriginStatus.platformDonated;
     } else if (extStatus == '2') {
       return invoiceStrStatus == null
-          ? OriginStatus.platformConfirmed
-          : OriginStatus.platformConfirmedNotDonated;
+          ? OriginStatus.platformValidated
+          : OriginStatus.platformConfirmed;
     }
     return null;
   }
@@ -243,7 +243,7 @@ class InvoicePlatformApi {
                 Receipt(
                   modified: DateTime.now(),
                   uuid: UuidMixin.v7.generate(),
-                  originStatus: OriginStatus.platformConfirmedNotDonated,
+                  originStatus: OriginStatus.platformConfirmed,
                   issuedAt: DateTime.parse(jsonAward['invoiceDate']),
                   totalAmount:
                       double.tryParse(jsonAward['totalAmount'] ?? '') ?? 0.0,
@@ -343,7 +343,7 @@ class InvoicePlatformApi {
                       jsonInvoice['donateMark'],
                       jsonInvoice['invoiceStrStatus'],
                     ) ??
-                    OriginStatus.platformUnconfirmed,
+                    OriginStatus.platformUnverified,
                 issuedAt: DateTime.parse(jsonInvoice['invoiceDate']),
                 totalAmount:
                     double.tryParse(jsonInvoice['totalAmount'].toString()) ??
@@ -377,7 +377,7 @@ class InvoicePlatformApi {
           Receipt(
             modified: DateTime.now(),
             uuid: UuidMixin.v7.generate(),
-            originStatus: OriginStatus.manualImport,
+            originStatus: OriginStatus.deviceImport,
             issuedAt: DateTime.utc(
               int.parse(dateString.substring(0, 4)),
               int.parse(dateString.substring(4, 6)),

@@ -9,10 +9,11 @@ const LocaleInstance mapZhHant = {
   .commonUiSwipeSort: '滑動以排序',
   .commonUiSort: '排序',
   .commonUiAdd: '新增',
-  .commonUiFailure: '失敗',
-  .commonUiError: '錯誤',
+  .commonUiRealTimeLog: '即時日誌',
 
   // ===== Toast: 提示訊息 =====
+  .toastFailure: '失敗',
+  .toastError: '錯誤',
   .toastCopied: '已複製',
   .toastNoContentCopy: '無內容可複製',
   .toastCouldNotLaunch: '無法開啟連結',
@@ -101,7 +102,6 @@ const LocaleInstance mapZhHant = {
   .managerAddCarrier: '新增歸戶載具',
   .managerEditCarrier: '編輯歸戶載具',
   .managerCarrierStatus: '載具狀態',
-  .managerCarrierId2: '載具隱碼',
   .managerCarrierCustomName: '自訂名稱',
   .managerCarrierTypeCode: '類別代號',
   .managerCarrierTypeName: '類別名稱',
@@ -110,18 +110,18 @@ const LocaleInstance mapZhHant = {
   // ===== Carrier: 載具狀態 =====
   .carrierStatusPlatform: '雲端',
   .carrierStatusPlatformExpired: '雲端離線',
-  .carrierStatusManual: '本地',
+  .carrierStatusDevice: '裝置',
 
-  // ===== Origin: 發票來源狀態 =====
-  .originStatusPlatformUnconfirmed: '平台 未確認',
+  // ===== Origin: 收據來源狀態 =====
+  .originStatusPlatformUnverified: '平台 未驗證',
   .originStatusPlatformInvalidated: '平台 無效',
   .originStatusPlatformDonated: '平台 捐贈',
-  .originStatusPlatformConfirmed: '平台 有效',
-  .originStatusPlatformConfirmedNotDonated: '平台 有效開獎',
+  .originStatusPlatformValidated: '平台 有效',
+  .originStatusPlatformConfirmed: '平台 確認',
   .originStatusPlatformExpired: '平台 過期',
-  .originStatusManualImport: '本地 匯入',
-  .originStatusManualScan: '本地 掃描',
-  .originStatusManualEntry: '本地 輸入',
+  .originStatusDeviceImport: '裝置 匯入',
+  .originStatusDeviceScan: '裝置 掃描',
+  .originStatusDeviceEntry: '裝置 輸入',
 
   // ===== Recorder: 記錄器 =====
   .recorderMenuPrizeCheck: '對獎該期',
@@ -139,7 +139,7 @@ const LocaleInstance mapZhHant = {
 
   // ===== Search: 搜尋條件 =====
   .searchTitle: '搜尋條件',
-  .searchErrorSplit: '或運算符號請勿超過 ${StaticString.fillObjectNumber} 個。',
+  .searchErrorSplit: '或運算符請勿超過 ${StaticString.fillObjectNumber} 個。',
   .searchErrorDateOrder: '日期先後順序相反。',
   .searchErrorMinMax: '數字最小值請勿超過最大值。',
   .searchIssuedDate: '開立時間',
@@ -155,11 +155,11 @@ const LocaleInstance mapZhHant = {
   .searchResultSummary:
       '第 ${StaticString.fillObjectNumber} 頁, 共 ${StaticString.fillObjectCount} 筆',
 
-  // ===== Receipt: 發票檢視 =====
+  // ===== Receipt: 收據檢視 =====
   .receiptViewAddRecord: '新的交易紀錄',
   .receiptViewRecord: '交易紀錄',
   .receiptViewOriginalContent: '原先內容',
-  .receiptViewModify: '修改',
+  .receiptViewEdit: '編輯',
   .receiptHeaderSellerName: '賣家名稱 / 交易名稱',
   .receiptHeaderInvoiceNumber: '發票號碼',
   .receiptHeaderOriginStatus: '來源狀態',
@@ -182,7 +182,6 @@ const LocaleInstance mapZhHant = {
   .receiptDetailAmount: '小計',
 
   // ===== Platform: 發票平台 =====
-  .platformTitle: '發票平台',
   .platformFunctionAction: '功能操作',
   .platformAccountSetting: '帳號設定',
   .platformFillAccount: '填入帳號',
@@ -196,11 +195,9 @@ const LocaleInstance mapZhHant = {
   .platformFetchAward: '調取中獎發票',
   .platformFetchInvoice: '調取發票',
   .platformWebView: 'WebView',
-  .platformRealTimeLog: '即時日誌',
 
   // ===== Backup: 備份同步 =====
-  .backupTitle: '備份與同步',
-  .backupDeviceAction: '本地動作',
+  .backupDevice: '本地裝置',
   .backupDevicePushFile: '另存新檔',
   .backupPush: '推送',
   .backupPull: '拉取',
@@ -214,7 +211,6 @@ const LocaleInstance mapZhHant = {
   .backupUserLabel: 'User',
   .backupPasswordLabel: 'Password',
   .backupAutoSync: '啟用定期同步',
-  .backupRealTimeLog: '即時日誌',
   .backupDeleteLog: '刪除日誌',
   .backupSureDeleteLog: '確定要刪除日誌嗎？',
 
@@ -237,7 +233,7 @@ const LocaleInstance mapZhHant = {
   .settingSwitchScanAutoAdd: '掃描自動新增到紀錄',
   .settingActionClearCache: '清除所有圖片緩存',
   .settingCacheClearedMsg:
-      '已清除 ${StaticString.fillObjectOldBytes} 圖片緩存, 還剩 ${StaticString.fillObjectNewBytes}',
+      '已清除 ${StaticString.fillObjectOldBytes} 圖片暫存, 還剩 ${StaticString.fillObjectNewBytes}',
   .settingGroupAbout: '關於',
   .settingOptionVersion: '應用版本',
   .settingOptionVersionTag: '版本標籤',
@@ -250,10 +246,10 @@ const LocaleInstance mapZhHant = {
   .settingOptionColorBlue: '藍色',
   .settingOptionColorViolet: '紫羅蘭色',
   .settingOptionColorPurple: '紫色',
-  .settingOptionColorPink: '粉红色',
+  .settingOptionColorPink: '粉紅色',
   .settingOptionColorDeepOrange: '深橘色',
   .settingOptionColorOrange: '橘色',
-  .settingOptionColorYellow: '黄色',
+  .settingOptionColorYellow: '黃色',
   .settingOptionColorGreen: '綠色',
   .settingOptionColorTeal: '青色',
 };

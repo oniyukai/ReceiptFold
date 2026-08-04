@@ -7,12 +7,12 @@ import 'package:receipt_fold/locale/app_language.dart';
 enum CarrierStatus {
   platform,
   platformExpired,
-  manual;
+  device;
 
   String get locale => switch (this) {
     platform => DictKey.carrierStatusPlatform,
     platformExpired => DictKey.carrierStatusPlatformExpired,
-    manual => DictKey.carrierStatusManual,
+    device => DictKey.carrierStatusDevice,
   }.s;
 
   String toJson() => name;
@@ -65,7 +65,7 @@ class InvoiceCarrier {
     return InvoiceCarrier(
       carrierId2: carrierId2 ?? StaticString.nullString,
       name: name ?? StaticString.nullString,
-      status: status ?? CarrierStatus.manual,
+      status: status ?? CarrierStatus.device,
       carrierType: carrierType,
       carrierTypeName: carrierTypeName,
       fetchJson: fetchJson,

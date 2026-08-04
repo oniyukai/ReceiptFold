@@ -52,7 +52,7 @@ class _PageSearchFormState extends State<PageSearchForm> {
     try {
       _submitForm();
     } catch (e) {
-      Utils.showToast('${DictKey.commonUiError.s}: $e');
+      Utils.showToast('${DictKey.toastError.s}: $e');
     }
   }
 

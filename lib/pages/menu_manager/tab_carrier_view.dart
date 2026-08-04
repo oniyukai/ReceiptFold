@@ -6,7 +6,6 @@ import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/pages/menu_manager/main_manager_widgets.dart';
 import 'package:receipt_fold/pages/menu_manager/page_carrier_form.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
@@ -104,6 +103,65 @@ class _TabCarrierViewState extends State<TabCarrierView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class CarrierCard extends StatelessWidget {
+  final InvoiceCarrier carrier;
+  final VoidCallback? onTap;
+
+  const CarrierCard({super.key, required this.carrier, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      child: ListTile(
+        minTileHeight: 0,
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(carrier.name, overflow: TextOverflow.ellipsis),
+            ),
+            Text(
+              carrier.carrierTypeName ?? carrier.carrierType ?? '',
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        subtitle: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Card(
+              color: colorScheme.surfaceContainerHigh,
+              elevation: 0,
+              margin: const EdgeInsets.all(0),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                child: Text(
+                  carrier.status.locale,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: textTheme.bodySmall?.fontSize,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                carrier.carrierId2,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyMedium,
+              ),
+            ),
+          ],
+        ),
+        onTap: onTap,
       ),
     );
   }

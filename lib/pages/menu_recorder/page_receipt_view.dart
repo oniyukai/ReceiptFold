@@ -48,14 +48,14 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       _args.receiptEntry?.key ??
       Receipt(
         issuedAt: _args.period!.start,
-        originStatus: OriginStatus.manualEntry,
+        originStatus: OriginStatus.deviceEntry,
         totalAmount: 0.0,
         modified: DateTime.now(),
         uuid: UuidMixin.v7.generate(),
       );
 
   bool get _isCloudPlatform =>
-      _receipt.originStatus.sqlValue < OriginStatus.manualImport.sqlValue;
+      _receipt.originStatus.sqlValue < OriginStatus.deviceImport.sqlValue;
 
   @override
   void dispose() {
@@ -64,17 +64,17 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   }
 
   // < ---------- 適用於所有狀態的前端接口
-  Future<void> _normalStringTileModify({
+  Future<void> _normalStringTileEdit({
     required String titleText,
     required String? initialValue,
-    bool openModifyAllTime = false,
+    bool openEditAllTime = false,
     required ValueChanged<String?> changed,
   }) {
     const fieldName = 'normalStringField';
-    final allowModify = openModifyAllTime ? true : !_isCloudPlatform;
+    final allowEdit = openEditAllTime ? true : !_isCloudPlatform;
 
-    Future<void> checkModify() async {
-      assert(allowModify);
+    Future<void> checkEdit() async {
+      assert(allowEdit);
       if (_formKey.currentState?.saveAndValidate() != true) return;
       Navigator.pop(context);
       final String? changedValue = Utils.noEmptyStr(
@@ -94,8 +94,8 @@ class _PageReceiptViewState extends State<PageReceiptView> {
           icon: const Icon(Icons.arrow_back),
         ),
         title: Text(titleText, style: Theme.of(context).textTheme.titleMedium),
-        trailing: allowModify
-            ? IconButton(onPressed: checkModify, icon: const Icon(Icons.check))
+        trailing: allowEdit
+            ? IconButton(onPressed: checkEdit, icon: const Icon(Icons.check))
             : null,
       ),
       content: Column(
@@ -108,12 +108,12 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               icon: const Icon(Icons.copy),
             ),
           ),
-          if (allowModify)
+          if (allowEdit)
             ListTile(
               minTileHeight: 0,
-              subtitle: Text(DictKey.receiptViewModify.s),
+              subtitle: Text(DictKey.receiptViewEdit.s),
             ),
-          if (allowModify)
+          if (allowEdit)
             FormBuilder(
               key: _formKey,
               child: MyTextField(
@@ -189,16 +189,16 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     await _updateInDatabase();
   }
 
-  Future<void> _productAddOrModify([int? index, ReceiptProduct? product]) {
+  Future<void> _productAddOrEdit([int? index, ReceiptProduct? product]) {
     assert(!_isCloudPlatform);
     if ((index == null) != (product == null)) throw 'index, product需要同時有或是同時沒有';
     const descriptionName = 'description';
     const unitPriceName = 'unitPrice';
     const quantityName = 'quantity';
-    final isAddNotModify = product == null;
+    final isAddNotEdit = product == null;
 
     Future<void> delete() {
-      assert(!isAddNotModify);
+      assert(!isAddNotEdit);
       if (index == null || product == null) throw 'index不能是null';
       return OverlayShow.dialog(
         context: context,
@@ -221,7 +221,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       );
     }
 
-    Future<void> checkAddOrModify() async {
+    Future<void> checkAddOrEdit() async {
       if (_formKey.currentState?.saveAndValidate() != true) return;
       final String itemDescription =
           _formKey.currentState!.value[descriptionName];
@@ -289,14 +289,14 @@ class _PageReceiptViewState extends State<PageReceiptView> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!isAddNotModify)
+            if (!isAddNotEdit)
               IconButton(
                 onPressed: delete,
                 icon: const Icon(Icons.delete_forever),
               ),
             IconButton(
-              onPressed: checkAddOrModify,
-              icon: Icon(isAddNotModify ? Icons.add : Icons.check),
+              onPressed: checkAddOrEdit,
+              icon: Icon(isAddNotEdit ? Icons.add : Icons.check),
             ),
           ],
         ),
@@ -414,7 +414,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
               _ReceiptInfoTile(
                 titleText: _receipt.sellerName,
                 subtitleText: DictKey.receiptHeaderSellerName.s,
-                onTap: () => _normalStringTileModify(
+                onTap: () => _normalStringTileEdit(
                   titleText: DictKey.receiptHeaderSellerName.s,
                   initialValue: _receipt.sellerName,
                   changed: (value) =>
@@ -431,7 +431,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 firstWidget: _ReceiptInfoTile(
                   titleText: _receipt.invoiceNumber,
                   subtitleText: DictKey.receiptHeaderInvoiceNumber.s,
-                  onTap: () => _normalStringTileModify(
+                  onTap: () => _normalStringTileEdit(
                     titleText: DictKey.receiptHeaderInvoiceNumber.s,
                     initialValue: _receipt.invoiceNumber,
                     changed: (value) => _receipt = _receipt.copyWith(
@@ -442,7 +442,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 secondWidget: _ReceiptInfoTile(
                   titleText: _receipt.randomNumber,
                   subtitleText: DictKey.receiptHeaderRandomNumber.s,
-                  onTap: () => _normalStringTileModify(
+                  onTap: () => _normalStringTileEdit(
                     titleText: DictKey.receiptHeaderRandomNumber.s,
                     initialValue: _receipt.randomNumber,
                     changed: (value) => _receipt = _receipt.copyWith(
@@ -455,7 +455,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 firstWidget: _ReceiptInfoTile(
                   titleText: _receipt.sellerAddress,
                   subtitleText: DictKey.receiptHeaderSellerAddress.s,
-                  onTap: () => _normalStringTileModify(
+                  onTap: () => _normalStringTileEdit(
                     titleText: DictKey.receiptHeaderSellerAddress.s,
                     initialValue: _receipt.sellerAddress,
                     changed: (value) => _receipt = _receipt.copyWith(
@@ -466,7 +466,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 secondWidget: _ReceiptInfoTile(
                   titleText: _receipt.sellerTaxId,
                   subtitleText: DictKey.receiptHeaderSellerTaxId.s,
-                  onTap: () => _normalStringTileModify(
+                  onTap: () => _normalStringTileEdit(
                     titleText: DictKey.receiptHeaderSellerTaxId.s,
                     initialValue: _receipt.sellerTaxId,
                     changed: (value) =>
@@ -478,10 +478,10 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 firstWidget: _ReceiptInfoTile(
                   titleText: _receipt.userNote,
                   subtitleText: DictKey.receiptHeaderUserNote.s,
-                  onTap: () => _normalStringTileModify(
+                  onTap: () => _normalStringTileEdit(
                     titleText: DictKey.receiptHeaderUserNote.s,
                     initialValue: _receipt.userNote,
-                    openModifyAllTime: true,
+                    openEditAllTime: true,
                     changed: (value) =>
                         _receipt = _receipt.copyWith(userNote: Value(value)),
                   ),
@@ -489,7 +489,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 secondWidget: _ReceiptInfoTile(
                   titleText: _receipt.sellerRemark,
                   subtitleText: DictKey.receiptHeaderSellerRemark.s,
-                  onTap: () => _normalStringTileModify(
+                  onTap: () => _normalStringTileEdit(
                     titleText: DictKey.receiptHeaderSellerRemark.s,
                     initialValue: _receipt.sellerRemark,
                     changed: (value) => _receipt = _receipt.copyWith(
@@ -513,7 +513,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 firstWidget: _ReceiptInfoTile(
                   titleText: _receipt.carrierName,
                   subtitleText: DictKey.receiptHeaderCarrierName.s,
-                  onTap: () => _normalStringTileModify(
+                  onTap: () => _normalStringTileEdit(
                     titleText: DictKey.receiptHeaderCarrierName.s,
                     initialValue: _receipt.carrierName,
                     changed: (value) =>
@@ -523,7 +523,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 secondWidget: _ReceiptInfoTile(
                   titleText: _receipt.carrierType,
                   subtitleText: DictKey.receiptHeaderCarrierType.s,
-                  onTap: () => _normalStringTileModify(
+                  onTap: () => _normalStringTileEdit(
                     titleText: DictKey.receiptHeaderCarrierType.s,
                     initialValue: _receipt.carrierType,
                     changed: (value) =>
@@ -533,7 +533,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                 thirdWidget: _ReceiptInfoTile(
                   titleText: _receipt.carrierId2,
                   subtitleText: DictKey.receiptHeaderCarrierId2.s,
-                  onTap: () => _normalStringTileModify(
+                  onTap: () => _normalStringTileEdit(
                     titleText: DictKey.receiptHeaderCarrierId2.s,
                     initialValue: _receipt.carrierId2,
                     changed: (value) =>
@@ -572,7 +572,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                         (index, product) => _ProductInfoRow(
                           onTap: _isCloudPlatform
                               ? null
-                              : () => _productAddOrModify(index, product),
+                              : () => _productAddOrEdit(index, product),
                           onLongPress: () =>
                               Utils.copyText(product.description),
                           description: product.description,
@@ -598,7 +598,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                                 ),
                               ),
                             ElevatedButton(
-                              onPressed: _productAddOrModify,
+                              onPressed: _productAddOrEdit,
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [

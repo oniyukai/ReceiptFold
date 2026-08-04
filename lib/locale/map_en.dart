@@ -1,3 +1,261 @@
 import 'package:receipt_fold/locale/app_language.dart';
 
-const LocaleInstance mapEn = {};
+const LocaleInstance mapEn = {
+  // ===== Common: Shared UI & Actions =====
+  .commonUiCancel: 'Cancel',
+  .commonUiSave: 'Save',
+  .commonUiDelete: 'Delete',
+  .commonUiSureDelete: 'Are you sure you want to delete this item?',
+  .commonUiSwipeSort: 'Swipe to Sort',
+  .commonUiSort: 'Sort',
+  .commonUiAdd: 'Add',
+  .commonUiRealTimeLog: 'Real-time Log',
+
+  // ===== Toast: Notifications =====
+  .toastFailure: 'Failed',
+  .toastError: 'Error',
+  .toastCopied: 'Copied',
+  .toastNoContentCopy: 'Nothing to copy',
+  .toastCouldNotLaunch: 'Could not open the link',
+
+  // ===== Nav: Navigation =====
+  .navTitleRecorder: 'Records',
+  .navTitleScanner: 'Prize Scanner',
+  .navTitleManager: 'Member Carrier',
+  .navTitleSettings: 'Settings',
+
+  // ===== Scanner: Scan & Prize Check =====
+  .scannerTabManual: 'Manual Check',
+  .scannerTabNumber: 'Winning Numbers',
+  .scannerTabScan: 'Scan Invoice',
+  .scannerManualHint: 'Enter the last 3 digits of the invoice number',
+  .scannerManualNoData: 'No winning number data',
+  .scannerNumberBrowsePeriod: 'Browse Period',
+  .scannerNumberColumnPrize: 'Prize',
+  .scannerNumberColumnAmount: 'Amount',
+  .scannerNumberColumnNumber: 'Number',
+  .scannerNumberRule:
+      'An invoice whose trailing digits match a winning number entirely wins the matching prize with the highest amount.',
+  .scannerScannerHint: 'Please scan only one invoice at a time.',
+  .scannerScannerAuto: 'Auto',
+  .scannerScannerNoPrize: 'No Prize',
+
+  // ===== Barcode: Formats =====
+  .barcodeFormatQrCode: 'QR Code',
+  .barcodeFormatDataMatrix: 'Data Matrix',
+  .barcodeFormatAztec: 'AZTEC',
+  .barcodeFormatPdf417: 'PDF 417',
+  .barcodeFormatEan13: 'EAN 13',
+  .barcodeFormatEan8: 'EAN 8',
+  .barcodeFormatUpcA: 'UPC A',
+  .barcodeFormatUpcE: 'UPC E',
+  .barcodeFormatCode128: 'Code 128',
+  .barcodeFormatCode93: 'Code 93',
+  .barcodeFormatCode39: 'Code 39',
+  .barcodeFormatCodabar: 'Codabar',
+  .barcodeFormatItf: 'ITF',
+
+  // ===== Barcode: Composition Rules =====
+  .barcodeCompositionText: 'Text',
+  .barcodeCompositionTextSimple: 'Text without special characters',
+  .barcodeCompositionTextUpperSimple:
+      'Uppercase text without special characters',
+  .barcodeCompositionDigits: 'Digits',
+  .barcodeCompositionNumber: 'Numbers',
+  .barcodeCompositionEvenLengthNumbers: 'Even number of digits',
+  .barcodeComposition7Digits1Check: '7 digits + 1 check digit',
+  .barcodeComposition11Digits1Check: '11 digits + 1 check digit',
+  .barcodeComposition12Digits1Check: '12 digits + 1 check digit',
+
+  // ===== Barcode: Validation Errors =====
+  .barcodeErrorEmptyFields: 'Input fields cannot be empty.',
+  .barcodeErrorNotNumber: 'Must consist of numbers only.',
+  .barcodeErrorWrongLength: 'Required length: ',
+  .barcodeErrorWrongCheckDigit: 'The last digit (check digit) should be: ',
+  .barcodeErrorUnsupportedCharsIso88591:
+      'This format does not support special characters; they must be within ISO 8859-1.',
+  .barcodeErrorUnsupportedCharsAscii:
+      'This format does not support special characters; they must be within ASCII.',
+  .barcodeErrorRegexCode93:
+      'Code 93 can encode 26 uppercase letters, digits (0–9) and 7 special characters « -, ., space, \$, /, +, % ».',
+  .barcodeErrorRegexCode39:
+      'Code 39 can encode 26 uppercase letters, digits (0–9) and 7 special characters « -, ., space, \$, /, +, % ».',
+  .barcodeErrorRegexCodabar:
+      'Codabar can encode digits (0–9) and 6 special characters « -, \$, :, /, ., + ».',
+  .barcodeErrorItfEvenLength: 'ITF must contain an even number of characters.',
+  .barcodeErrorUpcEStartZero: 'UPC-E must start with 0.',
+
+  // ===== Manager: Carrier Management =====
+  .managerTabBarcode: 'Display Barcode',
+  .managerTabMember: 'Member Carrier',
+  .managerTabCarrier: 'Carrier Binding',
+  .managerNotYetSet: 'Not set yet',
+  .managerMobileCarrier: 'Mobile Carrier',
+  .managerEditMobileCarrier: 'Edit Mobile Carrier',
+  .managerAddMobileCarrier: 'Add Mobile Carrier',
+  .managerChangeMobileCarrier: 'Change Mobile Carrier',
+  .managerMembershipCard: 'Membership Card',
+  .managerEditMembershipCard: 'Edit Membership Card',
+  .managerAddMembershipCard: 'Add Membership Card',
+  .managerThumbnailUrl: 'Thumbnail URL',
+  .managerNotAUrl: 'Not a URL',
+  .managerBrightenScreen: 'Brighten Screen',
+  .managerCodeLabel: 'Barcode',
+  .managerNameLabel: 'Name',
+  .managerPreviousRendering: 'Previous Rendering',
+  .managerAddCarrier: 'Add Carrier',
+  .managerEditCarrier: 'Edit Carrier',
+  .managerCarrierStatus: 'Carrier Status',
+  .managerCarrierCustomName: 'Custom Name',
+  .managerCarrierTypeCode: 'Type Code',
+  .managerCarrierTypeName: 'Type Name',
+  .managerCarrierDuplicate: 'A carrier with the same masked ID already exists.',
+
+  // ===== Carrier: Carrier Status =====
+  .carrierStatusPlatform: 'Cloud',
+  .carrierStatusPlatformExpired: 'Cloud Offline',
+  .carrierStatusDevice: 'Device',
+
+  // ===== Origin: Receipt Source Status =====
+  .originStatusPlatformUnverified: 'Platform Unverified',
+  .originStatusPlatformInvalidated: 'Platform Invalidated',
+  .originStatusPlatformDonated: 'Platform Donated',
+  .originStatusPlatformValidated: 'Platform Validated',
+  .originStatusPlatformConfirmed: 'Platform Confirmed',
+  .originStatusPlatformExpired: 'Platform Expired',
+  .originStatusDeviceImport: 'Device Import',
+  .originStatusDeviceScan: 'Device Scan',
+  .originStatusDeviceEntry: 'Device Entry',
+
+  // ===== Recorder: Record Book =====
+  .recorderMenuPrizeCheck: 'Check This Period',
+  .recorderMenuStatisticalAnalysis: 'Statistical Analysis',
+  .recorderMenuSearch: 'Search',
+  .recorderMenuReturnToday: 'Back to Today',
+  .recorderPrizeCheckNoReceipt: 'No transaction records in this period',
+  .recorderPrizeCheckResult: 'Prize Check Result',
+  .recorderPrizeCheckTotalAmount: 'Total Winning Amount',
+  .recorderPrizeCheckReceiptCount: 'Winning Receipts',
+  .recorderPeriodTransactionsAndAmount:
+      '${StaticString.fillObjectNumber} receipts, totaling ${StaticString.fillObjectAmount} in this period',
+  .recorderMonthTransactionsAndAmount:
+      '${StaticString.fillObjectMonth}: ${StaticString.fillObjectNumber} receipts, totaling ${StaticString.fillObjectAmount}',
+
+  // ===== Search: Search Criteria =====
+  .searchTitle: 'Search Criteria',
+  .searchErrorSplit:
+      'No more than ${StaticString.fillObjectNumber} OR operators.',
+  .searchErrorDateOrder: 'Start date cannot be after end date.',
+  .searchErrorMinMax: 'Minimum value cannot exceed maximum value.',
+  .searchIssuedDate: 'Issue Date',
+  .searchDateEarliest: 'Earliest Date',
+  .searchDateLatest: 'Latest Date',
+  .searchMinValue: 'Minimum',
+  .searchMaxValue: 'Maximum',
+  .searchKeyword: 'Keyword',
+  .searchColumnCount: 'Number of Fields',
+  .searchColumnScope: 'Field Scope',
+  .searchHint:
+      'Empty fields apply no filter. Use "${StaticString.searchSplit}" to combine keywords with OR.',
+  .searchResultTitle: 'Search Results',
+  .searchResultSummary:
+      'Page ${StaticString.fillObjectNumber}, ${StaticString.fillObjectCount} results',
+
+  // ===== Receipt: Receipt Detail =====
+  .receiptViewAddRecord: 'New Transaction Record',
+  .receiptViewRecord: 'Transaction Record',
+  .receiptViewOriginalContent: 'Original Content',
+  .receiptViewEdit: 'Edit',
+  .receiptHeaderSellerName: 'Seller Name / Transaction Name',
+  .receiptHeaderInvoiceNumber: 'Invoice Number',
+  .receiptHeaderOriginStatus: 'Origin Status',
+  .receiptHeaderCarrierName: 'Carrier Name',
+  .receiptHeaderCarrierType: 'Carrier Type',
+  .receiptHeaderCarrierId2: 'Carrier Masked ID',
+  .receiptHeaderSellerAddress: 'Seller Address',
+  .receiptHeaderSellerTaxId: 'Seller Tax ID',
+  .receiptHeaderRandomNumber: 'Invoice Random Number',
+  .receiptHeaderSellerRemark: 'Seller Remark',
+  .receiptHeaderUserNote: 'User Note',
+  .receiptHeaderPrizeName: 'Prize Name',
+  .receiptHeaderPrizeAmount: 'Prize Amount',
+  .receiptHeaderTotalAmount: 'Total Amount',
+  .receiptHeaderItemLength: 'Item Count',
+  .receiptHeaderIssuedPeriod: 'Invoice Period',
+  .receiptDetailItem: 'Item',
+  .receiptDetailUnitPrice: 'Unit Price',
+  .receiptDetailQuantity: 'Quantity',
+  .receiptDetailAmount: 'Subtotal',
+
+  // ===== Platform: Invoice Platform =====
+  .platformFunctionAction: 'Actions',
+  .platformAccountSetting: 'Account Settings',
+  .platformFillAccount: 'Fill Account',
+  .platformPhoneLabel: 'Phone Number',
+  .platformPasswordLabel: 'Password',
+  .platformQueryMonths: 'Query Range',
+  .platformQueryMonthsOption: '${StaticString.fillObjectMonths} month(s)',
+  .platformImportCsv: 'Import from Periodic CSV',
+  .platformExecuteAll: 'Run All',
+  .platformFetchCarrier: 'Fetch Carriers',
+  .platformFetchAward: 'Fetch Winning Invoices',
+  .platformFetchInvoice: 'Fetch Invoices',
+  .platformWebView: 'WebView',
+
+  // ===== Backup: Backup & Sync =====
+  .backupDevice: 'Local Device',
+  .backupDevicePushFile: 'Save As',
+  .backupPush: 'Push',
+  .backupPull: 'Pull',
+  .backupPushForce: 'Force Push',
+  .backupPullForce: 'Force Pull',
+  .backupSync: 'Sync',
+  .backupWebDAV: 'WebDAV',
+  .backupConnectionSetting: 'Connection Settings',
+  .backupSaveAndConnect: 'Save & Connect',
+  .backupUrlLabel: 'URL',
+  .backupUserLabel: 'User',
+  .backupPasswordLabel: 'Password',
+  .backupAutoSync: 'Enable Periodic Sync',
+  .backupDeleteLog: 'Delete Log',
+  .backupSureDeleteLog: 'Are you sure you want to delete the log?',
+
+  // ===== Setting: Settings =====
+  .settingGroupAppearance: 'Appearance',
+  .settingOptionColor: 'Theme Color',
+  .settingOptionTheme: 'Background Color',
+  .settingOptionThemeSystem: 'Follow System',
+  .settingOptionThemeLight: 'Light',
+  .settingOptionThemeDark: 'Dark',
+  .settingGroupLanguages: 'Languages',
+  .settingOptionLanguagesDefault: 'Default',
+  .settingGroupDataAutomation: 'Data & Automation',
+  .settingDataPlatform: 'Invoice Platform',
+  .settingDataBackup: 'Backup & Sync',
+  .settingGroupPreferences: 'Preferences',
+  .settingSwitchShowBrighten: 'Brighten screen while displaying',
+  .settingSwitchShowLockOrient: 'Lock screen rotation while displaying',
+  .settingSwitchScanLockOrient: 'Lock screen rotation while scanning',
+  .settingSwitchScanAutoAdd: 'Auto-add scans to records',
+  .settingActionClearCache: 'Clear All Image Cache',
+  .settingCacheClearedMsg:
+      'Cleared ${StaticString.fillObjectOldBytes} of image cache, ${StaticString.fillObjectNewBytes} remaining',
+  .settingGroupAbout: 'About',
+  .settingOptionVersion: 'App Version',
+  .settingOptionVersionTag: 'Version Tag',
+  .settingOptionLicenses: 'Open Source Licenses',
+  .settingOptionSourceCode: 'Source Code',
+  .settingOptionDebugLog: 'Debug Log',
+
+  // ===== Setting: Color Options =====
+  .settingOptionColorMaterialYou: 'System Material You',
+  .settingOptionColorBlue: 'Blue',
+  .settingOptionColorViolet: 'Violet',
+  .settingOptionColorPurple: 'Purple',
+  .settingOptionColorPink: 'Pink',
+  .settingOptionColorDeepOrange: 'Deep Orange',
+  .settingOptionColorOrange: 'Orange',
+  .settingOptionColorYellow: 'Yellow',
+  .settingOptionColorGreen: 'Green',
+  .settingOptionColorTeal: 'Teal',
+};

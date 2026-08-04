@@ -335,8 +335,8 @@ class _TabScannerViewState extends State<TabScannerView>
     }
     await DriftServices.appDb.receiptDao.upsertMany(
       pairMap: {receipt: products},
-      scopeStart: OriginStatus.manualScan,
-      scopeEnd: OriginStatus.manualScan,
+      scopeStart: OriginStatus.deviceScan,
+      scopeEnd: OriginStatus.deviceScan,
     );
   }
 

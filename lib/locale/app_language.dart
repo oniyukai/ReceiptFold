@@ -5,8 +5,8 @@ typedef LocaleInstance = Map<DictKey, String?>;
 extension StaticString on DictKey {
   static const String
     appName = 'ReceiptFold',
-    appVersion = '0.0.1+1',
-    appVersionTag = 'v0.1.alpha_26.07.30+1',
+    appVersion = '0.1.0+2',
+    appVersionTag = 'v0.1_26.08.05+2',
     // Language
     localeLanguageEn = 'English',
     localeLanguageJa = '日本語',
@@ -35,10 +35,11 @@ enum DictKey {
   commonUiSwipeSort,
   commonUiSort,
   commonUiAdd,
-  commonUiFailure,
-  commonUiError,
+  commonUiRealTimeLog,
 
   // ===== Toast: 提示訊息 =====
+  toastFailure,
+  toastError,
   toastCopied,
   toastNoContentCopy,
   toastCouldNotLaunch,
@@ -124,7 +125,6 @@ enum DictKey {
   managerAddCarrier,
   managerEditCarrier,
   managerCarrierStatus,
-  managerCarrierId2,
   managerCarrierCustomName,
   managerCarrierTypeCode,
   managerCarrierTypeName,
@@ -133,18 +133,18 @@ enum DictKey {
   // ===== Carrier: 載具狀態 =====
   carrierStatusPlatform,
   carrierStatusPlatformExpired,
-  carrierStatusManual,
+  carrierStatusDevice,
 
-  // ===== Origin: 發票來源狀態 =====
-  originStatusPlatformUnconfirmed,
+  // ===== Origin: 收據來源狀態 =====
+  originStatusPlatformUnverified,
   originStatusPlatformInvalidated,
   originStatusPlatformDonated,
+  originStatusPlatformValidated,
   originStatusPlatformConfirmed,
-  originStatusPlatformConfirmedNotDonated,
   originStatusPlatformExpired,
-  originStatusManualImport,
-  originStatusManualScan,
-  originStatusManualEntry,
+  originStatusDeviceImport,
+  originStatusDeviceScan,
+  originStatusDeviceEntry,
 
   // ===== Recorder: 記錄器 =====
   recorderMenuPrizeCheck,
@@ -175,11 +175,11 @@ enum DictKey {
   searchResultTitle,
   searchResultSummary,
 
-  // ===== Receipt: 發票檢視 =====
+  // ===== Receipt: 收據檢視 =====
   receiptViewAddRecord,
   receiptViewRecord,
   receiptViewOriginalContent,
-  receiptViewModify,
+  receiptViewEdit,
   receiptHeaderSellerName,
   receiptHeaderInvoiceNumber,
   receiptHeaderOriginStatus,
@@ -202,7 +202,6 @@ enum DictKey {
   receiptDetailAmount,
 
   // ===== Platform: 發票平台 =====
-  platformTitle,
   platformFunctionAction,
   platformAccountSetting,
   platformFillAccount,
@@ -216,11 +215,9 @@ enum DictKey {
   platformFetchAward,
   platformFetchInvoice,
   platformWebView,
-  platformRealTimeLog,
 
   // ===== Backup: 備份同步 =====
-  backupTitle,
-  backupDeviceAction,
+  backupDevice,
   backupDevicePushFile,
   backupPush,
   backupPull,
@@ -234,7 +231,6 @@ enum DictKey {
   backupUserLabel,
   backupPasswordLabel,
   backupAutoSync,
-  backupRealTimeLog,
   backupDeleteLog,
   backupSureDeleteLog,
 

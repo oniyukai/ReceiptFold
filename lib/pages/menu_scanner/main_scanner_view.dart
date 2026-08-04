@@ -32,6 +32,7 @@ class _MainScannerViewState extends State<MainScannerView>
 
   @override
   Widget build(BuildContext context) {
+    DictKey.load(context);
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,

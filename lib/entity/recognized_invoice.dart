@@ -29,7 +29,7 @@ class RecognizedInvoice {
     Receipt receipt = Receipt(
       modified: now,
       uuid: UuidMixin.v7.generate(),
-      originStatus: OriginStatus.manualScan,
+      originStatus: OriginStatus.deviceScan,
       issuedAt: now,
       totalAmount: 0.0,
       invoiceNumber: invoiceNumber,

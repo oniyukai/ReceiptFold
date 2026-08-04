@@ -257,7 +257,7 @@ class _PageBackupViewState extends State<PageBackupView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(DictKey.backupTitle.s)),
+      appBar: AppBar(title: Text(DictKey.settingDataBackup.s)),
       body: SafeArea(
         child: Scrollbar(
           controller: _scrollController,
@@ -273,7 +273,7 @@ class _PageBackupViewState extends State<PageBackupView> {
               ),
               ExpandableCard(
                 iconData: Icons.devices,
-                text: DictKey.backupDeviceAction.s,
+                text: DictKey.backupDevice.s,
                 expandedChild: Column(
                   children: [
                     ListTile(
@@ -378,7 +378,7 @@ class _PageBackupViewState extends State<PageBackupView> {
               ),
               ExpandableCard(
                 iconData: Icons.terminal,
-                text: DictKey.backupRealTimeLog.s,
+                text: DictKey.commonUiRealTimeLog.s,
                 expandedChild: ConstrainedBox(
                   constraints: const BoxConstraints(
                     minWidth: double.infinity,

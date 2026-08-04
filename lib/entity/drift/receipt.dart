@@ -5,31 +5,30 @@ import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
 enum OriginStatus {
-  platformUnconfirmed(16),
+  platformUnverified(16),
   platformInvalidated(32),
   platformDonated(48),
-  platformConfirmed(64),
-  platformConfirmedNotDonated(80),
+  platformValidated(64),
+  platformConfirmed(80),
   platformExpired(96),
-  manualImport(112),
-  manualScan(128),
-  manualEntry(144);
+  deviceImport(112),
+  deviceScan(128),
+  deviceEntry(144);
 
   final int sqlValue;
 
   const OriginStatus(this.sqlValue);
 
   String get locale => switch (this) {
-    platformUnconfirmed => DictKey.originStatusPlatformUnconfirmed,
+    platformUnverified => DictKey.originStatusPlatformUnverified,
     platformInvalidated => DictKey.originStatusPlatformInvalidated,
     platformDonated => DictKey.originStatusPlatformDonated,
+    platformValidated => DictKey.originStatusPlatformValidated,
     platformConfirmed => DictKey.originStatusPlatformConfirmed,
-    platformConfirmedNotDonated =>
-      DictKey.originStatusPlatformConfirmedNotDonated,
     platformExpired => DictKey.originStatusPlatformExpired,
-    manualImport => DictKey.originStatusManualImport,
-    manualScan => DictKey.originStatusManualScan,
-    manualEntry => DictKey.originStatusManualEntry,
+    deviceImport => DictKey.originStatusDeviceImport,
+    deviceScan => DictKey.originStatusDeviceScan,
+    deviceEntry => DictKey.originStatusDeviceEntry,
   }.s;
 
   int toJson() => sqlValue;
@@ -369,7 +368,7 @@ class ReceiptDao extends SyncableDao {
       ..where(
         _receipts.invoiceNumber.isNotNull() &
             _receipts.originStatus.isSmallerThanValue(
-              OriginStatus.manualScan.sqlValue,
+              OriginStatus.deviceScan.sqlValue,
             ) &
             existsQuery(
               otherReceipts.select()

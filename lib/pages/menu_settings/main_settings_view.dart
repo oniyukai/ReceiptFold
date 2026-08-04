@@ -41,7 +41,7 @@ class _MainSettingsPageState extends State<MainSettingsView> {
         ]),
       );
     } catch (e) {
-      Utils.showToast('${DictKey.commonUiFailure.s}: $e');
+      Utils.showToast('${DictKey.toastFailure.s}: $e');
     }
   }
 

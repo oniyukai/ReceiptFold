@@ -161,8 +161,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       final File file = File(result.files.single.path!);
       await DriftServices.appDb.receiptDao.upsertMany(
         pairMap: _api.decodeImportCSV(await file.readAsString()),
-        scopeStart: OriginStatus.manualImport,
-        scopeEnd: OriginStatus.manualImport,
+        scopeStart: OriginStatus.deviceImport,
+        scopeEnd: OriginStatus.deviceImport,
       );
       LogService('🟢 _pressImportCSV finished.', instance: this).d();
       return;
@@ -237,7 +237,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       }
       await DriftServices.appDb.receiptDao.upsertMany(
         pairMap: receiptMap,
-        scopeStart: OriginStatus.platformUnconfirmed,
+        scopeStart: OriginStatus.platformUnverified,
         scopeEnd: OriginStatus.platformExpired,
       );
       LogService('🟢 _pressFetchAwardList finished.', instance: this).d();
@@ -270,7 +270,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       }
       await DriftServices.appDb.receiptDao.upsertMany(
         pairMap: receiptMap,
-        scopeStart: OriginStatus.platformUnconfirmed,
+        scopeStart: OriginStatus.platformUnverified,
         scopeEnd: OriginStatus.platformExpired,
       );
       LogService('🟢 _pressFetchInvoiceList finished.', instance: this).d();
@@ -290,7 +290,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(DictKey.platformTitle.s)),
+      appBar: AppBar(title: Text(DictKey.settingDataPlatform.s)),
       body: SafeArea(
         child: Scrollbar(
           controller: _scrollController,
@@ -385,7 +385,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
 
               ExpandableCard(
                 iconData: Icons.terminal,
-                text: DictKey.platformRealTimeLog.s,
+                text: DictKey.commonUiRealTimeLog.s,
                 expandedChild: ConstrainedBox(
                   constraints: const BoxConstraints(
                     minWidth: double.infinity,

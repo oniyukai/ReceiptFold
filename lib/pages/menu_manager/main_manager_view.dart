@@ -29,6 +29,7 @@ class _MainManagerViewState extends State<MainManagerView>
 
   @override
   Widget build(BuildContext context) {
+    DictKey.load(context);
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0,

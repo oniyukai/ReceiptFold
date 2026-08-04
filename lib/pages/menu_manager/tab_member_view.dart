@@ -10,9 +10,9 @@ import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/gadget/gadget_member.dart';
 import 'package:receipt_fold/pages/gadget/gadget_mobile.dart';
-import 'package:receipt_fold/pages/menu_manager/main_manager_widgets.dart';
 import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_mobile_form.dart';
+import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
 class TabMemberView extends StatefulWidget {
@@ -157,6 +157,51 @@ class _TabMemberViewState extends State<TabMemberView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class MobileItemCard extends StatelessWidget {
+  final MobileBarcodeItem item;
+  final VoidCallback? onTap;
+
+  const MobileItemCard({super.key, required this.item, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        minTileHeight: 0,
+        title: Text(item.code, overflow: TextOverflow.ellipsis),
+        subtitle: Text(item.name ?? '', overflow: TextOverflow.ellipsis),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class MemberItemCard extends StatelessWidget {
+  final MemberBarcodeItem item;
+  final VoidCallback? onTap;
+
+  const MemberItemCard({super.key, required this.item, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        onTap: onTap,
+        minTileHeight: 0,
+        title: Text(item.name ?? '', overflow: TextOverflow.ellipsis),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(item.code, overflow: TextOverflow.ellipsis),
+            Text(item.format.locale, overflow: TextOverflow.ellipsis),
+          ],
+        ),
+        trailing: ImageBox(item: item, nullNeedBuild: false),
       ),
     );
   }
