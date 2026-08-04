@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/gadget/gadget_mobile.dart';
+import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 
 const String _androidName = 'HomeWidgetMember';
 const String _homeWidgetMemberItemIndex = 'HomeWidgetMemberItemIndex';

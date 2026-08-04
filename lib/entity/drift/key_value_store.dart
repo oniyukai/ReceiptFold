@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:receipt_fold/common/utils.dart';

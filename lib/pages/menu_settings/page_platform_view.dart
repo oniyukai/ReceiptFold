@@ -155,7 +155,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         allowedExtensions: const ['csv'],
       );
       if (result == null) {
-        Utils.showToast('取消');
+        Utils.showToast(DictKey.commonUiCancel.s);
         return;
       }
       final File file = File(result.files.single.path!);
@@ -231,8 +231,12 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     }
     _singleActionLocked.value = true;
     try {
+      final receiptMap = await _api.fetchAwardList();
+      if (receiptMap.entries.any((e) => e.key.invoiceNumber == null)) {
+        throw Exception('invoiceNumber were found to be null.');
+      }
       await DriftServices.appDb.receiptDao.upsertMany(
-        pairMap: await _api.fetchAwardList(),
+        pairMap: receiptMap,
         scopeStart: OriginStatus.platformUnconfirmed,
         scopeEnd: OriginStatus.platformExpired,
       );
@@ -258,10 +262,14 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     }
     _singleActionLocked.value = true;
     try {
+      final receiptMap = await _api.fetchInvoiceList(
+        context.readPrefs.get(.invoiceQueryMonths),
+      );
+      if (receiptMap.entries.any((e) => e.key.invoiceNumber == null)) {
+        throw Exception('invoiceNumber were found to be null.');
+      }
       await DriftServices.appDb.receiptDao.upsertMany(
-        pairMap: await _api.fetchInvoiceList(
-          context.readPrefs.get(.invoiceQueryMonths),
-        ),
+        pairMap: receiptMap,
         scopeStart: OriginStatus.platformUnconfirmed,
         scopeEnd: OriginStatus.platformExpired,
       );

@@ -34,6 +34,9 @@ const LocaleInstance mapZhHant = {
   .scannerNumberColumnAmount: '獎金',
   .scannerNumberColumnNumber: '號碼',
   .scannerNumberRule: '發票號碼尾數與開獎號碼全數一致的發票, 得符合之獎項獎金最大者。',
+  .scannerScannerHint: '請讓鏡頭同時只辨識一張發票。',
+  .scannerScannerAuto: '自動',
+  .scannerScannerNoPrize: '未中獎',
 
   // ===== Barcode: 格式 =====
   .barcodeFormatQrCode: 'QR 圖碼',
@@ -229,8 +232,9 @@ const LocaleInstance mapZhHant = {
   .settingDataBackup: '備份與同步',
   .settingGroupPreferences: '偏好',
   .settingSwitchShowBrighten: '展示時螢幕調亮',
-  .settingOptionScanLockOrient: '掃描時禁用螢幕旋轉',
   .settingSwitchShowLockOrient: '展示時禁用螢幕旋轉',
+  .settingSwitchScanLockOrient: '掃描時禁用螢幕旋轉',
+  .settingSwitchScanAutoAdd: '掃描自動新增到紀錄',
   .settingActionClearCache: '清除所有圖片緩存',
   .settingCacheClearedMsg:
       '已清除 ${StaticString.fillObjectOldBytes} 圖片緩存, 還剩 ${StaticString.fillObjectNewBytes}',
@@ -240,9 +244,6 @@ const LocaleInstance mapZhHant = {
   .settingOptionLicenses: '開源許可證',
   .settingOptionSourceCode: '原始碼',
   .settingOptionDebugLog: '除錯日誌',
-  .settingTermsTitle: '協議與條款',
-  .settingTermsAgreedAll: '我已閱讀並同意以上所有協議與條款。',
-  .settingTermsContinue: '同意後並繼續',
 
   // ===== Setting: 顏色選項 =====
   .settingOptionColorMaterialYou: '系統 Material You',

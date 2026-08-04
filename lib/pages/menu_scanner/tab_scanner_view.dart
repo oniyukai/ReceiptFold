@@ -357,7 +357,9 @@ class _TabScannerViewState extends State<TabScannerView>
           child: ListView(
             children: [
               ListTile(
-                title: Text(receipt?.invoiceNumber ?? '請讓鏡頭同時只辨識一張發票。'),
+                title: Text(
+                  receipt?.invoiceNumber ?? DictKey.scannerScannerHint.s,
+                ),
                 subtitle: Text(
                   <String>[
                     receipt == null
@@ -372,7 +374,11 @@ class _TabScannerViewState extends State<TabScannerView>
                   onPressed: isScanAutoAdd || _isSaved || receipt == null
                       ? null
                       : _processUpdate,
-                  child: Text(isScanAutoAdd ? '自動' : DictKey.commonUiSave.s),
+                  child: Text(
+                    isScanAutoAdd
+                        ? DictKey.scannerScannerAuto.s
+                        : DictKey.commonUiSave.s,
+                  ),
                 ),
               ),
               ListTile(
@@ -382,7 +388,7 @@ class _TabScannerViewState extends State<TabScannerView>
                 title: Text(
                   _invoiceAward == null
                       ? DictKey.scannerManualNoData.s
-                      : _invoicePrize?.name ?? '未中獎',
+                      : _invoicePrize?.name ?? DictKey.scannerScannerNoPrize.s,
                 ),
                 subtitle: Text(
                   _invoicePrize == null

@@ -1,13 +1,14 @@
 import 'dart:async';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/app_theme.dart';
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
-import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/app_localizations.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
@@ -81,6 +82,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
-// todo: iOS載具與會員桌面小工具
-// todo: 完善多國語言

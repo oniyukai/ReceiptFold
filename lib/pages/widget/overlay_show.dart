@@ -261,6 +261,7 @@ class _ToastState extends State<_ToastWidget>
   @override
   void dispose() {
     super.dispose();
+    widget.remove();
     _controller.dispose();
   }
 

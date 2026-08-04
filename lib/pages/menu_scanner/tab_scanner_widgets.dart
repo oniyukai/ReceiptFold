@@ -370,7 +370,7 @@ class CameraView extends StatefulWidget {
   State<CameraView> createState() => _CameraViewState();
 }
 
-class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
+class _CameraViewState extends State<CameraView> {
   static List<CameraDescription> _cameras = [];
   String? _errorMsg;
   CameraController? _controller;
@@ -379,7 +379,6 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     unawaited(_initialize());
   }
 
@@ -399,7 +398,6 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   @override
   void dispose() {
     super.dispose();
-    WidgetsBinding.instance.removeObserver(this);
     _stopLiveFeed();
   }
 
@@ -483,13 +481,11 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     if (_controller == null) return null;
 
     // get image rotation
-    // it is used in android to convert the InputImage from Dart to Java: https://github.com/flutter-ml/google_ml_kit_flutter/blob/master/packages/google_mlkit_commons/android/src/main/java/com/google_mlkit_commons/InputImageConverter.java
-    // `rotation` is not used in iOS to convert the InputImage from Dart to Obj-C: https://github.com/flutter-ml/google_ml_kit_flutter/blob/master/packages/google_mlkit_commons/ios/Classes/MLKVisionImage%2BFlutterPlugin.m
-    // in both platforms `rotation` and `camera.lensDirection` can be used to compensate `x` and `y` coordinates on a canvas: https://github.com/flutter-ml/google_ml_kit_flutter/blob/master/packages/example/lib/vision_detector_views/painters/coordinates_translator.dart
+    // it is used in android to convert the InputImage from Dart to Java
+    // `rotation` is not used in iOS to convert the InputImage from Dart to Obj-C
+    // in both platforms `rotation` and `camera.lensDirection` can be used to compensate `x` and `y` coordinates on a canvas
     final camera = _cameras[_cameraIndex];
     final sensorOrientation = camera.sensorOrientation;
-    // print(
-    //     'lensDirection: ${camera.lensDirection}, sensorOrientation: $sensorOrientation, ${_controller?.value.deviceOrientation} ${_controller?.value.lockedCaptureOrientation} ${_controller?.value.isCaptureOrientationLocked}');
     InputImageRotation? rotation;
     if (Platform.isIOS) {
       rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
@@ -506,17 +502,11 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
             (sensorOrientation - rotationCompensation + 360) % 360;
       }
       rotation = InputImageRotationValue.fromRawValue(rotationCompensation);
-      // print('rotationCompensation: $rotationCompensation');
     }
     if (rotation == null) return null;
-    // print('final rotation: $rotation');
 
     // get image format
     final format = InputImageFormatValue.fromRawValue(image.format.raw);
-    if (format == null) {
-      // print('could not find format from raw value: ${image.format.raw}');
-      return null;
-    }
     // Validate format depending on platform
     const androidSupportedFormats = [
       InputImageFormat.nv21,
@@ -524,9 +514,9 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
       InputImageFormat.yuv_420_888,
     ];
 
-    if ((Platform.isAndroid && !androidSupportedFormats.contains(format)) ||
+    if (format == null ||
+        (Platform.isAndroid && !androidSupportedFormats.contains(format)) ||
         (Platform.isIOS && format != InputImageFormat.bgra8888)) {
-      // print('image format is not supported: $format');
       return null;
     }
 

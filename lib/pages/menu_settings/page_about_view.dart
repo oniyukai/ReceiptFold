@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
-import 'package:path/path.dart' as p;
 
 class PageAboutView extends StatefulWidget {
   const PageAboutView({super.key});
@@ -71,6 +71,9 @@ class _PageAboutViewState extends State<PageAboutView> {
               ),
               ListTile(
                 title: Text(DictKey.settingOptionLicenses.s),
+                subtitle: Text(
+                  '${StaticString.appName} is Licensed under GNU Affero General Public License v3.0',
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => showLicensePage(
                   context: context,

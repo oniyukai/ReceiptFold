@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'package:logger/logger.dart';
+
 import 'package:flutter/foundation.dart';
+import 'package:logger/logger.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
 

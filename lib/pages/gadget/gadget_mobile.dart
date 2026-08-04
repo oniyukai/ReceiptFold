@@ -1,11 +1,14 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/locale/app_language.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
+
+// todo: iOS載具與會員桌面小工具
 
 const String _androidName = 'HomeWidgetMobile';
 const String _homeWidgetMobilePath = 'HomeWidgetMobilePath';

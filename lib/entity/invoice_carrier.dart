@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';

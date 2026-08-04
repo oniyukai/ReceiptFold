@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/app_theme.dart';
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
-import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/app_localizations.dart';
-import 'package:receipt_fold/pages/menu_settings/page_platform_view.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/menu_settings/page_about_view.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:receipt_fold/pages/menu_settings/page_backup_view.dart';
+import 'package:receipt_fold/pages/menu_settings/page_platform_view.dart';
 
 class MainSettingsView extends StatefulWidget {
   const MainSettingsView({super.key});
@@ -114,13 +114,13 @@ class _MainSettingsPageState extends State<MainSettingsView> {
                 onToggle: (value) => prefs.update(.isShowLockOrient, value),
               ),
               ListTileSwitch(
-                text: DictKey.settingOptionScanLockOrient.s,
+                text: DictKey.settingSwitchScanLockOrient.s,
                 iconData: Icons.screen_rotation,
                 initialValue: prefs.get(.isScanLockOrient),
                 onToggle: (value) => prefs.update(.isScanLockOrient, value),
               ),
               ListTileSwitch(
-                text: '自動新增掃描到紀錄',
+                text: DictKey.settingSwitchScanAutoAdd.s,
                 iconData: Icons.flip,
                 initialValue: prefs.get(.isScanAutoAdd),
                 onToggle: (value) => prefs.update(.isScanAutoAdd, value),

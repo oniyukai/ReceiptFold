@@ -60,6 +60,9 @@ enum DictKey {
   scannerNumberColumnAmount,
   scannerNumberColumnNumber,
   scannerNumberRule,
+  scannerScannerHint,
+  scannerScannerAuto,
+  scannerScannerNoPrize,
 
   // ===== Barcode: 格式 =====
   barcodeFormatQrCode,
@@ -249,8 +252,9 @@ enum DictKey {
   settingDataBackup,
   settingGroupPreferences,
   settingSwitchShowBrighten,
-  settingOptionScanLockOrient,
   settingSwitchShowLockOrient,
+  settingSwitchScanLockOrient,
+  settingSwitchScanAutoAdd,
   settingActionClearCache,
   settingCacheClearedMsg,
   settingGroupAbout,
@@ -259,9 +263,6 @@ enum DictKey {
   settingOptionLicenses,
   settingOptionSourceCode,
   settingOptionDebugLog,
-  settingTermsTitle,
-  settingTermsAgreedAll,
-  settingTermsContinue,
 
   // ===== Setting: 顏色選項 =====
   settingOptionColorMaterialYou,

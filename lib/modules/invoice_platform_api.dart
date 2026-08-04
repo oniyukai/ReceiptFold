@@ -244,9 +244,7 @@ class InvoicePlatformApi {
                   modified: DateTime.now(),
                   uuid: UuidMixin.v7.generate(),
                   originStatus: OriginStatus.platformConfirmedNotDonated,
-                  issuedAt:
-                      DateTime.tryParse(jsonAward['invoiceDate'] ?? '') ??
-                      DateTime.now(),
+                  issuedAt: DateTime.parse(jsonAward['invoiceDate']),
                   totalAmount:
                       double.tryParse(jsonAward['totalAmount'] ?? '') ?? 0.0,
                   invoiceNumber: Utils.noEmptyStr(jsonAward['invNum']),
@@ -346,9 +344,7 @@ class InvoicePlatformApi {
                       jsonInvoice['invoiceStrStatus'],
                     ) ??
                     OriginStatus.platformUnconfirmed,
-                issuedAt:
-                    DateTime.tryParse(jsonInvoice['invoiceDate'] ?? '') ??
-                    DateTime.now(),
+                issuedAt: DateTime.parse(jsonInvoice['invoiceDate']),
                 totalAmount:
                     double.tryParse(jsonInvoice['totalAmount'].toString()) ??
                     0.0,

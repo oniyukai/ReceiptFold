@@ -362,7 +362,8 @@ class ReceiptDao extends SyncableDao {
     final deletedUuidsQuery = _deletedUuids.selectOnly()
       ..addColumns([_deletedUuids.uuid]);
 
-    // 找尋來自雲端但是時間與號碼相同的 舊receiptUuid
+    // 找尋來源平台但是時間與號碼相同的 舊receiptUuid
+    final otherReceipts = _receipts.createAlias('other_receipts');
     final platformDupReceiptIdsQuery = _receipts.selectOnly()
       ..addColumns([_receipts.uuid])
       ..where(
@@ -371,7 +372,7 @@ class ReceiptDao extends SyncableDao {
               OriginStatus.manualScan.sqlValue,
             ) &
             existsQuery(
-              _receipts.select()
+              otherReceipts.select()
                 ..where(
                   (tbl) =>
                       (tbl.invoiceNumber.equalsExp(_receipts.invoiceNumber) &

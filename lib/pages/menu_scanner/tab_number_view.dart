@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +41,10 @@ class _TabNumberViewState extends State<TabNumberView> {
             _prizeAwardList = _prizeAwardList
                 .where((e) => e.prizes.isNotEmpty)
                 .toList();
+            _viewIndex = min(
+              _viewIndex,
+              _prizeAwardList.isEmpty ? 0 : _prizeAwardList.length - 1,
+            );
             _isLoading = false;
             _errorMessage = null;
           }),
