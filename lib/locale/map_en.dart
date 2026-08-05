@@ -129,7 +129,6 @@ const LocaleInstance mapEn = {
 
   // ===== Recorder: Record Book =====
   .recorderMenuPrizeCheck: 'Check This Period',
-  .recorderMenuStatisticalAnalysis: 'Statistical Analysis',
   .recorderMenuSearch: 'Search',
   .recorderMenuReturnToday: 'Back to Today',
   .recorderPrizeCheckNoReceipt: 'No transaction records in this period',

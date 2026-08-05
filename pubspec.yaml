@@ -17,7 +17,7 @@ dependencies:
   dynamic_color: ^1.8.1
   audioplayers: ^6.8.1
   vibration: ^3.2.0
-  fluttertoast: ^9.1.0
+  fluttertoast: ^10.0.0
   intl: ^0.20.2
   url_launcher: ^6.3.2
   share_plus: ^13.3.0
@@ -39,7 +39,7 @@ dependencies:
   watashi_locale:
     git:
       url: https://github.com/oniyukai/watashi_locale.git
-      ref: main
+      ref: f9c1facefa146ed93cb28fad3b87690399816a5c
   uuid: ^4.6.0
   drift: ^2.34.3
   drift_flutter: ^0.3.1
@@ -55,6 +55,7 @@ dependencies:
   google_mlkit_barcode_scanning: ^0.15.0
   google_mlkit_text_recognition: ^0.16.0
   enough_convert: ^1.6.0
+  flutter_single_instance: ^1.7.0
 
 dev_dependencies:
   flutter_test:

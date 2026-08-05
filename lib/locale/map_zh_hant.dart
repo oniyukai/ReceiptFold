@@ -125,7 +125,6 @@ const LocaleInstance mapZhHant = {
 
   // ===== Recorder: 記錄器 =====
   .recorderMenuPrizeCheck: '對獎該期',
-  .recorderMenuStatisticalAnalysis: '統計分析',
   .recorderMenuSearch: '查詢',
   .recorderMenuReturnToday: '返回今天',
   .recorderPrizeCheckNoReceipt: '本期沒有任何一筆交易紀錄',

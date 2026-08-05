@@ -72,7 +72,7 @@ class RecognizedInvoice {
           ),
         );
       }
-      if ((totalAmount - receipt.totalAmount).abs() > 0.01) {
+      if ((totalAmount - receipt.totalAmount).abs() >= 0.01) {
         products.add(
           ReceiptProduct(
             modified: now,

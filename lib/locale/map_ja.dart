@@ -127,7 +127,6 @@ const LocaleInstance mapJa = {
 
   // ===== Recorder: 記録帳 =====
   .recorderMenuPrizeCheck: '当期の当選チェック',
-  .recorderMenuStatisticalAnalysis: '統計分析',
   .recorderMenuSearch: '検索',
   .recorderMenuReturnToday: '今日に戻る',
   .recorderPrizeCheckNoReceipt: 'この期間の取引記録はありません',

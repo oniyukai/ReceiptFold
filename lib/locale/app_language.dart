@@ -148,7 +148,6 @@ enum DictKey {
 
   // ===== Recorder: 記錄器 =====
   recorderMenuPrizeCheck,
-  recorderMenuStatisticalAnalysis,
   recorderMenuSearch,
   recorderMenuReturnToday,
   recorderPrizeCheckNoReceipt,
