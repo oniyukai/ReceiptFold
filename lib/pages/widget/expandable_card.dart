@@ -11,7 +11,7 @@ class ExpandableCard extends StatefulWidget {
     super.key,
     required this.text,
     this.iconData,
-    this.initialExpanded = false,
+    this.initialExpanded = true,
     this.collapsedChild,
     this.expandedChild,
   });
@@ -33,7 +33,7 @@ class _ExpandableCardState extends State<ExpandableCard>
     _isExpanded = widget.initialExpanded ?? false;
     _controller = AnimationController(
       vsync: this,
-      duration: const .new(milliseconds: 200),
+      duration: const Duration(milliseconds: 200),
     );
     _arrowAnimation = Tween<double>(begin: 0.0, end: 0.5).animate(_controller);
     _expandAnimation = CurvedAnimation(
@@ -48,8 +48,8 @@ class _ExpandableCardState extends State<ExpandableCard>
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
+    _controller.dispose();
   }
 
   void _toggleExpand() {
@@ -64,12 +64,12 @@ class _ExpandableCardState extends State<ExpandableCard>
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return Card(
       child: Column(
         children: [
           ListTile(
-            contentPadding: const .symmetric(horizontal: 16.0),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
             leading: Icon(widget.iconData),
             title: Text(widget.text),
             trailing: RotationTransition(
@@ -80,16 +80,17 @@ class _ExpandableCardState extends State<ExpandableCard>
           ),
           if (widget.collapsedChild != null && !_isExpanded)
             Padding(
-              padding: const .fromLTRB(16.0, 4.0, 16.0, 16.0),
+              padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 16.0),
               child: widget.collapsedChild,
             ),
           SizeTransition(
             sizeFactor: _expandAnimation,
-            axisAlignment: -1,
-            child: (widget.expandedChild == null) ? null : Padding(
-              padding: const .fromLTRB(16.0, 4.0, 16.0, 16.0),
-              child: widget.expandedChild,
-            ),
+            child: (widget.expandedChild == null)
+                ? null
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 16.0),
+                    child: widget.expandedChild,
+                  ),
           ),
         ],
       ),

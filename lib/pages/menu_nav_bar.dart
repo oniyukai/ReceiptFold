@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/utils.dart';
-import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_manager/main_manager_view.dart';
 import 'package:receipt_fold/pages/menu_recorder/main_recorder_view.dart';
 import 'package:receipt_fold/pages/menu_scanner/main_scanner_view.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_view.dart';
-import 'package:receipt_fold/pages/menu_settings/page_terms_view.dart';
 
 class MenuNavBar extends StatefulWidget {
   const MenuNavBar({super.key});
@@ -31,7 +29,7 @@ class MenuNavBarProvider extends ChangeNotifier {
 }
 
 class _MenuNavBarState extends State<MenuNavBar> {
-  final List<Widget> _pages = const [
+  final _pages = const <Widget>[
     MainRecorderView(),
     MainScannerView(),
     MainManagerView(),
@@ -39,23 +37,23 @@ class _MenuNavBarState extends State<MenuNavBar> {
   ];
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     DictKey.load(context);
     final bool isPortrait = Utils.isPortrait(context);
-    return ValueListenableBuilder(
-      valueListenable: context.readPrefs.oneNotifier(.isAgreedAllTerms),
-      builder: (context, value, child) => value
-          ? Consumer<MenuNavBarProvider>(
-        builder: (context, state, child) => Scaffold(
-          bottomNavigationBar: isPortrait ? _buildBottomNavigationBar(state) : null,
-          body: Row(
-            children: [
-              if (!isPortrait) _buildSideNavigationBar(state),
-              Expanded(child: IndexedStack(index: state.currentIndex, children: _pages)),
-            ],
-          ),
+    return Consumer<MenuNavBarProvider>(
+      builder: (context, state, child) => Scaffold(
+        bottomNavigationBar: isPortrait
+            ? _buildBottomNavigationBar(state)
+            : null,
+        body: Row(
+          children: [
+            if (!isPortrait) _buildSideNavigationBar(state),
+            Expanded(
+              child: IndexedStack(index: state.currentIndex, children: _pages),
+            ),
+          ],
         ),
-      ) : const PageTermsView(),
+      ),
     );
   }
 
@@ -67,22 +65,22 @@ class _MenuNavBarState extends State<MenuNavBar> {
         NavigationDestination(
           selectedIcon: const Icon(Icons.article),
           icon: const Icon(Icons.article_outlined),
-          label: DictKey.titleRecorder.s,
+          label: DictKey.navTitleRecorder.s,
         ),
         NavigationDestination(
-          selectedIcon: const Icon(Icons.document_scanner),
+          selectedIcon: const Icon(Icons.flip),
           icon: const Icon(Icons.fullscreen),
-          label: DictKey.titleScanner.s,
+          label: DictKey.navTitleScanner.s,
         ),
         NavigationDestination(
           selectedIcon: const Icon(Icons.inbox),
           icon: const Icon(Icons.inbox_outlined),
-          label: DictKey.titleManager.s,
+          label: DictKey.navTitleManager.s,
         ),
         NavigationDestination(
           selectedIcon: const Icon(Icons.settings),
           icon: const Icon(Icons.settings_outlined),
-          label: DictKey.titleSettings.s,
+          label: DictKey.navTitleSettings.s,
         ),
       ],
     );
@@ -92,28 +90,28 @@ class _MenuNavBarState extends State<MenuNavBar> {
     return NavigationRail(
       selectedIndex: state.currentIndex,
       onDestinationSelected: state.updateIndex,
-      labelType: .all,
+      labelType: NavigationRailLabelType.all,
       groupAlignment: 0.0,
       destinations: [
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.article),
           icon: const Icon(Icons.article_outlined),
-          label: Text(DictKey.titleRecorder.s),
+          label: Text(DictKey.navTitleRecorder.s),
         ),
         NavigationRailDestination(
-          selectedIcon: const Icon(Icons.document_scanner),
+          selectedIcon: const Icon(Icons.flip),
           icon: const Icon(Icons.fullscreen),
-          label: Text(DictKey.titleScanner.s)
+          label: Text(DictKey.navTitleScanner.s),
         ),
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.inbox),
           icon: const Icon(Icons.inbox_outlined),
-          label: Text(DictKey.titleManager.s),
+          label: Text(DictKey.navTitleManager.s),
         ),
         NavigationRailDestination(
           selectedIcon: const Icon(Icons.settings),
           icon: const Icon(Icons.settings_outlined),
-          label: Text(DictKey.titleSettings.s),
+          label: Text(DictKey.navTitleSettings.s),
         ),
       ],
     );

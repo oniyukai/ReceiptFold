@@ -1,19 +1,19 @@
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
-import 'package:receipt_fold/entity/invoice_period.dart';
+import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/pages/widget/barcode_field.dart';
-import 'package:receipt_fold/pages/widget/overlay_show.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
-class PageReceiptView extends StatefulWidget with RouterBridge<PageReceiptViewArgs> {
+class PageReceiptView extends StatefulWidget
+    with RouterBridge<PageReceiptViewArgs> {
   const PageReceiptView({super.key});
 
   @override
@@ -21,13 +21,10 @@ class PageReceiptView extends StatefulWidget with RouterBridge<PageReceiptViewAr
 }
 
 class PageReceiptViewArgs {
-  final InvoicePeriod? period;
+  final Period? period;
   final MapEntry<Receipt, List<ReceiptProduct>>? receiptEntry;
 
-  const PageReceiptViewArgs({
-    this.period,
-    this.receiptEntry,
-  });
+  const PageReceiptViewArgs({this.period, this.receiptEntry});
 
   bool get isAdd => _check(period != null);
 
@@ -36,42 +33,53 @@ class PageReceiptViewArgs {
   bool _check(bool value) {
     assert(
       (period == null) != (receiptEntry == null),
-      'PageReceiptViewArgs(period is ${period.runtimeType}, receiptEntry is ${receiptEntry.runtimeType}), 其中一個必須有，另一個必須為空.'
+      'PageReceiptViewArgs(period is ${period.runtimeType}, receiptEntry is ${receiptEntry.runtimeType}), 其中一個必須有，另一個必須為空.',
     );
     return value;
   }
 }
 
 class _PageReceiptViewState extends State<PageReceiptView> {
-  final _formKey = GlobalKey<FormBuilderState>();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   late final PageReceiptViewArgs _args = widget.getArgs(context)!;
-  late List<ReceiptProduct> _products = _args.receiptEntry?.value ?? [];
-  late Receipt _receipt =_args.receiptEntry?.key ?? Receipt(
-    issuedAt: _args.period!.startDateTime,
-    originStatus: .manualEntry,
-    totalAmount: 0.0,
-    modified: .now(),
-    uuid: UuidMixin.v7.generate(),
-  );
+  late var _products = _args.receiptEntry?.value ?? <ReceiptProduct>[];
+  late Receipt _receipt =
+      _args.receiptEntry?.key ??
+      Receipt(
+        issuedAt: _args.period!.start,
+        originStatus: OriginStatus.deviceEntry,
+        totalAmount: 0.0,
+        modified: DateTime.now(),
+        uuid: UuidMixin.v7.generate(),
+      );
 
-  bool get _isCloudPlatform => _receipt.originStatus.sqlValue < OriginStatus.manualScan.sqlValue;
+  bool get _isCloudPlatform =>
+      _receipt.originStatus.sqlValue < OriginStatus.deviceImport.sqlValue;
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
 
   // < ---------- 適用於所有狀態的前端接口
-  Future<void> _normalStringTileModify({
+  Future<void> _normalStringTileEdit({
     required String titleText,
     required String? initialValue,
-    bool openModifyAllTime = false,
-    required ValueChanged<String?> changed,})
-  {
+    bool openEditAllTime = false,
+    required ValueChanged<String?> changed,
+  }) {
     const fieldName = 'normalStringField';
-    final allowModify = openModifyAllTime ? true : !_isCloudPlatform;
+    final allowEdit = openEditAllTime ? true : !_isCloudPlatform;
 
-    Future<void> checkModify() async {
-      assert(allowModify);
+    Future<void> checkEdit() async {
+      assert(allowEdit);
       if (_formKey.currentState?.saveAndValidate() != true) return;
       Navigator.pop(context);
-      String? changedValue = _formKey.currentState?.value[fieldName];
-      if (changedValue == '') changedValue = null;
+      final String? changedValue = Utils.noEmptyStr(
+        _formKey.currentState!.value[fieldName],
+      );
       if (changedValue == initialValue) return;
       changed(changedValue);
       await _updateInDatabase();
@@ -85,37 +93,35 @@ class _PageReceiptViewState extends State<PageReceiptView> {
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back),
         ),
-        title: Text(
-          titleText,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        trailing: allowModify ? IconButton(
-          onPressed: checkModify,
-          icon: const Icon(Icons.check),
-        ) : null,
+        title: Text(titleText, style: Theme.of(context).textTheme.titleMedium),
+        trailing: allowEdit
+            ? IconButton(onPressed: checkEdit, icon: const Icon(Icons.check))
+            : null,
       ),
       content: Column(
         children: [
           _ReceiptInfoTile(
             titleText: initialValue,
-            subtitleText: DictKey.receiptViewOriginalContentLabel.s,
+            subtitleText: DictKey.receiptViewOriginalContent.s,
             trailing: IconButton(
-              onPressed: () => _copyTextToClipboard(initialValue),
+              onPressed: () => Utils.copyText(initialValue),
               icon: const Icon(Icons.copy),
             ),
           ),
-          if (allowModify) ListTile(
-            minTileHeight: 0,
-            subtitle: Text(DictKey.receiptViewModifyLabel.s),
-          ),
-          if (allowModify) FormBuilder(
-            key: _formKey,
-            child: BarcodeField(
-              initialValue: initialValue,
-              format: null,
-              name: fieldName,
+          if (allowEdit)
+            ListTile(
+              minTileHeight: 0,
+              subtitle: Text(DictKey.receiptViewEdit.s),
             ),
-          ),
+          if (allowEdit)
+            FormBuilder(
+              key: _formKey,
+              child: MyTextField(
+                name: fieldName,
+                initialValue: initialValue,
+                required: false,
+              ),
+            ),
         ],
       ),
     );
@@ -127,11 +133,11 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     assert(_args.isEdit);
     return OverlayShow.dialog(
       context: context,
-      title: DictKey.deleteLabel.s,
-      content: Text(DictKey.sureToDeleteThisLabel.s),
+      title: DictKey.commonUiDelete.s,
+      content: Text(DictKey.commonUiSureDelete.s),
       actions: [
         TextButton(
-          child: Text(DictKey.deleteLabel.s),
+          child: Text(DictKey.commonUiDelete.s),
           onPressed: () async {
             Navigator.pop(context);
             Navigator.pop(context);
@@ -159,44 +165,54 @@ class _PageReceiptViewState extends State<PageReceiptView> {
     );
     Future<TimeOfDay?> timePicker() => showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: invoiceDateTime.hour, minute: invoiceDateTime.minute),
+      initialTime: TimeOfDay(
+        hour: invoiceDateTime.hour,
+        minute: invoiceDateTime.minute,
+      ),
     );
     final pickedDate = await datePicker();
     if (pickedDate == null) return;
     final pickedTime = await timePicker();
     if (pickedTime == null) return;
     final combinedDateTime = DateTime(
-      pickedDate.year, pickedDate.month, pickedDate.day,
-      pickedTime.hour, pickedTime.minute,
-      invoiceDateTime.second, invoiceDateTime.millisecond, invoiceDateTime.microsecond,
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+      invoiceDateTime.second,
+      invoiceDateTime.millisecond,
+      invoiceDateTime.microsecond,
     );
     if (combinedDateTime == invoiceDateTime) return;
     _receipt = _receipt.copyWith(issuedAt: combinedDateTime);
     await _updateInDatabase();
   }
 
-  Future<void> _productAddOrModify([int? index, ReceiptProduct? product]) {
+  Future<void> _productAddOrEdit([int? index, ReceiptProduct? product]) {
     assert(!_isCloudPlatform);
     if ((index == null) != (product == null)) throw 'index, product需要同時有或是同時沒有';
     const descriptionName = 'description';
     const unitPriceName = 'unitPrice';
     const quantityName = 'quantity';
-    final isAddNotModify = product == null;
+    final isAddNotEdit = product == null;
 
     Future<void> delete() {
-      assert(!isAddNotModify);
+      assert(!isAddNotEdit);
       if (index == null || product == null) throw 'index不能是null';
       return OverlayShow.dialog(
         context: context,
-        title: DictKey.deleteLabel.s,
-        content: Text(DictKey.sureToDeleteThisLabel.s),
+        title: DictKey.commonUiDelete.s,
+        content: Text(DictKey.commonUiSureDelete.s),
         actions: [
           TextButton(
-            child: Text(DictKey.deleteLabel.s),
+            child: Text(DictKey.commonUiDelete.s),
             onPressed: () async {
               Navigator.pop(context);
               Navigator.pop(context);
-              _receipt = _receipt.copyWith(totalAmount: _receipt.totalAmount - product.amount);
+              _receipt = _receipt.copyWith(
+                totalAmount: _receipt.totalAmount - product.amount,
+              );
               _products.removeAt(index);
               await _updateInDatabase();
             },
@@ -205,37 +221,55 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       );
     }
 
-    Future<void> checkAddOrModify() async {
+    Future<void> checkAddOrEdit() async {
       if (_formKey.currentState?.saveAndValidate() != true) return;
-      String itemDescription = _formKey.currentState?.value[descriptionName];
-      String unitPriceString = _formKey.currentState?.value[unitPriceName];
-      String quantityString = _formKey.currentState?.value[quantityName];
-      double? unitPrice = double.tryParse(unitPriceString);
-      double? quantity = double.tryParse(quantityString);
-      if (unitPrice==null || quantity==null || itemDescription=='') return;
+      final String itemDescription =
+          _formKey.currentState!.value[descriptionName];
+      final String unitPriceString =
+          _formKey.currentState!.value[unitPriceName];
+      final String quantityString = _formKey.currentState!.value[quantityName];
+      final double? unitPrice = double.tryParse(unitPriceString);
+      final double? quantity = double.tryParse(quantityString);
+      if (unitPrice == null || quantity == null || itemDescription.isEmpty) {
+        return;
+      }
       Navigator.pop(context);
-      if (unitPrice==product?.unitPrice && quantity==product?.quantity && itemDescription==product?.description) return;
-      final tempProduct = (product ?? ReceiptProduct(
-        modified: .now(),
-        uuid: UuidMixin.v7.generate(),
-        receiptUuid: _receipt.uuid,
-        sequence: _products.length + 1,
-        description: '',
-        unitPrice: 0.0,
-        quantity: 0.0,
-        amount: 0.0,
-      )).copyWith(
-        description: itemDescription,
-        unitPrice: unitPrice,
-        quantity: quantity,
-        amount: unitPrice * quantity,
-      );
+      if (unitPrice == product?.unitPrice &&
+          quantity == product?.quantity &&
+          itemDescription == product?.description) {
+        return;
+      }
+      final tempProduct =
+          (product ??
+                  ReceiptProduct(
+                    modified: DateTime.now(),
+                    uuid: UuidMixin.v7.generate(),
+                    receiptUuid: _receipt.uuid,
+                    sequence: _products.length + 1,
+                    description: '',
+                    unitPrice: 0.0,
+                    quantity: 0.0,
+                    amount: 0.0,
+                  ))
+              .copyWith(
+                description: itemDescription,
+                unitPrice: unitPrice,
+                quantity: quantity,
+                amount: unitPrice * quantity,
+              );
       if (index != null) {
-        _receipt = _receipt.copyWith(totalAmount: _receipt.totalAmount - _products[index].amount + tempProduct.amount);
+        _receipt = _receipt.copyWith(
+          totalAmount:
+              _receipt.totalAmount -
+              _products[index].amount +
+              tempProduct.amount,
+        );
         _products[index] = tempProduct;
       } else {
         _products.add(tempProduct);
-        _receipt = _receipt.copyWith(totalAmount: _receipt.totalAmount + tempProduct.amount);
+        _receipt = _receipt.copyWith(
+          totalAmount: _receipt.totalAmount + tempProduct.amount,
+        );
       }
       await _updateInDatabase();
     }
@@ -249,19 +283,20 @@ class _PageReceiptViewState extends State<PageReceiptView> {
           icon: const Icon(Icons.arrow_back),
         ),
         title: Text(
-          DictKey.receiptDetailLabel.s,
+          DictKey.receiptDetailItem.s,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!isAddNotModify) IconButton(
-              onPressed: delete,
-              icon: const Icon(Icons.delete_forever),
-            ),
+            if (!isAddNotEdit)
+              IconButton(
+                onPressed: delete,
+                icon: const Icon(Icons.delete_forever),
+              ),
             IconButton(
-              onPressed: checkAddOrModify,
-              icon: Icon(isAddNotModify ? Icons.add : Icons.check),
+              onPressed: checkAddOrEdit,
+              icon: Icon(isAddNotEdit ? Icons.add : Icons.check),
             ),
           ],
         ),
@@ -270,19 +305,21 @@ class _PageReceiptViewState extends State<PageReceiptView> {
         key: _formKey,
         child: Column(
           children: [
-            if (product != null) ListTile(
-              minTileHeight: 0,
-              subtitle: Text(DictKey.receiptViewOriginalContentLabel.s),
-            ),
-            if (product != null) _ProductInfoRow(
-              description: product.description,
-              unitPrice: Utils.amountToDescription(product.unitPrice),
-              quantity: Utils.amountToDescription(product.quantity),
-              amount: Utils.amountToDescription(product.amount),
-            ),
+            if (product != null)
+              ListTile(
+                minTileHeight: 0,
+                subtitle: Text(DictKey.receiptViewOriginalContent.s),
+              ),
+            if (product != null)
+              _ProductInfoRow(
+                description: product.description,
+                unitPrice: UnitUtils.amountText(product.unitPrice),
+                quantity: UnitUtils.amountText(product.quantity),
+                amount: UnitUtils.amountText(product.amount),
+              ),
             ListTile(
               minTileHeight: 0,
-              subtitle: Text(DictKey.receiptDetailItemLabel.s),
+              subtitle: Text(DictKey.receiptDetailItem.s),
             ),
             MyTextField(
               name: descriptionName,
@@ -290,7 +327,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
             ),
             ListTile(
               minTileHeight: 0,
-              subtitle: Text(DictKey.receiptDetailUnitPriceLabel.s),
+              subtitle: Text(DictKey.receiptDetailUnitPrice.s),
             ),
             MyTextField(
               name: unitPriceName,
@@ -299,7 +336,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
             ),
             ListTile(
               minTileHeight: 0,
-              subtitle: Text(DictKey.receiptDetailQuantityLabel.s),
+              subtitle: Text(DictKey.receiptDetailQuantity.s),
             ),
             MyTextField(
               name: quantityName,
@@ -319,9 +356,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
       items: _products,
       itemBuilder: (product) => _ProductInfoRow(
         description: product.description,
-        unitPrice: Utils.amountToDescription(product.unitPrice),
-        quantity: Utils.amountToDescription(product.quantity),
-        amount: Utils.amountToDescription(product.amount),
+        unitPrice: UnitUtils.amountText(product.unitPrice),
+        quantity: UnitUtils.amountText(product.quantity),
+        amount: UnitUtils.amountText(product.amount),
       ),
       saveOnTap: (items) async {
         _products = items;
@@ -333,172 +370,189 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   // 適用於特定狀態的前端接口 ---------- >
   // < ---------- 後方函式
   Future<void> _updateInDatabase() async {
-    if (_args.isEdit) _receipt = await DriftServices.appDb.receiptDao.upsert(_receipt, _products);
+    if (_args.isEdit) {
+      _receipt = await DriftServices.appDb.receiptDao.upsert(
+        _receipt,
+        _products,
+      );
+    }
     setState(() {});
   }
 
-  Future<void> _copyTextToClipboard(String? text) async {
-    if (text == null || text == '') {
-      Utils.showToast(DictKey.noContentToCopyLabel.s);
-    } else {
-      await Clipboard.setData(ClipboardData(text: text));
-      Utils.showToast('${DictKey.copiedLabel.s}\n${text.replaceAll('\n', ' ')}');
-    }
-  }
   // 後方函式 ---------- >
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_args.isAdd
-            ? DictKey.receiptViewAddRecordReceiptLabel.s
-            : DictKey.receiptViewRecordReceiptLabel.s
+        title: Text(
+          _args.isAdd
+              ? DictKey.receiptViewAddRecord.s
+              : DictKey.receiptViewRecord.s,
         ),
         actions: [
-          if (_args.isEdit) IconButton(
-            icon: const Icon(Icons.delete_forever),
-            onPressed: _deleteIconPressed,
-          ),
-          if (_args.isAdd) IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _checkIconPressed,
-          ),
+          if (_args.isEdit && !_isCloudPlatform)
+            IconButton(
+              icon: const Icon(Icons.delete_forever),
+              onPressed: _deleteIconPressed,
+            ),
+          if (_args.isAdd)
+            IconButton(
+              icon: const Icon(Icons.check),
+              onPressed: _checkIconPressed,
+            ),
         ],
       ),
       body: SafeArea(
         child: Scrollbar(
+          controller: _scrollController,
           child: ListView(
-            addAutomaticKeepAlives: false,
-            addRepaintBoundaries: false,
+            controller: _scrollController,
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             children: [
               _ReceiptInfoTile(
                 titleText: _receipt.sellerName,
-                subtitleText: DictKey.receiptHeaderSellerNameLabel.s,
-                onTap: () => _normalStringTileModify(
-                  titleText: DictKey.receiptHeaderSellerNameLabel.s,
+                subtitleText: DictKey.receiptHeaderSellerName.s,
+                onTap: () => _normalStringTileEdit(
+                  titleText: DictKey.receiptHeaderSellerName.s,
                   initialValue: _receipt.sellerName,
-                  changed: (value) => _receipt = _receipt.copyWith(sellerName: Value(value)),
+                  changed: (value) =>
+                      _receipt = _receipt.copyWith(sellerName: Value(value)),
                 ),
               ),
               _ReceiptInfoTile(
                 titleText: UnitUtils.fullTimeText(_receipt.issuedAt),
-                subtitleText: '${DictKey.receiptHeaderInvoicePeriodLabel.s}('
-                    '${InvoicePeriod.fromUnixTime(_receipt.issuedAt.millisecondsSinceEpoch)})\n'
-                    '${DictKey.receiptHeaderTimestampLabel.s}',
+                subtitleText:
+                    '${DictKey.receiptHeaderIssuedPeriod.s} (${Period(_receipt.issuedAt).invString})',
                 onTap: _isCloudPlatform ? null : _selectDateTime,
               ),
               _RowExpandedTile(
                 firstWidget: _ReceiptInfoTile(
                   titleText: _receipt.invoiceNumber,
-                  subtitleText: DictKey.receiptHeaderInvoiceNumberLabel.s,
-                  onTap: () => _normalStringTileModify(
-                    titleText: DictKey.receiptHeaderInvoiceNumberLabel.s,
+                  subtitleText: DictKey.receiptHeaderInvoiceNumber.s,
+                  onTap: () => _normalStringTileEdit(
+                    titleText: DictKey.receiptHeaderInvoiceNumber.s,
                     initialValue: _receipt.invoiceNumber,
-                    changed: (value) => _receipt = _receipt.copyWith(invoiceNumber: Value(value)),
+                    changed: (value) => _receipt = _receipt.copyWith(
+                      invoiceNumber: Value(value),
+                    ),
                   ),
                 ),
                 secondWidget: _ReceiptInfoTile(
                   titleText: _receipt.randomNumber,
-                  subtitleText: DictKey.receiptHeaderInvoiceRandomNumberLabel.s,
-                  onTap: () => _normalStringTileModify(
-                    titleText: DictKey.receiptHeaderInvoiceRandomNumberLabel.s,
+                  subtitleText: DictKey.receiptHeaderRandomNumber.s,
+                  onTap: () => _normalStringTileEdit(
+                    titleText: DictKey.receiptHeaderRandomNumber.s,
                     initialValue: _receipt.randomNumber,
-                    changed: (value) => _receipt = _receipt.copyWith(randomNumber: Value(value)),
-                  ),
-                ),
-                thirdWidget: _ReceiptInfoTile(
-                  titleText: _receipt.originStatus.locale,
-                  subtitleText: DictKey.receiptHeaderInvoiceStatusLabel.s,
-                ),
-              ),
-              _RowExpandedTile(
-                firstWidget: _ReceiptInfoTile(
-                  titleText: _receipt.carrierName,
-                  subtitleText: DictKey.receiptHeaderCarrierNameLabel.s,
-                  onTap: () => _normalStringTileModify(
-                    titleText: DictKey.receiptHeaderCarrierNameLabel.s,
-                    initialValue: _receipt.carrierName,
-                    changed: (value) => _receipt = _receipt.copyWith(carrierName: Value(value)),
-                  ),
-                ),
-                secondWidget: _ReceiptInfoTile(
-                  titleText: _receipt.carrierType,
-                  subtitleText: DictKey.receiptHeaderCarrierTypeLabel.s,
-                  onTap: () => _normalStringTileModify(
-                    titleText: DictKey.receiptHeaderCarrierTypeLabel.s,
-                    initialValue: _receipt.carrierType,
-                    changed: (value) => _receipt = _receipt.copyWith(carrierType: Value(value)),
+                    changed: (value) => _receipt = _receipt.copyWith(
+                      randomNumber: Value(value),
+                    ),
                   ),
                 ),
               ),
               _RowExpandedTile(
                 firstWidget: _ReceiptInfoTile(
                   titleText: _receipt.sellerAddress,
-                  subtitleText: DictKey.receiptHeaderSellerAddressLabel.s,
-                  onTap: () => _normalStringTileModify(
-                    titleText: DictKey.receiptHeaderSellerAddressLabel.s,
+                  subtitleText: DictKey.receiptHeaderSellerAddress.s,
+                  onTap: () => _normalStringTileEdit(
+                    titleText: DictKey.receiptHeaderSellerAddress.s,
                     initialValue: _receipt.sellerAddress,
-                    changed: (value) => _receipt = _receipt.copyWith(sellerAddress: Value(value)),
+                    changed: (value) => _receipt = _receipt.copyWith(
+                      sellerAddress: Value(value),
+                    ),
                   ),
                 ),
                 secondWidget: _ReceiptInfoTile(
                   titleText: _receipt.sellerTaxId,
-                  subtitleText: DictKey.receiptHeaderSellerBanIdLabel.s,
-                  onTap: () => _normalStringTileModify(
-                    titleText: DictKey.receiptHeaderSellerBanIdLabel.s,
+                  subtitleText: DictKey.receiptHeaderSellerTaxId.s,
+                  onTap: () => _normalStringTileEdit(
+                    titleText: DictKey.receiptHeaderSellerTaxId.s,
                     initialValue: _receipt.sellerTaxId,
-                    changed: (value) => _receipt = _receipt.copyWith(sellerTaxId: Value(value)),
+                    changed: (value) =>
+                        _receipt = _receipt.copyWith(sellerTaxId: Value(value)),
                   ),
                 ),
               ),
               _RowExpandedTile(
                 firstWidget: _ReceiptInfoTile(
-                  titleText: _receipt.sellerRemark,
-                  subtitleText: DictKey.receiptHeaderMainRemarkLabel.s,
-                  onTap: () => _normalStringTileModify(
-                    titleText: DictKey.receiptHeaderMainRemarkLabel.s,
-                    initialValue: _receipt.sellerRemark,
-                    changed: (value) => _receipt = _receipt.copyWith(sellerRemark: Value(value)),
+                  titleText: _receipt.userNote,
+                  subtitleText: DictKey.receiptHeaderUserNote.s,
+                  onTap: () => _normalStringTileEdit(
+                    titleText: DictKey.receiptHeaderUserNote.s,
+                    initialValue: _receipt.userNote,
+                    openEditAllTime: true,
+                    changed: (value) =>
+                        _receipt = _receipt.copyWith(userNote: Value(value)),
                   ),
                 ),
                 secondWidget: _ReceiptInfoTile(
-                  titleText: _receipt.userNote,
-                  subtitleText: DictKey.receiptHeaderUserNoteLabel.s,
-                  onTap: () => _normalStringTileModify(
-                    titleText: DictKey.receiptHeaderUserNoteLabel.s,
-                    initialValue: _receipt.userNote,
-                    openModifyAllTime: true,
-                    changed: (value) => _receipt = _receipt.copyWith(userNote: Value(value)),
+                  titleText: _receipt.sellerRemark,
+                  subtitleText: DictKey.receiptHeaderSellerRemark.s,
+                  onTap: () => _normalStringTileEdit(
+                    titleText: DictKey.receiptHeaderSellerRemark.s,
+                    initialValue: _receipt.sellerRemark,
+                    changed: (value) => _receipt = _receipt.copyWith(
+                      sellerRemark: Value(value),
+                    ),
                   ),
                 ),
               ),
               _RowExpandedTile(
-                equal: true,
                 firstWidget: _ReceiptInfoTile(
                   titleText: _receipt.prizeName,
-                  subtitleText: DictKey.receiptHeaderPrizeInformationLabel.s,
+                  subtitleText: DictKey.receiptHeaderPrizeName.s,
                 ),
                 secondWidget: _ReceiptInfoTile(
-                  titleText: Utils.amountToDescription(_receipt.prizeAmount ?? 0),
-                  subtitleText: DictKey.receiptHeaderPrizeAmountLabel.s,
+                  titleText: UnitUtils.amountText(_receipt.prizeAmount ?? 0),
+                  subtitleText: DictKey.receiptHeaderPrizeAmount.s,
+                ),
+              ),
+
+              _RowExpandedTile(
+                firstWidget: _ReceiptInfoTile(
+                  titleText: _receipt.carrierName,
+                  subtitleText: DictKey.receiptHeaderCarrierName.s,
+                  onTap: () => _normalStringTileEdit(
+                    titleText: DictKey.receiptHeaderCarrierName.s,
+                    initialValue: _receipt.carrierName,
+                    changed: (value) =>
+                        _receipt = _receipt.copyWith(carrierName: Value(value)),
+                  ),
+                ),
+                secondWidget: _ReceiptInfoTile(
+                  titleText: _receipt.carrierType,
+                  subtitleText: DictKey.receiptHeaderCarrierType.s,
+                  onTap: () => _normalStringTileEdit(
+                    titleText: DictKey.receiptHeaderCarrierType.s,
+                    initialValue: _receipt.carrierType,
+                    changed: (value) =>
+                        _receipt = _receipt.copyWith(carrierType: Value(value)),
+                  ),
                 ),
                 thirdWidget: _ReceiptInfoTile(
-                  titleText: _receipt.originStatus.locale,
-                  subtitleText: DictKey.receiptHeaderReceiptOriginLabel.s,
+                  titleText: _receipt.carrierId2,
+                  subtitleText: DictKey.receiptHeaderCarrierId2.s,
+                  onTap: () => _normalStringTileEdit(
+                    titleText: DictKey.receiptHeaderCarrierId2.s,
+                    initialValue: _receipt.carrierId2,
+                    changed: (value) =>
+                        _receipt = _receipt.copyWith(carrierId2: Value(value)),
+                  ),
                 ),
               ),
               _RowExpandedTile(
-                equal: true,
                 firstWidget: _ReceiptInfoTile(
-                  titleText: Utils.amountToDescription(_receipt.totalAmount),
-                  subtitleText: DictKey.receiptHeaderTotalAmountLabel.s,
+                  titleText: _receipt.originStatus.locale,
+                  subtitleText: DictKey.receiptHeaderOriginStatus.s,
                 ),
                 secondWidget: _ReceiptInfoTile(
-                  titleText: Utils.amountToDescription(_products.length),
-                  subtitleText: DictKey.receiptHeaderItemLengthLabel.s,
+                  titleText: UnitUtils.amountText(_receipt.totalAmount),
+                  subtitleText: DictKey.receiptHeaderTotalAmount.s,
+                ),
+                thirdWidget: _ReceiptInfoTile(
+                  titleText: UnitUtils.amountText(_products.length),
+                  subtitleText: DictKey.receiptHeaderItemLength.s,
                 ),
               ),
               const SizedBox(height: 4),
@@ -509,49 +563,53 @@ class _PageReceiptViewState extends State<PageReceiptView> {
                     children: [
                       _ProductInfoRow(
                         textStyle: textTheme.titleSmall,
-                        description: DictKey.receiptDetailItemLabel.s,
-                        unitPrice: DictKey.receiptDetailUnitPriceLabel.s,
-                        quantity: DictKey.receiptDetailQuantityLabel.s,
-                        amount: DictKey.receiptDetailAmountLabel.s,
+                        description: DictKey.receiptDetailItem.s,
+                        unitPrice: DictKey.receiptDetailUnitPrice.s,
+                        quantity: DictKey.receiptDetailQuantity.s,
+                        amount: DictKey.receiptDetailAmount.s,
                       ),
-                      ...List.generate(_products.length, (index) {
-                        final product = _products[index];
-                        return _ProductInfoRow(
-                          onTap: _isCloudPlatform ? null : () => _productAddOrModify(index, product),
-                          onLongPress: () => _copyTextToClipboard(product.description),
+                      ..._products.mapIndexed(
+                        (index, product) => _ProductInfoRow(
+                          onTap: _isCloudPlatform
+                              ? null
+                              : () => _productAddOrEdit(index, product),
+                          onLongPress: () =>
+                              Utils.copyText(product.description),
                           description: product.description,
-                          unitPrice: Utils.amountToDescription(product.unitPrice),
-                          quantity: Utils.amountToDescription(product.quantity),
-                          amount: Utils.amountToDescription(product.amount),
-                        );
-                      }),
-                      if (!_isCloudPlatform) Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          if (_products.length > 1) ElevatedButton(
-                            onPressed: _sortProducts,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.swap_vert),
-                                const SizedBox(width: 4),
-                                Text(DictKey.sortLabel.s),
-                              ],
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: _productAddOrModify,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.add),
-                                const SizedBox(width: 4),
-                                Text(DictKey.addNewLabel.s),
-                              ],
-                            ),
-                          ),
-                        ],
+                          unitPrice: UnitUtils.amountText(product.unitPrice),
+                          quantity: UnitUtils.amountText(product.quantity),
+                          amount: UnitUtils.amountText(product.amount),
+                        ),
                       ),
+                      if (!_isCloudPlatform)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            if (_products.length > 1)
+                              ElevatedButton(
+                                onPressed: _sortProducts,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.swap_vert),
+                                    const SizedBox(width: 4),
+                                    Text(DictKey.commonUiSort.s),
+                                  ],
+                                ),
+                              ),
+                            ElevatedButton(
+                              onPressed: _productAddOrEdit,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.add),
+                                  const SizedBox(width: 4),
+                                  Text(DictKey.commonUiAdd.s),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -570,7 +628,7 @@ class _RowExpandedTile extends StatelessWidget {
   final Widget? thirdWidget;
   final bool equal;
 
-  const _RowExpandedTile ({
+  const _RowExpandedTile({
     required this.firstWidget,
     this.secondWidget,
     this.thirdWidget,
@@ -578,22 +636,15 @@ class _RowExpandedTile extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          flex: equal ? 1 : 6,
-          child: firstWidget,
-        ),
-        if (secondWidget != null) Expanded(
-          flex: equal ? 1 : 4,
-          child: secondWidget!,
-        ),
-        if (thirdWidget != null) Expanded(
-          flex: equal ? 1 : 4,
-          child: thirdWidget!,
-        ),
+        Expanded(flex: equal ? 1 : 6, child: firstWidget),
+        if (secondWidget != null)
+          Expanded(flex: equal ? 1 : 4, child: secondWidget!),
+        if (thirdWidget != null)
+          Expanded(flex: equal ? 1 : 4, child: thirdWidget!),
       ],
     );
   }
@@ -613,7 +664,7 @@ class _ReceiptInfoTile extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return ListTile(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
@@ -628,14 +679,17 @@ class _ReceiptInfoTile extends StatelessWidget {
             titleText ?? StaticString.nullString,
             overflow: TextOverflow.ellipsis,
             style: textTheme.bodyLarge?.copyWith(
-              color: (titleText != null) ? null : textTheme.bodyLarge?.color?.withValues(alpha: 0.3),
+              color: (titleText != null)
+                  ? null
+                  : textTheme.bodyLarge?.color?.withValues(alpha: 0.3),
             ),
           ),
-          if (subtitleText != null) Text(
-            subtitleText!,
-            style: textTheme.bodySmall,
-            overflow: TextOverflow.ellipsis,
-          ),
+          if (subtitleText != null)
+            Text(
+              subtitleText!,
+              style: textTheme.bodySmall,
+              overflow: TextOverflow.ellipsis,
+            ),
         ],
       ),
       trailing: trailing,
@@ -663,7 +717,7 @@ class _ProductInfoRow extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(8.0),
       onTap: onTap,
@@ -672,13 +726,7 @@ class _ProductInfoRow extends StatelessWidget {
         padding: const EdgeInsets.all(2.0),
         child: Row(
           children: [
-            Expanded(
-              flex: 5,
-              child: Text(
-                description,
-                style: textStyle,
-              ),
-            ),
+            Expanded(flex: 5, child: Text(description, style: textStyle)),
             Expanded(
               flex: 1,
               child: Text(
@@ -689,19 +737,11 @@ class _ProductInfoRow extends StatelessWidget {
             ),
             Expanded(
               flex: 1,
-              child: Text(
-                quantity,
-                textAlign: TextAlign.end,
-                style: textStyle,
-              ),
+              child: Text(quantity, textAlign: TextAlign.end, style: textStyle),
             ),
             Expanded(
               flex: 2,
-              child: Text(
-                amount,
-                textAlign: TextAlign.end,
-                style: textStyle,
-              ),
+              child: Text(amount, textAlign: TextAlign.end, style: textStyle),
             ),
           ],
         ),

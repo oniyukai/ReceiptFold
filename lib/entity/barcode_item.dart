@@ -1,21 +1,19 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
-import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 
 class MobileBarcodeItem {
   final String code;
   final String? name;
 
-  const MobileBarcodeItem({
-    required this.code,
-    this.name,
-  });
+  const MobileBarcodeItem({required this.code, this.name});
 
   Map<String, dynamic> toJson() => {
     'code': code,
-    if (name!=null && name!='') 'name': name,
+    'name': ?Utils.noEmptyStr(name),
   };
 
   factory MobileBarcodeItem.fromString(String jsonString) {
@@ -24,18 +22,13 @@ class MobileBarcodeItem {
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
       code = json['code'];
-      name = json['name'];
-      if (name == '') name = null;
+      name = Utils.noEmptyStr(json['name']);
     } catch (e) {
       debugPrint('$MobileBarcodeItem.fromString: $e');
     }
-    return MobileBarcodeItem(
-      code: code ?? StaticString.nullString,
-      name: name,
-    );
+    return MobileBarcodeItem(code: code ?? StaticString.nullString, name: name);
   }
 }
-
 
 class MemberBarcodeItem {
   final String code;
@@ -47,13 +40,13 @@ class MemberBarcodeItem {
     required this.code,
     this.name,
     this.imageUrl,
-    this.format = .code128,
+    this.format = BarcodeFormat.code128,
   });
 
   Map<String, dynamic> toJson() => {
     'code': code,
-    if (name!=null && name!='') 'name': name,
-    if (imageUrl!=null && imageUrl!='') 'imageUrl': imageUrl,
+    'name': ?Utils.noEmptyStr(name),
+    'imageUrl': ?Utils.noEmptyStr(imageUrl),
     'format': format,
   };
 
@@ -65,10 +58,8 @@ class MemberBarcodeItem {
     try {
       final Map<String, dynamic> json = jsonDecode(jsonString);
       code = json['code'];
-      name = json['name'];
-      if (name == '') name = null;
-      imageUrl = json['imageUrl'];
-      if (imageUrl == '') imageUrl = null;
+      name = Utils.noEmptyStr(json['name']);
+      imageUrl = Utils.noEmptyStr(json['imageUrl']);
       format = BarcodeFormat.values.fromName(json['format']);
     } catch (e) {
       debugPrint('$MemberBarcodeItem.fromString: $e');
@@ -77,7 +68,7 @@ class MemberBarcodeItem {
       code: code ?? StaticString.nullString,
       name: name,
       imageUrl: imageUrl,
-      format: format ?? .code128,
+      format: format ?? BarcodeFormat.code128,
     );
   }
 }

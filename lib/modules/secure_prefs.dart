@@ -2,7 +2,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 enum SecurePrefs {
   invoicePlatformAccount,
-  invoicePlatformPassword,
   webDAVAccount;
 
   static const FlutterSecureStorage _instance = FlutterSecureStorage();

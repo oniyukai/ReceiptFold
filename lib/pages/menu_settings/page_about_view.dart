@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
-import 'package:receipt_fold/pages/menu_settings/page_terms_view.dart';
-import 'package:path/path.dart' as p;
 
 class PageAboutView extends StatefulWidget {
   const PageAboutView({super.key});
@@ -14,15 +14,23 @@ class PageAboutView extends StatefulWidget {
 }
 
 class _PageAboutViewState extends State<PageAboutView> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
-  Widget build(context) {
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(DictKey.preferencesAboutTitle.s),
-      ),
+      appBar: AppBar(title: Text(DictKey.settingGroupAbout.s)),
       body: SafeArea(
         child: Scrollbar(
+          controller: _scrollController,
           child: ListView(
+            controller: _scrollController,
             children: [
               SizedBox.square(
                 dimension: 64,
@@ -35,41 +43,54 @@ class _PageAboutViewState extends State<PageAboutView> {
                 textAlign: TextAlign.center,
               ),
               ListTile(
-                title: Text(DictKey.preferencesApplicationVersionLabel.s),
+                title: Text(DictKey.settingOptionVersion.s),
                 subtitle: Text(StaticString.appVersion),
+                onLongPress: () async {
+                  final bool newMode = !context.readPrefs.get(
+                    .isAppDeveloperMode,
+                  );
+                  await context.readPrefs.update(
+                    .isAppDeveloperMode,
+                    newMode,
+                    false,
+                  );
+                  Utils.showToast(
+                    'set ${PrefsEnum.isAppDeveloperMode.name} $newMode, '
+                    'default: ${PrefsEnum.isAppDeveloperMode.defaultValue()}',
+                  );
+                },
               ),
               ListTile(
-                title: Text(DictKey.preferencesApplicationVersionTagLabel.s),
+                title: Text(DictKey.settingOptionVersionTag.s),
                 subtitle: Text(StaticString.appVersionTag),
               ),
               ListTile(
-                title: Text('除錯日誌'),
+                title: Text(DictKey.settingOptionDebugLog.s),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => MyRouter.routeTo(PageLogsView),
               ),
               ListTile(
-                title: Text(DictKey.preferencesAboutOpenSourceLibrariesLabel.s),
+                title: Text(DictKey.settingOptionLicenses.s),
+                subtitle: Text(
+                  '${StaticString.appName} is Licensed under GNU Affero General Public License v3.0',
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => showLicensePage(
                   context: context,
-                  applicationName: DictKey.preferencesAboutOpenSourceLibrariesLabel.s,
+                  applicationName: DictKey.settingOptionLicenses.s,
                 ),
               ),
               ListTile(
-                title: Text(DictKey.preferencesTermsTitle.s),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => MyRouter.routeTo(PageTermsView),
-              ),
-              ListTile(
-                title: Text(DictKey.preferencesSourceCodeLabel.s),
+                title: Text(DictKey.settingOptionSourceCode.s),
                 subtitle: Text(StaticString.sourceCodeLink),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Utils.openUrlInBrowser(StaticString.sourceCodeLink),
+                onTap: () =>
+                    Utils.openUrlInBrowser(StaticString.sourceCodeLink),
               ),
             ],
-          )
-        )
-      )
+          ),
+        ),
+      ),
     );
   }
 }

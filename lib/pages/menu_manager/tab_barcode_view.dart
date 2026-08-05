@@ -1,17 +1,19 @@
 import 'dart:math';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:provider/provider.dart';
+import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/modules/prefs.dart';
 import 'package:receipt_fold/locale/app_language.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_member_view.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
@@ -28,250 +30,265 @@ class TabBarcodeView extends StatefulWidget {
 }
 
 class _TabBarcodeViewState extends State<TabBarcodeView> {
+  late final List<MobileBarcodeItem> _mobileItems;
+  late final List<MemberBarcodeItem> _memberItems;
   final ScrollController _scrollController = ScrollController();
-
-  // 他沒有監聽是因為tab是及時initState dispose
-  late List<MobileBarcodeItem> _mobileItems;
-  late List<MemberBarcodeItem> _memberItems;
+  final _isBrighten = ValueNotifier(false);
+  bool _isLockOrient = false;
+  bool _isInitialized = false;
+  bool _isLastTimeOnView = false;
   int? _mobileItemIndex;
   int? _memberItemIndex;
-  bool _isBrightness = PrefsEnum.isAutoBrightness.defaultValue();
-  bool _isLockOrientation = PrefsEnum.isAutoBrightness.defaultValue();
-  bool _isLastTimeOnView = false;
-  bool _isInitialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void dispose() {
-    _setAppBrightness(false);
-    _setOrientationLock(false);
     super.dispose();
+    _scrollController.dispose();
+    _setScreenBrightness(false);
+    _setOrientationLock(false);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (context.watch<MenuNavBarProvider>().onManager) {
-      _initLoadItem();
-      _isBrightness = context.readPrefs.get(PrefsEnum.isAutoBrightness);
-      _setAppBrightness(_isBrightness);
-      _isLockOrientation = context.readPrefs.get(PrefsEnum.isShowScreenRotation);
-      _setOrientationLock(_isLockOrientation);
+    _viewEntryExitEvent(context.watch<MenuNavBarProvider>().onManager);
+  }
+
+  Future<void> _viewEntryExitEvent(bool onManager) async {
+    if (onManager && !_isLastTimeOnView) {
       _isLastTimeOnView = true;
-    } else if (_isLastTimeOnView) {
-      _setAppBrightness(false);
-      _isBrightness = context.readPrefs.get(PrefsEnum.isAutoBrightness);
-      _setOrientationLock(false);
-      _isLockOrientation = context.readPrefs.get(PrefsEnum.isShowScreenRotation);
+      final bool isShowBrighten = context.readPrefs.get(.isShowBrighten);
+      final bool isShowLockOrient = context.readPrefs.get(.isShowLockOrient);
+      await Future.wait([
+        _initLoadItem(),
+        _setScreenBrightness(isShowBrighten),
+        _setOrientationLock(isShowLockOrient),
+      ]);
+    } else if (!onManager && _isLastTimeOnView) {
       _isLastTimeOnView = false;
+      await Future.wait([
+        _setScreenBrightness(false),
+        _setOrientationLock(false),
+      ]);
     }
   }
 
   Future<void> _initLoadItem() async {
     if (_isInitialized) return;
     _isInitialized = true;
-    _mobileItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.mobileBarcodeList);
-    _memberItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.memberBarcodeList);
+    _mobileItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(
+      .mobileBarcodeList,
+    );
+    _memberItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(
+      .memberBarcodeList,
+    );
     if (_mobileItems.isNotEmpty) _mobileItemIndex = 0;
     if (_memberItems.isNotEmpty) _memberItemIndex = 0;
     if (mounted) setState(() {});
   }
 
-  Future<void> _setAppBrightness(bool toBrightness) async {
-    try {
-      if (toBrightness) {
-        await ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
-      } else if (_isBrightness) {
-        await ScreenBrightness.instance.resetApplicationScreenBrightness();
-      }
-    } catch (e) {
-      Utils.showToast(e.toString());
+  Future<void> _setScreenBrightness(bool toBrighten) async {
+    if (_isBrighten.value == toBrighten) return;
+    if (toBrighten) {
+      await ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
+    } else if (_isBrighten.value) {
+      await ScreenBrightness.instance.resetApplicationScreenBrightness();
     }
+    _isBrighten.value = toBrighten;
   }
 
   Future<void> _setOrientationLock(bool toLock) async {
+    if (_isLockOrient == toLock) return;
     if (toLock) {
-      await Utils.lockCurrentOrientation(context);
-    } else if (_isLockOrientation) {
-      await Utils.unlockCurrentOrientation();
+      await Utils.lockOrientation(
+        context: context,
+        orientation: (await NativeDeviceOrientationCommunicator().orientation())
+            .deviceOrientation,
+      );
+    } else if (_isLockOrient) {
+      await Utils.unlockOrientation();
     }
+    _isLockOrient = toLock;
   }
 
-  Future<void> _copyMember() async {
-    if (_memberItemIndex == null) return;
-    await Clipboard.setData(ClipboardData(text: _memberItems[_memberItemIndex!].code));
-  }
-
-  Future<void> _copyMobile() async {
-    if (_mobileItemIndex == null) return;
-    await Clipboard.setData(ClipboardData(text: _mobileItems[_mobileItemIndex!].code));
-  }
-
-  Future<void> _changeMobileItem() => OverlayShow.dialog(
-    context: context,
-    title: DictKey.barcodeManagerChangeMobileCarrierLabel.s,
-    noCancelButton: true,
-    content: Scrollbar(
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(_mobileItems.length, ((index) => MobileItemCard(
-            item: _mobileItems[index],
-            onTap: () {
-              setState(() => _mobileItemIndex = index);
-              Navigator.pop(context);
-            },
-          ))),
+  Future<void> _changeMobileItem() {
+    final ScrollController scrollController = ScrollController();
+    return OverlayShow.dialog(
+      context: context,
+      title: DictKey.managerChangeMobileCarrier.s,
+      noCancelButton: true,
+      content: Scrollbar(
+        controller: scrollController,
+        child: SingleChildScrollView(
+          controller: scrollController,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _mobileItems
+                .mapIndexed(
+                  (index, item) => MobileItemCard(
+                    item: item,
+                    onTap: () {
+                      setState(() => _mobileItemIndex = index);
+                      Navigator.pop(context);
+                    },
+                  ),
+                )
+                .toList(),
+          ),
         ),
       ),
-    ),
-  );
+    ).whenComplete(scrollController.dispose);
+  }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final barcodeWidth = MediaQuery.of(context).size.shortestSide / 2;
     final isPortrait = Utils.isPortrait(context);
     return Scrollbar(
       controller: _scrollController,
       child: ListView(
+        controller: _scrollController,
         padding: const EdgeInsets.all(8.0),
         children: [
           ExpandableCard(
-            initialExpanded: true,
-            text: DictKey.barcodeManagerMembershipCardLabel.s,
+            text: DictKey.managerMembershipCard.s,
             iconData: Icons.loyalty_outlined,
             expandedChild: (_memberItemIndex == null)
-                ? Center(child: Text(DictKey.barcodeManagerNotYetSetLabel.s))
+                ? Center(child: Text(DictKey.managerNotYetSet.s))
                 : Flex(
-              direction: isPortrait ? Axis.vertical : Axis.horizontal,
-              children: [
-                Expanded(
-                  flex: isPortrait ? 0 : 1,
-                  child: Card(
-                    color: Colors.white,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: barcodeWidth / 10,
-                        horizontal: barcodeWidth / 6,
-                      ),
-                      child: Center(
-                        child: BarcodeSvgPicture(
-                          data:_memberItems[_memberItemIndex!].code,
-                          format: _memberItems[_memberItemIndex!].format,
-                          width: barcodeWidth,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: isPortrait ? 0 : 1,
-                  child: Column(
+                    direction: isPortrait ? Axis.vertical : Axis.horizontal,
                     children: [
-                      SingleChildScrollView(
-                        padding: const EdgeInsets.all(6.0),
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          spacing: 4,
-                          children: List.generate(min(_memberItems.length, 12), (index) => Opacity(
-                            opacity: index == _memberItemIndex ? 1.0 : 0.4,
-                            child: ImageBox(
-                              item: _memberItems[index],
-                              onTap: () => setState(() => _memberItemIndex = index),
+                      Expanded(
+                        flex: isPortrait ? 0 : 1,
+                        child: Card(
+                          color: Colors.white,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: barcodeWidth / 10,
+                              horizontal: barcodeWidth / 6,
                             ),
-                          )),
+                            child: BarcodeSvgPicture(
+                              data: _memberItems[_memberItemIndex!].code,
+                              format: _memberItems[_memberItemIndex!].format,
+                              width: barcodeWidth,
+                            ),
+                          ),
                         ),
                       ),
-                      Card(
-                        child: ListTile(
-                          minTileHeight: 0,
-                          title: Text(
-                            _memberItems[_memberItemIndex!].name ?? '',
-                            overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: isPortrait ? 0 : 1,
+                        child: Column(
+                          children: [
+                            SingleChildScrollView(
+                              padding: const EdgeInsets.all(6.0),
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                spacing: 4,
+                                children: List.generate(
+                                  min(_memberItems.length, 12),
+                                  (index) => Opacity(
+                                    opacity: index == _memberItemIndex
+                                        ? 1.0
+                                        : 0.4,
+                                    child: ImageBox(
+                                      item: _memberItems[index],
+                                      onTap: () => setState(
+                                        () => _memberItemIndex = index,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Card(
+                              child: ListTile(
+                                minTileHeight: 0,
+                                title: Text(
+                                  _memberItems[_memberItemIndex!].name ?? '',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Text(
+                                  _memberItems[_memberItemIndex!].code,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: IconButton(
+                                  onPressed: () => Utils.copyText(
+                                    _memberItems[_memberItemIndex!].code,
+                                  ),
+                                  icon: const Icon(Icons.copy),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+          ExpandableCard(
+            text: DictKey.managerMobileCarrier.s,
+            iconData: MaterialCommunityIcons.barcode,
+            expandedChild: _mobileItemIndex == null
+                ? Center(child: Text(DictKey.managerNotYetSet.s))
+                : Flex(
+                    direction: isPortrait ? Axis.vertical : Axis.horizontal,
+                    children: [
+                      Expanded(
+                        flex: isPortrait ? 0 : 1,
+                        child: Card(
+                          color: Colors.white,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: barcodeWidth / 10,
+                              horizontal: barcodeWidth / 6,
+                            ),
+                            child: BarcodeSvgPicture(
+                              data: _mobileItems[_mobileItemIndex!].code,
+                              format: BarcodeFormat.code39,
+                              width: barcodeWidth,
+                            ),
                           ),
-                          subtitle: Text(
-                            _memberItems[_memberItemIndex!].code,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: IconButton(
-                            onPressed: _copyMember,
-                            icon: const Icon(Icons.copy),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: isPortrait ? 0 : 1,
+                        child: Card(
+                          child: ListTile(
+                            minTileHeight: 0,
+                            onTap: _changeMobileItem,
+                            title: Text(
+                              _mobileItems[_mobileItemIndex!].code,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              _mobileItems[_mobileItemIndex!].name ?? '',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: IconButton(
+                              onPressed: () => Utils.copyText(
+                                _mobileItems[_mobileItemIndex!].code,
+                              ),
+                              icon: const Icon(Icons.copy),
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
           ),
-          ExpandableCard(
-            initialExpanded: true,
-            text: DictKey.barcodeManagerMobileCarrierLabel.s,
-            iconData: MaterialCommunityIcons.barcode,
-            expandedChild: _mobileItemIndex == null
-                ? Center(child: Text(DictKey.barcodeManagerNotYetSetLabel.s))
-                : Flex(
-              direction: isPortrait ? Axis.vertical : Axis.horizontal,
-              children: [
-                Expanded(
-                  flex: isPortrait ? 0 : 1,
-                  child: Card(
-                    color: Colors.white,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: barcodeWidth / 10,
-                        horizontal: barcodeWidth / 6,
-                      ),
-                      child: Center(
-                        child: BarcodeSvgPicture(
-                          data: _mobileItems[_mobileItemIndex!].code,
-                          format: BarcodeFormat.code39,
-                          width: barcodeWidth,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: isPortrait ? 0 : 1,
-                  child: Card(
-                    child: ListTile(
-                      minTileHeight: 0,
-                      onTap: _changeMobileItem,
-                      title: Text(
-                        _mobileItems[_mobileItemIndex!].code,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        _mobileItems[_mobileItemIndex!].name ?? '',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: IconButton(
-                        onPressed: _copyMobile,
-                        icon: const Icon(Icons.copy),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+          ValueListenableBuilder(
+            valueListenable: _isBrighten,
+            builder: (context, isScreenBrightness, child) => ListTileSwitch(
+              text: DictKey.managerBrightenScreen.s,
+              iconData: Icons.brightness_6_outlined,
+              initialValue: isScreenBrightness,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(64.0),
+              ),
+              onToggle: _setScreenBrightness,
             ),
-          ),
-          ListTileSwitch(
-            text: DictKey.barcodeManagerBrightenScreenLabel.s,
-            iconData: Icons.brightness_6_outlined,
-            initialValue: _isBrightness,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(64.0)),
-            onToggle: (value) {
-              _setAppBrightness(value);
-              setState(() => _isBrightness = value);
-            },
           ),
         ],
       ),
@@ -294,23 +311,29 @@ class BarcodeSvgPicture extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
-    final checkMsg = barcodeValidator(data, format);
-    if (checkMsg != null) return Text(checkMsg, style: TextStyle(color: Colors.grey));
+  Widget build(BuildContext context) {
+    String? checkMsg = barcodeValidator(data, format);
+    Widget? svgWidget;
     try {
-      final barcode = format.barcodeFunc();
-      return SvgPicture.string(
-        barcode.toSvg(
-          data,
-          drawText: false,
-          width: aspectRatio,
-          height: 1,
-        ),
-        width: width,
-      );
+      if (checkMsg == null) {
+        svgWidget = SvgPicture.string(
+          format.barcodeFunc().toSvg(
+            data,
+            drawText: false,
+            width: aspectRatio,
+            height: 1,
+          ),
+          width: width,
+        );
+      }
     } catch (e) {
-      return Text(e.toString(), style: TextStyle(color: Colors.grey));
+      checkMsg = e.toString();
     }
+    return Center(
+      child:
+          svgWidget ??
+          Text(checkMsg!, style: const TextStyle(color: Colors.grey)),
+    );
   }
 }
 
@@ -329,29 +352,35 @@ class ImageBox extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     final double width = 100;
     final double height = 64;
-    if (item.imageUrl == null || item.imageUrl==''){
-      return nullNeedBuild ? SizedBox(
-        width: width,
-        height: height,
-        child: GestureDetector(
-          onTap: onTap,
-          child: Card(
-            margin: EdgeInsets.zero,
-            shape: (needBorderRadius) ? null : RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
-            child: Center(
-              child: Text(
-                (item.name=='') ? (item.code) : (item.name ?? item.code),
-                overflow: TextOverflow.ellipsis,
+    if (item.imageUrl == null || item.imageUrl!.isEmpty) {
+      return nullNeedBuild
+          ? SizedBox(
+              width: width,
+              height: height,
+              child: GestureDetector(
+                onTap: onTap,
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  shape: (needBorderRadius)
+                      ? null
+                      : RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0),
+                        ),
+                  child: Center(
+                    child: Text(
+                      Utils.noEmptyStr(item.code) ?? item.code,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
-        )
-      ) : const SizedBox.shrink();
+            )
+          : const SizedBox.shrink();
     }
-    if (UrlValidator().isURL(item.imageUrl)) {
+    if (!UrlValidator().isURL(item.imageUrl)) {
       return SizedBox(
         width: width,
         height: height,
@@ -359,29 +388,35 @@ class ImageBox extends StatelessWidget {
           onTap: onTap,
           child: Card(
             margin: EdgeInsets.zero,
-            shape: (needBorderRadius) ? null : RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+            shape: (needBorderRadius)
+                ? null
+                : RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(0),
+                  ),
             child: Center(
               child: Text(
-                DictKey.barcodeManagerNotanURL.s,
+                DictKey.managerNotAUrl.s,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.red,
-                ),
+                style: TextStyle(color: Colors.red),
               ),
             ),
           ),
-        )
+        ),
       );
     }
     return Card(
       margin: EdgeInsets.zero,
-      shape: (needBorderRadius) ? null : RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+      shape: (needBorderRadius)
+          ? null
+          : RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
       child: GestureDetector(
         onTap: onTap,
         child: CachedNetworkImage(
           imageUrl: item.imageUrl!,
-          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-          errorWidget: (context, url, error) => const Icon(Icons.error, color: Colors.red),
+          placeholder: (context, url) =>
+              const Center(child: CircularProgressIndicator()),
+          errorWidget: (context, url, error) =>
+              const Icon(Icons.error, color: Colors.red),
           fit: BoxFit.cover,
           width: width,
           height: height,

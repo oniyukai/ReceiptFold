@@ -1,46 +1,66 @@
 import 'dart:async';
+
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:receipt_fold/pages/menu_manager/page_mobile_form.dart';
+import 'package:receipt_fold/pages/menu_manager/page_carrier_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
+import 'package:receipt_fold/pages/menu_manager/page_mobile_form.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
+import 'package:receipt_fold/pages/menu_recorder/page_search_form.dart';
+import 'package:receipt_fold/pages/menu_recorder/page_search_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_about_view.dart';
-import 'package:receipt_fold/pages/menu_settings/page_backup_page.dart';
+import 'package:receipt_fold/pages/menu_settings/page_backup_view.dart';
 import 'package:receipt_fold/pages/menu_settings/page_logs_view.dart';
-import 'package:receipt_fold/pages/menu_settings/page_terms_view.dart';
-import 'package:collection/collection.dart';
+import 'package:receipt_fold/pages/menu_settings/page_platform_view.dart';
 
 typedef _InitialPage = MenuNavBar;
+
 const bool _useIndexPrefix = true;
 const String _initialRoute = '/';
 
 class RouteEntry {
   final String route;
   final Widget widget;
+
   const RouteEntry(this.route, this.widget);
 }
 
-final Map<Type, RouteEntry> _routingTable = Map.fromEntries(const <Type, Widget>{
-  _InitialPage: _InitialPage(),
-  // menu_recorder
-  PageReceiptView: PageReceiptView(),
-  // menu_scanner
-  // menu_manager
-  PageMobileForm: PageMobileForm(),
-  PageMemberForm: PageMemberForm(),
-  // menu_settings
-  PageAboutView: PageAboutView(),
-  PageTermsView: PageTermsView(),
-  PageLogsView: PageLogsView(),
-  PageBackupPage: PageBackupPage(),
-}.entries.mapIndexed((index, entry) => MapEntry(
-    entry.key, RouteEntry(
-    '/${_useIndexPrefix ? '$index-' : ''}${entry.key}',
-    entry.value))));
+final _routingTable = Map<Type, RouteEntry>.fromEntries(
+  const <Type, Widget>{
+    _InitialPage: _InitialPage(),
+    // menu_recorder
+    PageReceiptView: PageReceiptView(),
+    PageSearchForm: PageSearchForm(),
+    PageSearchView: PageSearchView(),
+    // menu_scanner
+    // menu_manager
+    PageMobileForm: PageMobileForm(),
+    PageMemberForm: PageMemberForm(),
+    PageCarrierForm: PageCarrierForm(),
+    // menu_settings
+    PagePlatformView: PagePlatformView(),
+    PageBackupView: PageBackupView(),
+    PageAboutView: PageAboutView(),
+    PageLogsView: PageLogsView(),
+  }.entries.mapIndexed(
+    (index, entry) => MapEntry(
+      entry.key,
+      RouteEntry(
+        '/${_useIndexPrefix ? '$index-' : ''}${entry.key}',
+        entry.value,
+      ),
+    ),
+  ),
+);
 
-final Map<String, RouteEntry> routeEntries = _routingTable.map((k, v) => MapEntry(v.route, v))
-  ..[_initialRoute] = RouteEntry(_initialRoute, _routingTable[_InitialPage]!.widget);
+final Map<String, RouteEntry> routeEntries =
+    _routingTable.map((_, v) => MapEntry(v.route, v))
+      ..[_initialRoute] = RouteEntry(
+        _initialRoute,
+        _routingTable[_InitialPage]!.widget,
+      );
 
 class MyRouteConfig<A, R> {
   static int _idCounter = 0;
@@ -50,10 +70,7 @@ class MyRouteConfig<A, R> {
   final A? pushArgs;
   final Completer<R?>? popReturn;
 
-  MyRouteConfig(this.route, {
-    this.pushArgs,
-    this.popReturn,
-  });
+  MyRouteConfig(this.route, {this.pushArgs, this.popReturn});
 
   static MyRouteConfig of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_RouteConfigScope>()!.config;
@@ -61,16 +78,22 @@ class MyRouteConfig<A, R> {
 
 class MyRouteParser extends RouteInformationParser<MyRouteConfig> {
   @override
-  Future<MyRouteConfig> parseRouteInformation(routeInformation) =>
-      SynchronousFuture(MyRouteConfig(routeEntries[routeInformation.uri.path]?.route ?? _initialRoute));
+  Future<MyRouteConfig> parseRouteInformation(
+    RouteInformation routeInformation,
+  ) => SynchronousFuture(
+    MyRouteConfig(
+      routeEntries[routeInformation.uri.path]?.route ?? _initialRoute,
+    ),
+  );
 
   @override
-  RouteInformation restoreRouteInformation(configuration) =>
+  RouteInformation restoreRouteInformation(MyRouteConfig configuration) =>
       RouteInformation(uri: Uri.parse(configuration.route));
 }
 
-class MyRouterDelegate extends RouterDelegate<MyRouteConfig> with ChangeNotifier {
-  final List<MyRouteConfig> _stack = [];
+class MyRouterDelegate extends RouterDelegate<MyRouteConfig>
+    with ChangeNotifier {
+  final _stack = <MyRouteConfig>[];
 
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -78,23 +101,36 @@ class MyRouterDelegate extends RouterDelegate<MyRouteConfig> with ChangeNotifier
   MyRouteConfig? get currentConfiguration => _stack.lastOrNull;
 
   @override
-  Future<void> setNewRoutePath(configuration) async {
+  Future<void> setNewRoutePath(MyRouteConfig configuration) async {
     if (_stack.lastOrNull?.route == configuration.route) return;
-    _stack..clear()..add(configuration);
+    _stack
+      ..clear()
+      ..add(configuration);
   }
 
   Future<R?> push<R>(Type pageType, [Object? pushArgs]) {
     final routeEntry = _routingTable[pageType];
-    assert(routeEntry != null, '_routingTable not included Type<$pageType>, Please register $pageType Route.');
+    assert(
+      routeEntry != null,
+      '_routingTable not included Type<$pageType>, Please register $pageType Route.',
+    );
     final popReturn = Completer<R?>();
-    _stack.add(MyRouteConfig(routeEntry!.route, pushArgs: pushArgs, popReturn: popReturn));
+    _stack.add(
+      MyRouteConfig(
+        routeEntry!.route,
+        pushArgs: pushArgs,
+        popReturn: popReturn,
+      ),
+    );
     notifyListeners();
     return popReturn.future;
   }
 
   void pop<R>([R? result]) {
     final config = _stack.removeLast();
-    if (config.popReturn?.isCompleted == false) config.popReturn!.complete(result);
+    if (config.popReturn?.isCompleted == false) {
+      config.popReturn!.complete(result);
+    }
     notifyListeners();
   }
 
@@ -106,16 +142,22 @@ class MyRouterDelegate extends RouterDelegate<MyRouteConfig> with ChangeNotifier
   }
 
   void _onDidRemovePage(Page page) {
-    final index = _stack.lastIndexWhere((config) => ValueKey(config.id) == page.key);
+    final index = _stack.lastIndexWhere(
+      (config) => ValueKey(config.id) == page.key,
+    );
     if (index != -1) {
       final config = _stack.removeAt(index);
-      if (config.popReturn?.isCompleted == false) config.popReturn!.complete(null);
+      if (config.popReturn?.isCompleted == false) {
+        config.popReturn!.complete(null);
+      }
     }
   }
 
   @override
-  Widget build(context) {
-    if (_stack.isEmpty) return const Center(child: Text('Navigator _stack.isEmpty'));
+  Widget build(BuildContext context) {
+    if (_stack.isEmpty) {
+      return const Center(child: Text('Navigator _stack.isEmpty'));
+    }
     return Navigator(
       key: navigatorKey,
       onDidRemovePage: _onDidRemovePage,
@@ -137,13 +179,10 @@ class MyRouterDelegate extends RouterDelegate<MyRouteConfig> with ChangeNotifier
 class _RouteConfigScope extends InheritedWidget {
   final MyRouteConfig config;
 
-  const _RouteConfigScope({
-    required this.config,
-    required super.child,
-  });
+  const _RouteConfigScope({required this.config, required super.child});
 
   @override
-  bool updateShouldNotify(oldWidget) => false;
+  bool updateShouldNotify(covariant InheritedWidget oldWidget) => false;
 }
 
 abstract final class MyRouter {
@@ -155,7 +194,10 @@ abstract final class MyRouter {
   static Type? _pageType;
 
   static P of<P extends RouterBridge>() {
-    assert(P != RouterBridge<dynamic>, 'You must specify the route type. ex: MyRouter.of<Page>()');
+    assert(
+      P != RouterBridge<dynamic>,
+      'You must specify the route type. ex: MyRouter.of<Page>()',
+    );
     _pageType = P;
     return _routingTable[P]!.widget as P;
   }

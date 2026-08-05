@@ -15,24 +15,30 @@ enum FieldType {
   const FieldType(this.iconData, this.inputType, this.isObscure);
 
   String get labelText => switch (this) {
-    text => DictKey.barcodeTextCompositionLabel,
-    number=> DictKey.barcodeNumberCompositionLabel,
-    password => DictKey.barcodeTextCompositionLabel,
+    text => DictKey.barcodeCompositionText,
+    number => DictKey.barcodeCompositionNumber,
+    password => DictKey.barcodeCompositionText,
   }.s;
 }
 
 class MyTextField extends StatefulWidget {
   final String name;
   final String? initialValue;
+  final String? labelText;
+  final IconData? prefixIconData;
   final FieldType type;
   final bool required;
+  final bool readOnly;
 
   const MyTextField({
     super.key,
     required this.name,
     this.initialValue,
-    this.type = .text,
+    this.labelText,
+    this.prefixIconData,
+    this.type = FieldType.text,
     this.required = true,
+    this.readOnly = false,
   });
 
   @override
@@ -49,27 +55,42 @@ class _MyTextFieldState extends State<MyTextField> {
   }
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return FormBuilderTextField(
       name: widget.name,
       maxLines: 1,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       initialValue: widget.initialValue,
       obscureText: textHidden,
+      readOnly: widget.readOnly,
       decoration: InputDecoration(
-        prefixIcon: Icon(widget.type.iconData),
-        labelText: widget.type.labelText,
+        prefixIcon: Icon(widget.prefixIconData ?? widget.type.iconData),
+        labelText: widget.labelText ?? widget.type.labelText,
         errorMaxLines: 8,
-        suffixIcon: widget.type.isObscure ? IconButton(
-          onPressed: () {
-            setState(() => textHidden = !textHidden);
-          },
-          icon: Icon(textHidden ? Icons.visibility_off_rounded : Icons.visibility_rounded),
-        ) : null,
+        suffixIcon: widget.type.isObscure
+            ? IconButton(
+                onPressed: () {
+                  setState(() => textHidden = !textHidden);
+                },
+                icon: Icon(
+                  textHidden
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
+                ),
+              )
+            : null,
       ),
       keyboardType: widget.type.inputType,
       validator: FormBuilderValidators.compose([
-        if (widget.required) FormBuilderValidators.required(errorText: DictKey.errorEmptyFields.s),
-        if (widget.type == .number) FormBuilderValidators.numeric(errorText: DictKey.errorBarcodeNotANumberMessage.s, checkNullOrEmpty: false),
+        if (widget.required)
+          FormBuilderValidators.required(
+            errorText: DictKey.barcodeErrorEmptyFields.s,
+          ),
+        if (widget.type == FieldType.number)
+          FormBuilderValidators.numeric(
+            errorText: DictKey.barcodeErrorNotNumber.s,
+            checkNullOrEmpty: false,
+          ),
       ]),
     );
   }

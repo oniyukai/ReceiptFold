@@ -1,37 +1,31 @@
+//import java.io.FileInputStream
+//import java.util.Properties
+
 plugins {
     id("com.android.application")
-    id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-    id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.compose") version "2.3.20"
 }
 
-dependencies {
-    implementation("androidx.glance:glance-appwidget:1.1.1")
-}
-
-configurations.all {
-    resolutionStrategy {
-        force("androidx.glance:glance-appwidget:1.1.1")
-    }
-}
+//val keystoreProperties = Properties()
+//val keystorePropertiesFile = rootProject.file("key.properties")
+//if (keystorePropertiesFile.exists()) {
+//    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+//}
 
 android {
-    buildFeatures {
-        compose = true
-    }
-
     namespace = "com.receipt.fold.receipt_fold"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+    buildFeatures {
+        compose = true
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     defaultConfig {
@@ -45,12 +39,32 @@ android {
         versionName = flutter.versionName
     }
 
+//    signingConfigs {
+//        create("release") {
+//            keyAlias = keystoreProperties["keyAlias"] as String
+//            keyPassword = keystoreProperties["keyPassword"] as String
+//            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+//            storePassword = keystoreProperties["storePassword"] as String
+//        }
+//    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+//            signingConfig = signingConfigs.getByName("release")
         }
+    }
+}
+
+dependencies {
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 

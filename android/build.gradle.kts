@@ -1,7 +1,3 @@
-plugins {
-    id("org.jetbrains.kotlin.plugin.compose") version "2.2.0" apply false
-}
-
 allprojects {
     repositories {
         google()

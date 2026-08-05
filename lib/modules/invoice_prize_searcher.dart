@@ -1,163 +1,185 @@
 import 'package:dio/dio.dart';
-import 'package:html/parser.dart' show parse;
 import 'package:html/dom.dart';
+import 'package:html/parser.dart' show parse;
 import 'package:receipt_fold/common/utils.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/entity/invoice_period.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
-import 'package:flutter/material.dart' as material;
-import 'package:receipt_fold/modules/prefs.dart';
+import 'package:receipt_fold/entity/period.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
+import 'package:receipt_fold/modules/log_service.dart';
 
 class InvoicePrizeSearcher {
-  final Dio _dio = Dio();
+  static Map<String, InvoicePrizeAward>? _awardMapCache;
+  static final _pendingRequests = <String, Future<List<InvoicePrize>>>{};
+  static int _instanceCounter = 0;
 
-  void dispose() {
+  late final Dio _dio = Dio();
+
+  InvoicePrizeSearcher() {
+    _instanceCounter += 1;
+  }
+
+  void close() {
+    if (_instanceCounter > 0) _instanceCounter -= 1;
+    if (_instanceCounter <= 0) _awardMapCache = null;
     _dio.close();
   }
 
-  void debugPrint(String? message) {
-    if (PrefsEnum.isAppDeveloperMode.defaultValue()) material.debugPrint(message);
+  Future<InvoicePrizeAward?> getByDistance(int distance) async {
+    assert(distance >= 0);
+    Period nowPeriod = Period(DateTime.now()).invPrevious;
+    InvoicePrizeAward? lastPrizeAward;
+    for (int i = 0; i < 2; i += 1) {
+      lastPrizeAward = await getPrizeAward(nowPeriod);
+      if (lastPrizeAward != null) break;
+      nowPeriod = nowPeriod.invPrevious;
+    }
+    if (lastPrizeAward == null) return null;
+    for (int i = 0; i < distance; i += 1) {
+      nowPeriod = nowPeriod.invPrevious;
+    }
+    return await getPrizeAward(nowPeriod);
   }
 
-  bool _matcheSpecifiedTimeInterval(int unixMilliseconds) {
-    final int currentUnixMilliseconds = UnitUtils.nowUnixTime;
-    final int differenceInMilliseconds = (unixMilliseconds - currentUnixMilliseconds).abs();
-    const int targetDifferenceInSeconds = 1000;
-    const int targetDifferenceInMilliseconds = targetDifferenceInSeconds * 1000;
-    return differenceInMilliseconds >= targetDifferenceInMilliseconds;
-  }
-
-  Future<InvoiceWinningNumber?> findInvoiceWinningNumber(InvoicePeriod invoicePeriod) async {
-    final String period = invoicePeriod.getROCPeriod;
-    final List<InvoiceWinningNumber> history = await DriftServices.appDb.keyValueStoreDao.getExistDefault(.invoiceWinningNumberList);
-    final int historyWhere = history.indexWhere((item) => item.period == period);
-    if (historyWhere >= 0) {
-      final InvoiceWinningNumber result = history[historyWhere];
-      if (result.prizes != null && result.prizes!.isNotEmpty) return result;
-      // 如果上次查詢未冷卻完畢不再查詢網頁
-      if (!_matcheSpecifiedTimeInterval(result.lastWebQueryTime)) return null;
-    }
-
-    final Map<InvoiceEntityPrize, List<String>> prizes = {};
-    final String fullUrl = 'https://www.etax.nat.gov.tw/etw-main/ETW183W2_$period/';
-    try {
-      debugPrint('正在請求 URL: $fullUrl');
-      final Response response = await _dio.get(fullUrl);
-      if (response.statusCode == 200) {
-        final Document document = parse(response.data);
-        final Element? table = document.querySelector('table#tenMillionsTable');
-        if (table != null) {
-          final Element? tbody = table.querySelector('tbody');
-          if (tbody != null) {
-            List<Element> rows = tbody.querySelectorAll('tr');
-
-            for (int i = 0; i < rows.length; i++) {
-              final Element row = rows[i];
-              final Element? th = row.querySelector('th[scope="row"]');
-              final Element? td = row.querySelector('td');
-
-              if (th != null && td != null) {
-                final String headerText = th.text.trim();
-
-                final InvoiceEntityPrize? prizeType = switch (headerText) {
-                  '特別獎' => .special,
-                  '特獎' => .grand,
-                  '頭獎' => .first,
-                  '增開六獎' => .additionalSixth,
-                  _ => null,
-                };
-
-                if (prizeType != null) {
-                  final List<String> numbers = [];
-                  // 號碼在當前行的 td 內部的 div.col-12 中
-                  final List<Element> numberDivs = td.querySelectorAll('div.col-12');
-                  for (var div in numberDivs) {
-                    numbers.add(div.text.trim());
-                  }
-
-                  // 說明在下一行的 td 中
-                  if (i + 1 < rows.length) {
-                    final Element nextRow = rows[i + 1];
-                    final Element? nextTd = nextRow.querySelector('td');
-                    if (nextTd != null) {
-                      prizes[prizeType] = numbers;
-                      i++; // 跳過下一行，因為已經處理
-                    }
-                  }
-                }
-              }
-            }
-          } else {
-            debugPrint('錯誤: 無法找到tbody 於 $fullUrl。');
-          }
-        } else {
-          debugPrint('錯誤: 無法找到中獎號碼表格 (ID: tenMillionsTable) 於 $fullUrl。');
-        }
-      } else {
-        debugPrint('請求 $fullUrl 失敗，狀態碼: ${response.statusCode}');
-      }
-    } on DioException catch (e) {
-      debugPrint('Dio 錯誤 (取$period): $e');
-      if (e.response?.statusCode == 404) debugPrint('錯誤: 找不到該期發票中獎號碼頁面 ($fullUrl)。');
-      if (e.response != null) debugPrint('回應資料: ${e.response?.data}');
-    } catch (e) {
-      debugPrint('發生未知錯誤 (取$period): $e');
-    }
-
-    final InvoiceWinningNumber invoiceWinningNumber = InvoiceWinningNumber(
-      period: period,
-      lastWebQueryTime: UnitUtils.nowUnixTime,
-      prizes: prizes.isNotEmpty ? prizes : null,
-    );
-    if (historyWhere >= 0) {
-      history[historyWhere] = invoiceWinningNumber;
-    } else {
-      history.add(invoiceWinningNumber);
-    }
-    await DriftServices.appDb.keyValueStoreDao.upsert(.invoiceWinningNumberList, history);
-    return invoiceWinningNumber.prizes!=null ? invoiceWinningNumber : null;
-  }
-
-  static InvoiceEntityPrize? checkInvoice(InvoiceWinningNumber invoiceWinningNumber, String invoiceNumber) {
-    final Map<InvoiceEntityPrize, List<String>>? prizes = invoiceWinningNumber.prizes;
-    if (invoiceNumber.length < 3 || prizes == null || prizes.isEmpty) return null;
-
-    // 優先檢查大獎 (特別獎、特獎、頭獎)，因為這些是完整號碼比對
-    final Set<InvoiceEntityPrize> needCompleteComparison = const {.special, .grand, .first};
-    for (final InvoiceEntityPrize value in needCompleteComparison) {
-      final  List<String>? nums = prizes[value];
-      if (nums == null) continue;
-      for (final String winningNum in nums) {
-        if (invoiceNumber.endsWith(winningNum)) return value;
-      }
-    }
-
-    // 檢查二獎到六獎 (比對頭獎末幾碼)
-    // 由於一個號碼只能中一個獎，我們從大獎開始檢查，一旦中獎就返回
-    final List<String>? firstPrizeNums = prizes[InvoiceEntityPrize.first];
-    if (firstPrizeNums != null) {
-      for (final String winningNum in firstPrizeNums) {
-        final Map<InvoiceEntityPrize, String> table = {
-          if (winningNum.length >= 7) .second: winningNum.substring(winningNum.length - 7),
-          if (winningNum.length >= 6) .third: winningNum.substring(winningNum.length - 6),
-          if (winningNum.length >= 5) .fourth: winningNum.substring(winningNum.length - 5),
-          if (winningNum.length >= 4) .fifth: winningNum.substring(winningNum.length - 4),
-          if (winningNum.length >= 3) .sixth: winningNum.substring(winningNum.length - 3),
+  Future<InvoicePrizeAward?> getPrizeAward(Period period) async {
+    final awardMap =
+        _awardMapCache ??
+        <String, InvoicePrizeAward>{
+          for (final award
+              in await DriftServices.appDb.keyValueStoreDao
+                  .getExistDefault<List<InvoicePrizeAward>>(
+                    .invoicePrizeAwardList,
+                  ))
+            award.invQuery: award,
         };
-        for (final MapEntry<InvoiceEntityPrize, String> entry in table.entries) {
-          if (invoiceNumber.endsWith(entry.value)) return entry.key;
+    _awardMapCache = awardMap;
+    final String invQuery = period.invQuery;
+    final InvoicePrizeAward? award = awardMap[invQuery];
+    if (award != null) {
+      if (award.prizes.isNotEmpty) return award;
+      if (!_matchSpecifiedTimeInterval(award.lastWebQueryTime)) return null;
+    }
+    final prizes = <InvoicePrize>[];
+    try {
+      prizes.addAll(
+        await _pendingRequests.putIfAbsent(
+          invQuery,
+          () => _requestPrizeAward(invQuery),
+        ),
+      );
+    } on DioException catch (e) {
+      LogService(
+        '_requestPrizeAward $DioException.',
+        errorObject: e,
+        instance: this,
+      ).d();
+    } catch (e) {
+      LogService(
+        '_requestPrizeAward $Exception.',
+        errorObject: e,
+        instance: this,
+      ).w();
+    } finally {
+      _pendingRequests.remove(invQuery);
+    }
+    if (awardMap[invQuery]?.prizes.isNotEmpty != true) {
+      prizes.sort((a, b) => b.amount.compareTo(a.amount)); // 獎金高的放前面，同金額維持插入順序
+      final invoicePrizeAward = awardMap[invQuery] = InvoicePrizeAward(
+        invQuery: invQuery,
+        lastWebQueryTime: UnitUtils.nowUnixTime,
+        prizes: prizes,
+      );
+      await DriftServices.appDb.keyValueStoreDao.upsert(
+        .invoicePrizeAwardList,
+        awardMap.values.toList(),
+      );
+      return invoicePrizeAward.prizes.isNotEmpty ? invoicePrizeAward : null;
+    } else {
+      return awardMap[invQuery];
+    }
+  }
+
+  bool _matchSpecifiedTimeInterval(int unixMilliSec) {
+    final int currentUnixMilliSec = UnitUtils.nowUnixTime;
+    final int differenceInMilliSec = (unixMilliSec - currentUnixMilliSec).abs();
+    const int targetDifferenceInSec = 1000;
+    const int targetDifferenceInMilliSec = targetDifferenceInSec * 1000;
+    return differenceInMilliSec >= targetDifferenceInMilliSec;
+  }
+
+  Future<List<InvoicePrize>> _requestPrizeAward(String invQuery) async {
+    final prizes = <InvoicePrize>[];
+    final String fullUrl =
+        'https://www.etax.nat.gov.tw/etw-main/ETW183W2_$invQuery/';
+    LogService('_requestPrizeAward...: $fullUrl', instance: this).d();
+    final Response response = await _dio
+        .get(fullUrl)
+        .timeout(const Duration(seconds: 6));
+    if (response.statusCode != 200) {
+      LogService('response.statusCode != 200.', instance: this).d();
+      return prizes;
+    }
+    final Document document = parse(response.data);
+    final Element? table = document.querySelector('table#tenMillionsTable');
+    if (table == null) {
+      LogService(
+        'Element "table#tenMillionsTable" does not exists.',
+        instance: this,
+      ).w();
+      return prizes;
+    }
+    final Element? tbody = table.querySelector('tbody');
+    if (tbody == null) {
+      LogService('Element "tbody" does not exists.', instance: this).w();
+      return prizes;
+    }
+    final List<Element> rows = tbody.querySelectorAll('tr');
+
+    for (int i = 0; i < rows.length; i += 1) {
+      final Element row = rows[i];
+      final Element? th = row.querySelector('th[scope="row"]');
+      final Element? td = row.querySelector('td');
+      if (th == null || td == null) continue;
+
+      final String headerText = th.text.trim();
+      final int? amount = switch (headerText) {
+        '特別獎' => 10000000,
+        '特獎' => 2000000,
+        '頭獎' => 200000,
+        '增開六獎' => 200,
+        _ => null,
+      };
+      if (amount == null) continue;
+
+      final List<String> numbers = td
+          .querySelectorAll('div.col-12')
+          .map((div) => div.text.trim())
+          .toList();
+      if (i + 1 >= rows.length) continue; // 說明在下一行的 td 中，有 td 才表示這行確實有獎號資料
+
+      final Element nextRow = rows[i + 1];
+      final Element? nextTd = nextRow.querySelector('td');
+      if (nextTd == null) continue;
+
+      for (final number in numbers) {
+        prizes.add(InvoicePrize(amount, headerText, number));
+        if (headerText == '頭獎') {
+          // 頭獎號碼可衍生出二獎～六獎（依末幾碼比對）
+          prizes.addAll([
+            if (number.length >= 7)
+              InvoicePrize(40000, '二獎', number.substring(number.length - 7)),
+            if (number.length >= 6)
+              InvoicePrize(10000, '三獎', number.substring(number.length - 6)),
+            if (number.length >= 5)
+              InvoicePrize(4000, '四獎', number.substring(number.length - 5)),
+            if (number.length >= 4)
+              InvoicePrize(1000, '五獎', number.substring(number.length - 4)),
+            if (number.length >= 3)
+              InvoicePrize(200, '六獎', number.substring(number.length - 3)),
+          ]);
         }
       }
+      i += 1; // 跳過下一行（說明行），因為已經處理
     }
-
-    // 檢查增開六獎 (末3碼)
-    final List<String>? additionalSixthPrizeNums = prizes[InvoiceEntityPrize.additionalSixth];
-    if (additionalSixthPrizeNums != null) {
-      for (final String winningNum in additionalSixthPrizeNums) {
-        if (invoiceNumber.endsWith(winningNum)) return .additionalSixth;
-      }
-    }
-
-    return null;
+    return prizes;
   }
 }

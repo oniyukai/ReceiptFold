@@ -1,11 +1,11 @@
 name: receipt_fold
-description: "A new Flutter project."
+description: "An expense tracker for tech-savvy users that lets you capture and manage receipts and invoices with offline access and optional cloud sync."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 0.0.1+1
+version: 0.1.0+2
 
 environment:
-  sdk: ^3.11.5
+  sdk: ^3.12.2
 
 dependencies:
   flutter:
@@ -15,46 +15,56 @@ dependencies:
   provider: ^6.1.5
   collection: ^1.19.1
   dynamic_color: ^1.8.1
-  audioplayers: ^6.6.0
-  vibration: ^3.1.8
-  fluttertoast: ^9.0.0
+  audioplayers: ^6.8.1
+  vibration: ^3.2.0
+  fluttertoast: ^10.0.0
   intl: ^0.20.2
   url_launcher: ^6.3.2
-  share_plus: ^12.0.2
+  share_plus: ^13.3.0
   shared_preferences: ^2.5.5
-  flutter_secure_storage: ^10.0.0
+  flutter_secure_storage: ^10.3.1
   flutter_vector_icons: ^2.0.0
-  screen_brightness: ^2.1.7
-  flutter_cache_manager: ^3.4.1
+  screen_brightness: ^2.1.11
+  flutter_cache_manager: ^3.4.2
   cached_network_image: ^3.4.1
   barcode: ^2.2.9
-  flutter_svg: ^2.2.4
-  flutter_form_builder: ^10.2.0
+  flutter_svg: ^2.3.0
+  flutter_form_builder: ^10.3.0+2
   form_builder_validators: ^11.3.0
-  home_widget: ^0.9.1
+  home_widget: ^0.9.3
   path: ^1.9.1
-  path_provider: ^2.1.5
-  dio: ^5.9.2
+  path_provider: ^2.1.6
+  dio: ^5.11.0
   html: ^0.15.6
   watashi_locale:
     git:
       url: https://github.com/oniyukai/watashi_locale.git
-      ref: main
-  uuid: ^4.5.3
-  drift: ^2.32.1
-  drift_flutter: ^0.3.0
+      ref: f9c1facefa146ed93cb28fad3b87690399816a5c
+  uuid: ^4.6.0
+  drift: ^2.34.3
+  drift_flutter: ^0.3.1
   logger: ^2.7.0
   webdav_client: ^1.2.2
-  file_picker: ^10.3.10
+  file_picker: ^12.0.0-beta.7
+  flutter_inappwebview: ^6.1.5
+  csv: ^8.0.0
+  native_device_orientation: ^2.1.1
+  camera: ^0.12.0+2
+  camera_android: ^0.10.11
+  google_mlkit_commons: ^0.12.0
+  google_mlkit_barcode_scanning: ^0.15.0
+  google_mlkit_text_recognition: ^0.16.0
+  enough_convert: ^1.6.0
+  flutter_single_instance: ^1.7.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  build_runner: ^2.14.1
+  build_runner: ^2.15.1
   flutter_launcher_icons: ^0.14.4
-  drift_dev: ^2.32.1
+  drift_dev: any
 
 flutter:
   uses-material-design: true
@@ -63,11 +73,10 @@ flutter:
     - assets/
 
 flutter_launcher_icons:
-  android: 'ic_launcher'
+  android: true
   ios: true
   windows:
     generate: true
   image_path: 'assets/appicon.png'
-
-objectbox:
-  output_dir: entity/objectbox
+  adaptive_icon_background: '#ffffff'
+  adaptive_icon_foreground: 'assets/appicon.png'

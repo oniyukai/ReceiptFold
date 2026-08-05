@@ -1,6 +1,13 @@
+import 'dart:async';
+
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:receipt_fold/entity/invoice_period.dart';
-import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
+import 'package:receipt_fold/common/router.dart';
+import 'package:receipt_fold/entity/drift/key_value_store.dart';
+import 'package:receipt_fold/entity/invoice_carrier.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
+import 'package:receipt_fold/pages/menu_manager/page_carrier_form.dart';
+import 'package:receipt_fold/pages/widget/overlay_show.dart';
 
 class TabCarrierView extends StatefulWidget {
   const TabCarrierView({super.key});
@@ -10,61 +17,152 @@ class TabCarrierView extends StatefulWidget {
 }
 
 class _TabCarrierViewState extends State<TabCarrierView> {
+  final ScrollController _scrollController = ScrollController();
+  late final StreamSubscription<Map<KVStoreKey, dynamic>> _kVStoreSubscription;
+  late List<InvoiceCarrier> _carrierList;
+  bool _isLoading = true;
+  String? _errorMessage;
 
-  void testInvoicePrizeSearch() async {
-    final scraper = InvoicePrizeSearcher();
-
-    debugPrint('\n--- 測試對獎功能 ---');
-
-    final allTextTime = {
-      DateTime(2025, 5, 15).millisecondsSinceEpoch,
-      DateTime(2017, 9, 9).millisecondsSinceEpoch,
-      DateTime(2020, 11, 15).millisecondsSinceEpoch,
-      DateTime(2010, 1, 1).millisecondsSinceEpoch,
-    };
-    final allTextNumber = const {
-      '47406327',
-      '05579058',
-      '49912232',
-      '19912232',
-      '12345004'
-      '12345678',
-      '123',
-      '77815838',
-      '12345011',
-      '12345427',
-      '12345678',
-    };
-
-    for (final time in allTextTime) {
-      final winningNum = await scraper.findInvoiceWinningNumber(InvoicePeriod.fromUnixTime(time));
-      scraper.dispose();
-      if (winningNum == null) {
-        debugPrint('查無獎金對照: $time');
-      } else {
-        for (final num in allTextNumber) {
-          final result = InvoicePrizeSearcher.checkInvoice(winningNum, num);
-          String text = '期號:${winningNum.period}, 時間:$time, 號碼: $num, ';
-          text += result==null ? '未中獎' : '${result.locale}, 金額:${result.amount}';
-          debugPrint(text);
-        }
-      }
-    }
+  @override
+  void initState() {
+    super.initState();
+    _kVStoreSubscription = DriftServices.appDb.keyValueStoreDao
+        .stream(const [.invoiceCarrierList])
+        .listen(
+          (data) => setState(() {
+            _carrierList = data[KVStoreKey.invoiceCarrierList];
+            _isLoading = false;
+            _errorMessage = null;
+          }),
+          onError: (e) => setState(() {
+            _isLoading = false;
+            _errorMessage = e.toString();
+          }),
+        );
   }
 
   @override
-  Widget build(context) {
-    return Center(
-      child: Column(
-        // todo: 載具歸戶頁面
-        mainAxisAlignment: MainAxisAlignment.center,
+  void dispose() {
+    super.dispose();
+    _kVStoreSubscription.cancel();
+    _scrollController.dispose();
+  }
+
+  Future<void> _sortCarrierList() => OverlayShow.sortDialog(
+    context: context,
+    items: _carrierList,
+    itemBuilder: (item) => CarrierCard(carrier: item),
+    saveOnTap: (items) async {
+      await DriftServices.appDb.keyValueStoreDao.upsert(
+        .invoiceCarrierList,
+        items,
+      );
+    },
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (_errorMessage != null) {
+      return Center(child: Text(_errorMessage!));
+    }
+    return Scrollbar(
+      controller: _scrollController,
+      child: ListView(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(8.0),
         children: [
-          TextButton(
-            onPressed: testInvoicePrizeSearch,
-            child: Text('testInvoicePrizeSearch')
+          ListTile(
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_carrierList.length > 1)
+                  IconButton(
+                    padding: const EdgeInsets.all(0),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: _sortCarrierList,
+                    icon: const Icon(Icons.swap_vert),
+                  ),
+                IconButton(
+                  padding: const EdgeInsets.all(0),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => MyRouter.routeTo(PageCarrierForm),
+                  icon: const Icon(Icons.add),
+                ),
+              ],
+            ),
+          ),
+
+          ..._carrierList.mapIndexed(
+            (index, carrier) => CarrierCard(
+              carrier: carrier,
+              onTap: () => MyRouter.of<PageCarrierForm>().toPass(
+                PageCarrierFormArgs(index: index, items: _carrierList),
+              ),
+            ),
           ),
         ],
-      )
+      ),
+    );
+  }
+}
+
+class CarrierCard extends StatelessWidget {
+  final InvoiceCarrier carrier;
+  final VoidCallback? onTap;
+
+  const CarrierCard({super.key, required this.carrier, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      child: ListTile(
+        minTileHeight: 0,
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(carrier.name, overflow: TextOverflow.ellipsis),
+            ),
+            Text(
+              carrier.carrierTypeName ?? carrier.carrierType ?? '',
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        subtitle: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Card(
+              color: colorScheme.surfaceContainerHigh,
+              elevation: 0,
+              margin: const EdgeInsets.all(0),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                child: Text(
+                  carrier.status.locale,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: textTheme.bodySmall?.fontSize,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                carrier.carrierId2,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyMedium,
+              ),
+            ),
+          ],
+        ),
+        onTap: onTap,
+      ),
     );
   }
 }

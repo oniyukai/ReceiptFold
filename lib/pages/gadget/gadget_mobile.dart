@@ -1,11 +1,14 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/locale/app_language.dart';
+import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
+
+// todo: iOS載具與會員桌面小工具
 
 const String _androidName = 'HomeWidgetMobile';
 const String _homeWidgetMobilePath = 'HomeWidgetMobilePath';
@@ -13,46 +16,46 @@ const String _homeWidgetMobilePath = 'HomeWidgetMobilePath';
 Future<void> updateHomeScreenMobile() async {
   if (!Platform.isAndroid && !Platform.isIOS) return;
   await HomeWidget.renderFlutterWidget(
-    HomeScreenMobileSample(
-      items: await DriftServices.appDb.keyValueStoreDao.getExistDefault(.mobileBarcodeList),
+    GadgetMobile(
+      items: await DriftServices.appDb.keyValueStoreDao.getExistDefault(
+        .mobileBarcodeList,
+      ),
     ),
     key: _homeWidgetMobilePath,
     logicalSize: const Size(500, 200),
   );
-  await HomeWidget.updateWidget(
-    androidName: _androidName,
-  );
+  await HomeWidget.updateWidget(androidName: _androidName);
 }
 
-class HomeScreenMobileSample extends StatelessWidget {
+class GadgetMobile extends StatelessWidget {
   final List<MobileBarcodeItem> items;
 
-  const HomeScreenMobileSample({super.key, required this.items});
+  const GadgetMobile({super.key, required this.items});
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     MobileBarcodeItem? firstCode;
     if (items.isNotEmpty) firstCode = items.first;
     if (firstCode == null) {
       return Container(
         color: Colors.white,
-        child: Text(DictKey.barcodeManagerNotYetSetLabel.s),
+        child: Text(DictKey.managerNotYetSet.s),
       );
     }
-    return ScreenGadgetBarcode(
+    return GadgetBarcode(
       data: firstCode.code,
-      name: '${DictKey.barcodeManagerMobileCarrierLabel.s} ${firstCode.name ?? ''}',
+      name: '${DictKey.managerMobileCarrier.s} ${firstCode.name ?? ''}',
       format: BarcodeFormat.code39,
     );
   }
 }
 
-class ScreenGadgetBarcode extends StatelessWidget {
+class GadgetBarcode extends StatelessWidget {
   final String data;
   final String? name;
   final BarcodeFormat format;
 
-  const ScreenGadgetBarcode({
+  const GadgetBarcode({
     super.key,
     required this.data,
     this.name,
@@ -60,7 +63,7 @@ class ScreenGadgetBarcode extends StatelessWidget {
   });
 
   @override
-  Widget build(context) {
+  Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final barcodeWidth = constraints.biggest.shortestSide;
@@ -70,8 +73,8 @@ class ScreenGadgetBarcode extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
           child: Padding(
             padding: EdgeInsets.symmetric(
-              vertical: barcodeWidth/20,
-              horizontal: barcodeWidth/10,
+              vertical: barcodeWidth / 20.0,
+              horizontal: barcodeWidth / 10.0,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -88,10 +91,7 @@ class ScreenGadgetBarcode extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        name ?? '',
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      child: Text(name ?? '', overflow: TextOverflow.ellipsis),
                     ),
                     Text(data),
                   ],
@@ -100,9 +100,7 @@ class ScreenGadgetBarcode extends StatelessWidget {
             ),
           ),
         );
-      }
+      },
     );
   }
 }
-
-// todo debug: 當APP位於路由中, 在用小工具進入會push路由
