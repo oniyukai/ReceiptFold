@@ -74,8 +74,11 @@ class _TabScannerViewState extends State<TabScannerView>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _setCameraOpen(true);
-    if (state == AppLifecycleState.inactive) _setCameraOpen(false);
+    if (state == AppLifecycleState.resumed) {
+      _setCameraOpen(context.read<MenuNavBarProvider>().onScanner);
+    } else if (state == AppLifecycleState.inactive) {
+      _setCameraOpen(false);
+    }
   }
 
   @override
