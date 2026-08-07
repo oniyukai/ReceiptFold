@@ -222,11 +222,15 @@ class KeyValueStoreDao extends SyncableDao {
     await batch((batch) {
       batch.insertAllOnConflictUpdate(
         _stores,
-        otherKVStores.where((otherKVStore) {
-          final modified = keyModifiedMap[otherKVStore.key];
-          return modified == null ||
-              otherKVStore.modified.isAfter(dateTimeConverter.toR(modified));
-        }),
+        otherKVStores
+            .where((otherKVStore) {
+              final modified = keyModifiedMap[otherKVStore.key];
+              return modified == null ||
+                  otherKVStore.modified.isAfter(
+                    dateTimeConverter.toR(modified),
+                  );
+            })
+            .map((e) => e.toCompanion(false)),
       );
     });
   }

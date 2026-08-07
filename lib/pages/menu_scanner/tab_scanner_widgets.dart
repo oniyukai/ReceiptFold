@@ -350,6 +350,48 @@ class TextRecognizerPainter extends CustomPainter {
   }
 }
 
+class LifecycleVisibility extends StatefulWidget {
+  final Widget replacement;
+  final Widget child;
+
+  const LifecycleVisibility({
+    super.key,
+    this.replacement = const SizedBox.shrink(),
+    required this.child,
+  });
+
+  @override
+  State<LifecycleVisibility> createState() => _LifecycleVisibilityState();
+}
+
+class _LifecycleVisibilityState extends State<LifecycleVisibility> {
+  late final AppLifecycleListener _lifecycleListener;
+  bool _isResumed = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleListener = AppLifecycleListener(
+      onStateChange: (state) {
+        setState(() {
+          _isResumed = (state == AppLifecycleState.resumed);
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _isResumed ? widget.child : widget.replacement;
+  }
+}
+
 class CameraView extends StatefulWidget {
   final List<CustomPaint> customPaints;
   final Function(InputImage inputImage) onImage;

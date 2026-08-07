@@ -1646,11 +1646,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f9c1facefa146ed93cb28fad3b87690399816a5c
-      resolved-ref: f9c1facefa146ed93cb28fad3b87690399816a5c
+      ref: "^0.1.0"
+      resolved-ref: "191d368f9a9a8a04bcafb5400c2d68a59899e3a5"
       url: "https://github.com/oniyukai/watashi_locale.git"
     source: git
-    version: "0.0.3"
+    version: "0.1.0"
   watcher:
     dependency: transitive
     description:

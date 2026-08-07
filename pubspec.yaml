@@ -39,7 +39,7 @@ dependencies:
   watashi_locale:
     git:
       url: https://github.com/oniyukai/watashi_locale.git
-      ref: f9c1facefa146ed93cb28fad3b87690399816a5c
+      ref: ^0.1.0
   uuid: ^4.6.0
   drift: ^2.34.3
   drift_flutter: ^0.3.1
