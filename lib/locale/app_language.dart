@@ -5,8 +5,8 @@ typedef LocaleInstance = Map<DictKey, String?>;
 extension StaticString on DictKey {
   static const String
     appName = 'ReceiptFold',
-    appVersion = '0.1.0+2',
-    appVersionTag = 'v0.1_26.08.05+2',
+    appVersion = '0.1.1+3',
+    appVersionTag = 'v0.1_26.08.13+3',
     // Language
     localeLanguageEn = 'English',
     localeLanguageJa = '日本語',
