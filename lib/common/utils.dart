@@ -8,10 +8,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vibration/vibration.dart';
+
+typedef ReceiptRecord = (Receipt, List<ReceiptProduct>);
+
+extension ReceiptRecordExtension on ReceiptRecord {
+  Receipt get receipt => $1;
+
+  List<ReceiptProduct> get products => $2;
+
+  MapEntry<Receipt, List<ReceiptProduct>> toEntry() =>
+      MapEntry(receipt, products);
+}
 
 extension EnumFromName<T extends Enum> on Iterable<T> {
   T? fromName(String? n) => firstWhereOrNull((value) => value.name == n);

@@ -22,18 +22,18 @@ class PageReceiptView extends StatefulWidget
 
 class PageReceiptViewArgs {
   final Period? period;
-  final MapEntry<Receipt, List<ReceiptProduct>>? receiptEntry;
+  final ReceiptRecord? receiptRecord;
 
-  const PageReceiptViewArgs({this.period, this.receiptEntry});
+  const PageReceiptViewArgs({this.period, this.receiptRecord});
 
   bool get isAdd => _check(period != null);
 
-  bool get isEdit => _check(receiptEntry != null);
+  bool get isEdit => _check(receiptRecord != null);
 
   bool _check(bool value) {
     assert(
-      (period == null) != (receiptEntry == null),
-      'PageReceiptViewArgs(period is ${period.runtimeType}, receiptEntry is ${receiptEntry.runtimeType}), 其中一個必須有，另一個必須為空.',
+      (period == null) != (receiptRecord == null),
+      'PageReceiptViewArgs(period is ${period.runtimeType}, receiptRecord is ${receiptRecord.runtimeType}), 其中一個必須有，另一個必須為空.',
     );
     return value;
   }
@@ -43,9 +43,9 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   late final PageReceiptViewArgs _args = widget.getArgs(context)!;
-  late var _products = _args.receiptEntry?.value ?? <ReceiptProduct>[];
+  late var _products = _args.receiptRecord?.products ?? <ReceiptProduct>[];
   late Receipt _receipt =
-      _args.receiptEntry?.key ??
+      _args.receiptRecord?.receipt ??
       Receipt(
         issuedAt: _args.period!.start,
         originStatus: OriginStatus.deviceEntry,
@@ -626,13 +626,11 @@ class _RowExpandedTile extends StatelessWidget {
   final Widget firstWidget;
   final Widget? secondWidget;
   final Widget? thirdWidget;
-  final bool equal;
 
   const _RowExpandedTile({
     required this.firstWidget,
     this.secondWidget,
     this.thirdWidget,
-    this.equal = false,
   });
 
   @override
@@ -640,11 +638,9 @@ class _RowExpandedTile extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(flex: equal ? 1 : 6, child: firstWidget),
-        if (secondWidget != null)
-          Expanded(flex: equal ? 1 : 4, child: secondWidget!),
-        if (thirdWidget != null)
-          Expanded(flex: equal ? 1 : 4, child: thirdWidget!),
+        Expanded(flex: 6, child: firstWidget),
+        if (secondWidget != null) Expanded(flex: 4, child: secondWidget!),
+        if (thirdWidget != null) Expanded(flex: 4, child: thirdWidget!),
       ],
     );
   }

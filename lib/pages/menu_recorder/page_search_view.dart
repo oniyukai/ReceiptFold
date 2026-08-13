@@ -207,7 +207,9 @@ class ReceiptListCard extends StatelessWidget {
             return ListTile(
               visualDensity: VisualDensity.compact,
               onTap: () => MyRouter.of<PageReceiptView>().toPass(
-                PageReceiptViewArgs(receiptEntry: receiptEntry),
+                PageReceiptViewArgs(
+                  receiptRecord: (receiptEntry.key, receiptEntry.value),
+                ),
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),

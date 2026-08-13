@@ -113,10 +113,7 @@ class InvoicePlatformApi {
     );
   }
 
-  MapEntry<Receipt, List<ReceiptProduct>> _parseInvoiceResDetail(
-    String resDetail,
-    Receipt receipt,
-  ) {
+  ReceiptRecord _parseInvoiceResDetail(String resDetail, Receipt receipt) {
     final jsonDetails = jsonDecode(resDetail)['content'];
     final products = <ReceiptProduct>[];
     double totalAmount = 0.0;
@@ -136,7 +133,7 @@ class InvoicePlatformApi {
         ),
       );
     }
-    return MapEntry(receipt.copyWith(totalAmount: totalAmount), products);
+    return (receipt.copyWith(totalAmount: totalAmount), products);
   }
 
   Future<void> fillLoginForm(String? phone, String? password) async {
@@ -235,31 +232,30 @@ class InvoicePlatformApi {
       for (final jsonAward in jsonAwards) {
         final fResData = _fetchInvoiceResData(jsonAward['token']);
         final fResDetail = _fetchInvoiceResDetail(jsonAward['token']);
-        final MapEntry<Receipt, List<ReceiptProduct>> entry =
-            _parseInvoiceResDetail(
-              await fResDetail,
-              _parseInvoiceResData(
-                await fResData,
-                Receipt(
-                  modified: DateTime.now(),
-                  uuid: UuidMixin.v7.generate(),
-                  originStatus: OriginStatus.platformConfirmed,
-                  issuedAt: DateTime.parse(jsonAward['invoiceDate']),
-                  totalAmount:
-                      double.tryParse(jsonAward['totalAmount'] ?? '') ?? 0.0,
-                  invoiceNumber: Utils.noEmptyStr(jsonAward['invNum']),
-                  carrierName: Utils.noEmptyStr(jsonAward['carrierName']),
-                  carrierType: Utils.noEmptyStr(jsonAward['cardCode']),
-                  carrierId2: Utils.noEmptyStr(jsonAward['carrierId2']),
-                  prizeName: Utils.noEmptyStr(jsonAward['prizeName']),
-                  prizeAmount: double.tryParse(jsonAward['prizeAmt'] ?? ''),
-                  invoiceJsonData: await fResData,
-                  invoiceJsonDetail: await fResDetail,
-                  invoiceJsonAward: jsonEncode(jsonAward),
-                ),
-              ),
-            );
-        result[entry.key] = entry.value;
+        final ReceiptRecord receiptRecord = _parseInvoiceResDetail(
+          await fResDetail,
+          _parseInvoiceResData(
+            await fResData,
+            Receipt(
+              modified: DateTime.now(),
+              uuid: UuidMixin.v7.generate(),
+              originStatus: OriginStatus.platformConfirmed,
+              issuedAt: DateTime.parse(jsonAward['invoiceDate']),
+              totalAmount:
+                  double.tryParse(jsonAward['totalAmount'] ?? '') ?? 0.0,
+              invoiceNumber: Utils.noEmptyStr(jsonAward['invNum']),
+              carrierName: Utils.noEmptyStr(jsonAward['carrierName']),
+              carrierType: Utils.noEmptyStr(jsonAward['cardCode']),
+              carrierId2: Utils.noEmptyStr(jsonAward['carrierId2']),
+              prizeName: Utils.noEmptyStr(jsonAward['prizeName']),
+              prizeAmount: double.tryParse(jsonAward['prizeAmt'] ?? ''),
+              invoiceJsonData: await fResData,
+              invoiceJsonDetail: await fResDetail,
+              invoiceJsonAward: jsonEncode(jsonAward),
+            ),
+          ),
+        );
+        result[receiptRecord.receipt] = receiptRecord.products;
       }
     }
     return result;
@@ -329,51 +325,49 @@ class InvoicePlatformApi {
     )) {
       final fResData = _fetchInvoiceResData(jsonInvoice['token']);
       final fResDetail = _fetchInvoiceResDetail(jsonInvoice['token']);
-      final MapEntry<Receipt, List<ReceiptProduct>> entry =
-          _parseInvoiceResDetail(
-            await fResDetail,
-            _parseInvoiceResData(
-              await fResData,
-              Receipt(
-                modified: DateTime.now(),
-                uuid: UuidMixin.v7.generate(),
-                originStatus:
-                    _analyzeOriginStatus(
-                      jsonInvoice['extStatus'],
-                      jsonInvoice['donateMark'],
-                      jsonInvoice['invoiceStrStatus'],
-                    ) ??
-                    OriginStatus.platformUnverified,
-                issuedAt: DateTime.parse(jsonInvoice['invoiceDate']),
-                totalAmount:
-                    double.tryParse(jsonInvoice['totalAmount'].toString()) ??
-                    0.0,
-                // API 特別回傳的是 int
-                invoiceNumber: Utils.noEmptyStr(jsonInvoice['invoiceNumber']),
-                carrierName: Utils.noEmptyStr(jsonInvoice['carrierName']),
-                carrierType: Utils.noEmptyStr(jsonInvoice['carrierType']),
-                carrierId2: Utils.noEmptyStr(jsonInvoice['carrierId2']),
-                sellerName: Utils.noEmptyStr(jsonInvoice['sellerName']),
-                invoiceJsonData: await fResData,
-                invoiceJsonDetail: await fResDetail,
-                invoiceJsonSummary: jsonEncode(jsonInvoice),
-              ),
-            ),
-          );
-      result[entry.key] = entry.value;
+      final ReceiptRecord receiptRecord = _parseInvoiceResDetail(
+        await fResDetail,
+        _parseInvoiceResData(
+          await fResData,
+          Receipt(
+            modified: DateTime.now(),
+            uuid: UuidMixin.v7.generate(),
+            originStatus:
+                _analyzeOriginStatus(
+                  jsonInvoice['extStatus'],
+                  jsonInvoice['donateMark'],
+                  jsonInvoice['invoiceStrStatus'],
+                ) ??
+                OriginStatus.platformUnverified,
+            issuedAt: DateTime.parse(jsonInvoice['invoiceDate']),
+            totalAmount:
+                double.tryParse(jsonInvoice['totalAmount'].toString()) ?? 0.0,
+            // API 特別回傳的是 int
+            invoiceNumber: Utils.noEmptyStr(jsonInvoice['invoiceNumber']),
+            carrierName: Utils.noEmptyStr(jsonInvoice['carrierName']),
+            carrierType: Utils.noEmptyStr(jsonInvoice['carrierType']),
+            carrierId2: Utils.noEmptyStr(jsonInvoice['carrierId2']),
+            sellerName: Utils.noEmptyStr(jsonInvoice['sellerName']),
+            invoiceJsonData: await fResData,
+            invoiceJsonDetail: await fResDetail,
+            invoiceJsonSummary: jsonEncode(jsonInvoice),
+          ),
+        ),
+      );
+      result[receiptRecord.receipt] = receiptRecord.products;
     }
     return result;
   }
 
   Map<Receipt, List<ReceiptProduct>> decodeImportCSV(String csvString) {
-    final invMap = <String, MapEntry<Receipt, List<ReceiptProduct>>>{};
+    final invMap = <String, ReceiptRecord>{};
     for (final csvRow in Csv(fieldDelimiter: '|').decode(csvString)) {
       final List<String> stringList = csvRow.map((e) => e.toString()).toList();
       final String? rowType = stringList.firstOrNull;
       if (rowType == 'M') {
         final String invoiceNumber = stringList[6];
         final String dateString = stringList[3];
-        invMap[invoiceNumber] = MapEntry(
+        invMap[invoiceNumber] = (
           Receipt(
             modified: DateTime.now(),
             uuid: UuidMixin.v7.generate(),
@@ -395,12 +389,12 @@ class InvoicePlatformApi {
         final String invoiceNumber = stringList[1];
         final double amount = double.tryParse(stringList[2]) ?? 0.0;
         final entry = invMap[invoiceNumber];
-        entry?.value.add(
+        entry?.products.add(
           ReceiptProduct(
             modified: DateTime.now(),
             uuid: UuidMixin.v7.generate(),
-            receiptUuid: entry.key.uuid,
-            sequence: entry.value.length + 1,
+            receiptUuid: entry.receipt.uuid,
+            sequence: entry.products.length + 1,
             description: stringList[3],
             unitPrice: amount,
             quantity: 1.0,
@@ -409,6 +403,6 @@ class InvoicePlatformApi {
         );
       }
     }
-    return Map.fromEntries(invMap.values);
+    return Map.fromEntries(invMap.values.map((e) => e.toEntry()));
   }
 }

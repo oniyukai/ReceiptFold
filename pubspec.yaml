@@ -2,7 +2,7 @@ name: receipt_fold
 description: "An expense tracker for tech-savvy users that lets you capture and manage receipts and invoices with offline access and optional cloud sync."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 0.1.0+2
+version: 0.1.1+3
 
 environment:
   sdk: ^3.12.2
@@ -14,7 +14,7 @@ dependencies:
   cupertino_icons: ^1.0.9
   provider: ^6.1.5
   collection: ^1.19.1
-  dynamic_color: ^1.8.1
+  dynamic_color: ^1.9.0
   audioplayers: ^6.8.1
   vibration: ^3.2.0
   fluttertoast: ^10.0.0
@@ -39,7 +39,7 @@ dependencies:
   watashi_locale:
     git:
       url: https://github.com/oniyukai/watashi_locale.git
-      ref: f9c1facefa146ed93cb28fad3b87690399816a5c
+      ref: ^0.1.0
   uuid: ^4.6.0
   drift: ^2.34.3
   drift_flutter: ^0.3.1
@@ -76,6 +76,8 @@ flutter_launcher_icons:
   android: true
   ios: true
   windows:
+    generate: true
+  macos:
     generate: true
   image_path: 'assets/appicon.png'
   adaptive_icon_background: '#ffffff'

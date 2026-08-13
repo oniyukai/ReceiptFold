@@ -34,8 +34,7 @@ class TabScannerView extends StatefulWidget {
   State<TabScannerView> createState() => _TabScannerViewState();
 }
 
-class _TabScannerViewState extends State<TabScannerView>
-    with WidgetsBindingObserver {
+class _TabScannerViewState extends State<TabScannerView> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   InvoicePrizeAward? _invoiceAward;
   InvoicePrize? _invoicePrize;
@@ -50,32 +49,19 @@ class _TabScannerViewState extends State<TabScannerView>
   bool _isProcessingImage = false;
   CustomPaint? _customPaintBarcode;
   CustomPaint? _customPaintText;
-  (Receipt, List<ReceiptProduct>)? _receiptResult;
+  ReceiptRecord? _receiptRecord;
   bool _isSaved = false;
   bool _isProcessingSave = false;
   Future<void> Function()? _latestSaveQueued;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
   void dispose() {
     super.dispose();
-    WidgetsBinding.instance.removeObserver(this);
     _setCameraOpen(false);
     _setOrientationLock(false);
     _barcodeScanner.close();
     _textRecognizer.close();
     _audioPlayer.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _setCameraOpen(true);
-    if (state == AppLifecycleState.inactive) _setCameraOpen(false);
   }
 
   @override
@@ -250,18 +236,18 @@ class _TabScannerViewState extends State<TabScannerView>
 
   void _checkNeedUpdate(RecognizedInvoice? recognizedInvoice) {
     if (recognizedInvoice == null) return;
-    final receiptResult = recognizedInvoice.receiptResult();
-    if (receiptResult == null) return;
-    final (receipt, products) = receiptResult;
-    final lastReceiptResult = _receiptResult;
-    var lastReceipt = lastReceiptResult?.$1;
-    var lastProducts = lastReceiptResult?.$2;
+    final receiptRecord = recognizedInvoice.receiptRecord();
+    if (receiptRecord == null) return;
+    final (receipt, products) = receiptRecord;
+    final lastReceiptRecord = _receiptRecord;
+    var lastReceipt = lastReceiptRecord?.receipt;
+    var lastProducts = lastReceiptRecord?.products;
     if (lastReceipt == null ||
         receipt.invoiceNumber != lastReceipt.invoiceNumber) {
       Utils.deviceVibrate();
       Utils.audioPlayBeep(_audioPlayer);
       unawaited(_refreshPrize(receipt));
-      unawaited(_processUpdate(receiptResult));
+      unawaited(_processUpdate(receiptRecord));
       return;
     }
     if (recognizedInvoice.qrCodeInvoice != null) {
@@ -278,7 +264,7 @@ class _TabScannerViewState extends State<TabScannerView>
         null) {
       lastReceipt = lastReceipt.copyWith(issuedAt: receipt.issuedAt);
     }
-    if (lastReceiptResult?.$1 == lastReceipt) return;
+    if (lastReceiptRecord?.receipt == lastReceipt) return;
     unawaited(_processUpdate((lastReceipt, lastProducts!)));
   }
 
@@ -295,16 +281,14 @@ class _TabScannerViewState extends State<TabScannerView>
     }
   }
 
-  Future<void> _processUpdate([
-    (Receipt, List<ReceiptProduct>)? receiptResult,
-  ]) async {
-    if (receiptResult != null) _receiptResult = receiptResult;
+  Future<void> _processUpdate([ReceiptRecord? receiptRecord]) async {
+    if (receiptRecord != null) _receiptRecord = receiptRecord;
     _isSaved = false;
     if (mounted) setState(() {});
-    if (receiptResult == null || context.readPrefs.get<bool>(.isScanAutoAdd)) {
-      receiptResult ??= _receiptResult;
-      if (receiptResult == null) return;
-      _latestSaveQueued = () => _saveReceipt(receiptResult!);
+    if (receiptRecord == null || context.readPrefs.get<bool>(.isScanAutoAdd)) {
+      receiptRecord ??= _receiptRecord;
+      if (receiptRecord == null) return;
+      _latestSaveQueued = () => _saveReceipt(receiptRecord!);
       _isSaved = true;
       if (mounted) setState(() {});
       if (_isProcessingSave) return;
@@ -321,10 +305,8 @@ class _TabScannerViewState extends State<TabScannerView>
     }
   }
 
-  Future<void> _saveReceipt(
-    (Receipt, List<ReceiptProduct>) receiptResult,
-  ) async {
-    var (receipt, products) = receiptResult;
+  Future<void> _saveReceipt(ReceiptRecord receiptRecord) async {
+    var (receipt, products) = receiptRecord;
     final award = await widget.searcher.getPrizeAward(Period(receipt.issuedAt));
     final prize = award?.checkAll(receipt.invoiceNumber);
     if (prize != null) {
@@ -345,7 +327,7 @@ class _TabScannerViewState extends State<TabScannerView>
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final bool isPortrait = Utils.isPortrait(context);
     final bool isScanAutoAdd = context.readPrefs.get(.isScanAutoAdd);
-    final receipt = _receiptResult?.$1;
+    final receipt = _receiptRecord?.receipt;
     return Flex(
       direction: isPortrait ? Axis.vertical : Axis.horizontal,
       verticalDirection: isPortrait
@@ -406,13 +388,16 @@ class _TabScannerViewState extends State<TabScannerView>
             children: [
               ValueListenableBuilder(
                 valueListenable: _isCameraOpen,
-                child: CameraView(
-                  customPaints: [?_customPaintBarcode, ?_customPaintText],
-                  onImage: _processImage,
-                  errorBuilder: (context, msg) => Center(child: Text(msg)),
-                  initialCameraLensDirection: _cameraLensDirection,
-                  onCameraLensDirectionChanged: (value) =>
-                      _cameraLensDirection = value,
+                child: LifecycleVisibility(
+                  replacement: const Center(child: CircularProgressIndicator()),
+                  child: CameraView(
+                    customPaints: [?_customPaintBarcode, ?_customPaintText],
+                    onImage: _processImage,
+                    errorBuilder: (context, msg) => Center(child: Text(msg)),
+                    initialCameraLensDirection: _cameraLensDirection,
+                    onCameraLensDirectionChanged: (value) =>
+                        _cameraLensDirection = value,
+                  ),
                 ),
                 builder: (context, value, child) => value
                     ? child!

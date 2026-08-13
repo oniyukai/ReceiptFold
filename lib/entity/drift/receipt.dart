@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
+import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
@@ -183,14 +184,20 @@ class ReceiptDao extends SyncableDao {
         .whereNot((id) => productUuids.contains(id))
         .toList();
 
+    receipt = receipt.copyWith(modified: (await oldReceipt)?.modified);
     bool isReceiptModified =
         productDelUuids.isNotEmpty || await oldReceipt != receipt;
     double totalAmount = 0.0;
     for (int i = 0; i < products.length; i += 1) {
       ReceiptProduct product = products[i];
-      product = product.copyWith(receiptUuid: receipt.uuid, sequence: i + 1);
+      final oldProduct = oldProductMap[product.uuid];
+      product = product.copyWith(
+        receiptUuid: receipt.uuid,
+        sequence: i + 1,
+        modified: oldProduct?.modified,
+      );
       totalAmount += product.amount;
-      final isProductModified = oldProductMap[product.uuid] != product;
+      final isProductModified = oldProduct != product;
       if (isProductModified) isReceiptModified = true;
       products[i] = product.copyWith(
         modified: isProductModified ? DateTime.now() : null,
@@ -212,8 +219,11 @@ class ReceiptDao extends SyncableDao {
             (chunk) =>
                 batch.deleteWhere(_products, (tbl) => tbl.uuid.isIn(chunk)),
           );
-      batch.insertAllOnConflictUpdate(_receipts, [receipt]);
-      batch.insertAllOnConflictUpdate(_products, products);
+      batch.insertAllOnConflictUpdate(_receipts, [receipt.toCompanion(false)]);
+      batch.insertAllOnConflictUpdate(
+        _products,
+        products.map((e) => e.toCompanion(false)),
+      );
     });
     return receipt;
   }
@@ -227,13 +237,15 @@ class ReceiptDao extends SyncableDao {
     required OriginStatus scopeEnd,
   }) async {
     assert(scopeStart.sqlValue <= scopeEnd.sqlValue);
-    Map<String, MapEntry<Receipt, List<ReceiptProduct>>> pairMapToUnique(
+    Map<String, ReceiptRecord> pairMapToUnique(
       Map<Receipt, List<ReceiptProduct>> map,
     ) => {
       for (final pair in map.entries)
         if ((pair.key.invoiceNumber?.length ?? 0) >= 3)
-          '${Period(pair.key.issuedAt).invQuery}${pair.key.invoiceNumber}':
-              pair,
+          '${Period(pair.key.issuedAt).invQuery}${pair.key.invoiceNumber}': (
+            pair.key,
+            pair.value,
+          ),
     };
 
     final uniquePairMap = pairMapToUnique(pairMap);
@@ -247,7 +259,7 @@ class ReceiptDao extends SyncableDao {
                 order: OrderingMode.asc,
                 conditionals: [
                   _receipts.invoiceNumber.isIn(
-                    chunk.map((e) => e.key.invoiceNumber!),
+                    chunk.map((e) => e.receipt.invoiceNumber!),
                   ),
                   if (scopeStart != OriginStatus.sorted.first)
                     _receipts.originStatus.isBiggerOrEqualValue(
@@ -267,10 +279,10 @@ class ReceiptDao extends SyncableDao {
     final productDelUuids = <String>[];
     uniquePairMap.updateAll((invKey, entry) {
       final oldProducts =
-          oldUniquePairMap[invKey]?.value ?? const <ReceiptProduct>[];
-      final oldReceipt = oldUniquePairMap[invKey]?.key;
-      final products = entry.value;
-      Receipt receipt = entry.key.copyWith(
+          oldUniquePairMap[invKey]?.products ?? const <ReceiptProduct>[];
+      final oldReceipt = oldUniquePairMap[invKey]?.receipt;
+      final products = entry.products;
+      Receipt receipt = entry.receipt.copyWith(
         uuid: oldReceipt?.uuid,
         modified: oldReceipt?.modified,
       );
@@ -300,7 +312,7 @@ class ReceiptDao extends SyncableDao {
             .whereNotIndexed((index, _) => index < products.length)
             .map((e) => e.uuid),
       );
-      return MapEntry(
+      return (
         receipt.copyWith(
           modified: isReceiptModified ? DateTime.now() : null,
           totalAmount: totalAmount,
@@ -322,12 +334,12 @@ class ReceiptDao extends SyncableDao {
           );
       batch.insertAllOnConflictUpdate(
         _receipts,
-        uniquePairMap.values.map((p) => p.key.toCompanion(true)),
+        uniquePairMap.values.map((p) => p.receipt.toCompanion(true)),
       );
       batch.insertAllOnConflictUpdate(
         _products,
         uniquePairMap.values
-            .map((p) => p.value)
+            .map((p) => p.products)
             .expand((ls) => ls)
             .map((e) => e.toCompanion(true)),
       );
@@ -551,6 +563,7 @@ class ReceiptDao extends SyncableDao {
             (chunk) =>
                 (otherDb.receipts.select()
                       ..where((tbl) => tbl.uuid.isIn(chunk)))
+                    .map((e) => e.toCompanion(false))
                     .get(),
           ),
     ).then((value) => value.expand((ls) => ls));
@@ -561,6 +574,7 @@ class ReceiptDao extends SyncableDao {
             (chunk) =>
                 (otherDb.receiptProducts.select()
                       ..where((tbl) => tbl.uuid.isIn(chunk)))
+                    .map((e) => e.toCompanion(false))
                     .get(),
           ),
     ).then((value) => value.expand((ls) => ls));

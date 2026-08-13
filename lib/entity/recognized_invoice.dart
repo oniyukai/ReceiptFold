@@ -22,7 +22,7 @@ class RecognizedInvoice {
   static final rHHmmSS = RegExp(r'^(\d{2}):(\d{2}):(\d{2})$');
   static final rHHmm = RegExp(r'^(\d{2}):(\d{2})$');
 
-  (Receipt, List<ReceiptProduct>)? receiptResult() {
+  ReceiptRecord? receiptRecord() {
     final now = DateTime.now();
     final invoice = qrCodeInvoice;
     final products = <ReceiptProduct>[];
