@@ -256,7 +256,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
                     ),
                     MyMenuItem(
                       text: DictKey.recorderMenuReturnToday.s,
-                      iconData: Icons.arrow_back,
+                      iconData: Icons.replay,
                       onTap: () =>
                           _pageController.jumpToPage(_initialPageIndex),
                     ),
