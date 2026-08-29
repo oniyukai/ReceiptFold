@@ -7,13 +7,13 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
-import 'package:receipt_fold/modules/log_service.dart';
+import 'package:receipt_fold/services/log_service.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
 typedef Download = Future<File?> Function();
 typedef Upload = Future<File> Function(File);
 
-abstract final class DriftServices {
+abstract final class DriftService {
   static late final MyDriftDatabase appDb;
 
   static MyDriftDatabase _openFileDb(File file) => MyDriftDatabase(
@@ -24,7 +24,7 @@ abstract final class DriftServices {
   );
 
   static Future<File> pushForce(Upload upload) async {
-    LogService('pushForce...', classType: DriftServices).d();
+    LogService('pushForce...', classType: DriftService).d();
     final Directory tempDir = await getTemporaryDirectory();
     final File appDbCopyFile = File(
       p.join(tempDir.path, 'pushForce_${UnitUtils.unixRadix36}.sqlite'),
@@ -43,7 +43,7 @@ abstract final class DriftServices {
   }
 
   static Future<File> pushMerge(Download download, Upload upload) async {
-    LogService('pushMerge...', classType: DriftServices).d();
+    LogService('pushMerge...', classType: DriftService).d();
     final File? downloadFile = await download();
     if (downloadFile == null || !await downloadFile.exists()) {
       return await pushForce(upload);
@@ -60,12 +60,12 @@ abstract final class DriftServices {
   }
 
   static Future<void> pullForce(Download download) async {
-    LogService('pullForce...', classType: DriftServices).d();
+    LogService('pullForce...', classType: DriftService).d();
     final File? downloadFile = await download();
     if (downloadFile == null || !await downloadFile.exists()) {
       LogService(
         'downloadFile(${downloadFile?.path}) does not exists.',
-        classType: DriftServices,
+        classType: DriftService,
       ).d();
       return;
     }
@@ -84,12 +84,12 @@ abstract final class DriftServices {
   }
 
   static Future<void> pullMerge(Download download) async {
-    LogService('pullMerge...', classType: DriftServices).d();
+    LogService('pullMerge...', classType: DriftService).d();
     final File? downloadFile = await download();
     if (downloadFile == null || !await downloadFile.exists()) {
       LogService(
         'downloadFile(${downloadFile?.path}) does not exists.',
-        classType: DriftServices,
+        classType: DriftService,
       ).d();
       return;
     }
@@ -102,7 +102,7 @@ abstract final class DriftServices {
   }
 
   static Future<void> syncMerge(Download download, Upload upload) async {
-    LogService('syncMerge...', classType: DriftServices).d();
+    LogService('syncMerge...', classType: DriftService).d();
     final File downloadFile = await pushMerge(download, upload);
     await pullMerge(() => SynchronousFuture(downloadFile));
   }
@@ -112,7 +112,7 @@ abstract final class DriftServices {
 abstract class TransportAdapter {
   const TransportAdapter();
 
-  /// 產生的 [File] 應要能夠被刪除的暫存檔, 直接給原檔路徑給 [DriftServices] 會被刪.
+  /// 產生的 [File] 應要能夠被刪除的暫存檔, 直接給原檔路徑給 [DriftService] 會被刪.
   ///
   /// 請在錯誤時 throw 中斷, 僅當對應位置無檔案時為 null 表示.
   Future<File?> download();

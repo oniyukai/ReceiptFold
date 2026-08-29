@@ -1,16 +1,16 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' show Value;
-import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
 import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
+import 'package:receipt_fold/services/drift_service.dart';
 
 class PageReceiptView extends StatefulWidget
     with RouterBridge<PageReceiptViewArgs> {
@@ -141,7 +141,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
           onPressed: () async {
             Navigator.pop(context);
             Navigator.pop(context);
-            await DriftServices.appDb.receiptDao.remove(_receipt);
+            await DriftService.appDb.receiptDao.remove(_receipt);
           },
         ),
       ],
@@ -151,7 +151,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   Future<void> _checkIconPressed() async {
     assert(_args.isAdd);
     Navigator.pop(context);
-    await DriftServices.appDb.receiptDao.upsert(_receipt, _products);
+    await DriftService.appDb.receiptDao.upsert(_receipt, _products);
   }
 
   Future<void> _selectDateTime() async {
@@ -371,7 +371,7 @@ class _PageReceiptViewState extends State<PageReceiptView> {
   // < ---------- 後方函式
   Future<void> _updateInDatabase() async {
     if (_args.isEdit) {
-      _receipt = await DriftServices.appDb.receiptDao.upsert(
+      _receipt = await DriftService.appDb.receiptDao.upsert(
         _receipt,
         _products,
       );

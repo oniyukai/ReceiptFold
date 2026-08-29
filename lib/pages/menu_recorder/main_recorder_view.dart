@@ -1,20 +1,20 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart' show Value;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_search_form.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_search_view.dart';
 import 'package:receipt_fold/pages/widget/my_menu_button.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
+import 'package:receipt_fold/services/drift_service.dart';
+import 'package:receipt_fold/services/invoice_prize_searcher.dart';
 
 /// 快取半徑，表示當前頁面左右各快取多少頁
 const int _cacheRadius = 1;
@@ -88,39 +88,37 @@ class MainRecorderViewModel extends ChangeNotifier {
     }
   }
 
-  PeriodData _loadReceiptsByIndex(int index) => _periodDataCache.putIfAbsent(
-    index,
-    () {
-      final periodData = PeriodData(_getInvoicePeriodByIndex(index));
-      periodData._receiptSubscription = DriftServices.appDb.receiptDao
-          .queryStream(
-            issuedAtStart: periodData.period.start,
-            issuedAtEnd: periodData.period.end,
-          )
-          .listen((receiptEntries) {
-            if (!_periodDataCache.containsKey(index)) {
-              periodData.dispose();
-              return;
-            }
-            periodData.oddMonthReceiptMap.clear();
-            periodData.evenMonthReceiptMap.clear();
-            periodData.oddMonthTotalAmount = 0;
-            periodData.evenMonthTotalAmount = 0;
-            for (final entry in receiptEntries.entries) {
-              if (entry.key.issuedAt.month % 2 != 0) {
-                periodData.oddMonthReceiptMap[entry.key] = entry.value;
-                periodData.oddMonthTotalAmount += entry.key.totalAmount;
-              } else {
-                periodData.evenMonthReceiptMap[entry.key] = entry.value;
-                periodData.evenMonthTotalAmount += entry.key.totalAmount;
+  PeriodData _loadReceiptsByIndex(int index) =>
+      _periodDataCache.putIfAbsent(index, () {
+        final periodData = PeriodData(_getInvoicePeriodByIndex(index));
+        periodData._receiptSubscription = DriftService.appDb.receiptDao
+            .queryStream(
+              issuedAtStart: periodData.period.start,
+              issuedAtEnd: periodData.period.end,
+            )
+            .listen((receiptEntries) {
+              if (!_periodDataCache.containsKey(index)) {
+                periodData.dispose();
+                return;
               }
-            }
-            periodData.isLoading = false;
-            if (index == _currentPageIndex) notifyListeners();
-          });
-      return periodData;
-    },
-  );
+              periodData.oddMonthReceiptMap.clear();
+              periodData.evenMonthReceiptMap.clear();
+              periodData.oddMonthTotalAmount = 0;
+              periodData.evenMonthTotalAmount = 0;
+              for (final entry in receiptEntries.entries) {
+                if (entry.key.issuedAt.month % 2 != 0) {
+                  periodData.oddMonthReceiptMap[entry.key] = entry.value;
+                  periodData.oddMonthTotalAmount += entry.key.totalAmount;
+                } else {
+                  periodData.evenMonthReceiptMap[entry.key] = entry.value;
+                  periodData.evenMonthTotalAmount += entry.key.totalAmount;
+                }
+              }
+              periodData.isLoading = false;
+              if (index == _currentPageIndex) notifyListeners();
+            });
+        return periodData;
+      });
 
   /// 根據 PageView 的索引計算對應的 InvoicePeriod
   Period _getInvoicePeriodByIndex(int index) {
@@ -165,7 +163,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
     period = Period.inv(
       '${(period.start.year - 1911).toString().padLeft(3, '0')}${period.start.month.toString().padLeft(2, '0')}',
     );
-    final receiptMap = await DriftServices.appDb.receiptDao
+    final receiptMap = await DriftService.appDb.receiptDao
         .queryStream(issuedAtStart: period.invStart, issuedAtEnd: period.invEnd)
         .first;
     if (receiptMap.isEmpty) {
@@ -197,7 +195,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
     }
     await Future.wait(
       updateReceiptMap.entries.map(
-        (e) => DriftServices.appDb.receiptDao.upsert(e.key, e.value),
+        (e) => DriftService.appDb.receiptDao.upsert(e.key, e.value),
       ),
     );
     await OverlayShow.dialog(

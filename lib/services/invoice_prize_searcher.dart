@@ -4,8 +4,8 @@ import 'package:html/parser.dart' show parse;
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/entity/period.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/modules/log_service.dart';
+import 'package:receipt_fold/services/drift_service.dart';
+import 'package:receipt_fold/services/log_service.dart';
 
 class InvoicePrizeSearcher {
   static Map<String, InvoicePrizeAward>? _awardMapCache;
@@ -45,7 +45,7 @@ class InvoicePrizeSearcher {
         _awardMapCache ??
         <String, InvoicePrizeAward>{
           for (final award
-              in await DriftServices.appDb.keyValueStoreDao
+              in await DriftService.appDb.keyValueStoreDao
                   .getExistDefault<List<InvoicePrizeAward>>(
                     .invoicePrizeAwardList,
                   ))
@@ -88,7 +88,7 @@ class InvoicePrizeSearcher {
         lastWebQueryTime: UnitUtils.nowUnixTime,
         prizes: prizes,
       );
-      await DriftServices.appDb.keyValueStoreDao.upsert(
+      await DriftService.appDb.keyValueStoreDao.upsert(
         .invoicePrizeAwardList,
         awardMap.values.toList(),
       );

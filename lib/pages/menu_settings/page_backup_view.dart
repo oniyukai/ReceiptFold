@@ -3,21 +3,21 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:logger/logger.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/modules/log_service.dart';
-import 'package:receipt_fold/modules/secure_prefs.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
+import 'package:receipt_fold/services/drift_service.dart';
+import 'package:receipt_fold/services/log_service.dart';
+import 'package:receipt_fold/services/secure_prefs.dart';
 
 enum DriftDispatcher {
   pushForce,
@@ -69,17 +69,17 @@ enum DriftDispatcher {
   }
 
   Future<void> _execute(TransportAdapter adapter) => switch (this) {
-    pushForce => DriftServices.pushForce(adapter.upload).then((f) async {
+    pushForce => DriftService.pushForce(adapter.upload).then((f) async {
       if (await f.exists()) await f.delete();
     }),
-    push => DriftServices.pushMerge(adapter.download, adapter.upload).then((
+    push => DriftService.pushMerge(adapter.download, adapter.upload).then((
       f,
     ) async {
       if (await f.exists()) await f.delete();
     }),
-    pullForce => DriftServices.pullForce(adapter.download),
-    pull => DriftServices.pullMerge(adapter.download),
-    sync => DriftServices.syncMerge(adapter.download, adapter.upload),
+    pullForce => DriftService.pullForce(adapter.download),
+    pull => DriftService.pullMerge(adapter.download),
+    sync => DriftService.syncMerge(adapter.download, adapter.upload),
   };
 
   Future<void> executeWebDAV() async {

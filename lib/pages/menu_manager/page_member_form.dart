@@ -1,15 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/gadget/gadget_member.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
+import 'package:receipt_fold/services/drift_service.dart';
 
 class PageMemberForm extends StatefulWidget
     with RouterBridge<PageMemberFormArgs> {
@@ -52,7 +52,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
             Navigator.pop(context);
             Navigator.pop(context);
             _args!.items.removeAt(_args.index);
-            await DriftServices.appDb.keyValueStoreDao.upsert(
+            await DriftService.appDb.keyValueStoreDao.upsert(
               .memberBarcodeList,
               _args.items,
             );
@@ -73,7 +73,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
     );
     late final List<MemberBarcodeItem> items;
     if (_args == null) {
-      items = await DriftServices.appDb.keyValueStoreDao.getExistDefault(
+      items = await DriftService.appDb.keyValueStoreDao.getExistDefault(
         .memberBarcodeList,
       );
       items.insert(
@@ -94,10 +94,7 @@ class _PageMemberFormState extends State<PageMemberForm> {
       );
       items = _args.items;
     }
-    await DriftServices.appDb.keyValueStoreDao.upsert(
-      .memberBarcodeList,
-      items,
-    );
+    await DriftService.appDb.keyValueStoreDao.upsert(.memberBarcodeList, items);
     await updateHomeScreenMember();
   }
 

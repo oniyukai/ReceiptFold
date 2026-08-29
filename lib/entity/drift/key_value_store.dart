@@ -7,7 +7,7 @@ import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
-import 'package:receipt_fold/modules/log_service.dart';
+import 'package:receipt_fold/services/log_service.dart';
 
 class KeyValueStores extends Table with ModifiedMixin {
   late final key = text()();
@@ -95,34 +95,31 @@ enum KVStoreKey {
 
   static final _converterCache = <KVStoreKey, KVConverter>{};
 
-  KVConverter<R> _getConverter<R>() =>
-      _converterCache.putIfAbsent(this, () {
-            final converter = switch (this) {
-              mobileBarcodeList => KVConverter.listCustom<MobileBarcodeItem>(
-                jsonEncode,
-                MobileBarcodeItem.fromString,
-                const [],
-              ),
-              memberBarcodeList => KVConverter.listCustom<MemberBarcodeItem>(
-                jsonEncode,
-                MemberBarcodeItem.fromString,
-                const [],
-              ),
-              invoicePrizeAwardList =>
-                KVConverter.listCustom<InvoicePrizeAward>(
-                  jsonEncode,
-                  InvoicePrizeAward.fromString,
-                  const [],
-                ),
-              invoiceCarrierList => KVConverter.listCustom<InvoiceCarrier>(
-                jsonEncode,
-                InvoiceCarrier.fromString,
-                const [],
-              ),
-            };
-            return converter;
-          })
-          as KVConverter<R>;
+  KVConverter<R> _getConverter<R>() => _converterCache.putIfAbsent(this, () {
+    final converter = switch (this) {
+      mobileBarcodeList => KVConverter.listCustom<MobileBarcodeItem>(
+        jsonEncode,
+        MobileBarcodeItem.fromString,
+        const [],
+      ),
+      memberBarcodeList => KVConverter.listCustom<MemberBarcodeItem>(
+        jsonEncode,
+        MemberBarcodeItem.fromString,
+        const [],
+      ),
+      invoicePrizeAwardList => KVConverter.listCustom<InvoicePrizeAward>(
+        jsonEncode,
+        InvoicePrizeAward.fromString,
+        const [],
+      ),
+      invoiceCarrierList => KVConverter.listCustom<InvoiceCarrier>(
+        jsonEncode,
+        InvoiceCarrier.fromString,
+        const [],
+      ),
+    };
+    return converter;
+  }) as KVConverter<R>;
 }
 
 class KeyValueStoreDao extends SyncableDao {

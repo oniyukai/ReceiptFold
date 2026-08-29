@@ -5,24 +5,24 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:logger/logger.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/common/prefs.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/modules/invoice_platform_api.dart';
-import 'package:receipt_fold/modules/log_service.dart';
-import 'package:receipt_fold/modules/secure_prefs.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/menu_settings/page_backup_view.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
+import 'package:receipt_fold/services/drift_service.dart';
+import 'package:receipt_fold/services/invoice_platform_api.dart';
+import 'package:receipt_fold/services/log_service.dart';
+import 'package:receipt_fold/services/secure_prefs.dart';
+import 'package:webview_all/webview_all.dart';
 
 class PagePlatformView extends StatefulWidget {
   const PagePlatformView({super.key});
@@ -35,7 +35,6 @@ class _PagePlatformViewState extends State<PagePlatformView> {
   final ScrollController _scrollController = ScrollController();
   final ScrollController _logScrollController = ScrollController();
   final InvoicePlatformApi _api = InvoicePlatformApi();
-  final InAppWebViewKeepAlive _inAppWebViewKeepAlive = InAppWebViewKeepAlive();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
   final ValueNotifier<bool> _singleActionLocked = ValueNotifier(false);
   final _logs = <String>[];
@@ -51,6 +50,16 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         .listen((data) {
           setState(() => _logs.insert(0, data.logString));
         });
+    unawaited(
+      _api.init(
+        onAuthCaptured: () {
+          if (_apiReady && mounted) setState(() {});
+        },
+        onPageFinished: () {
+          Timer(const Duration(seconds: 2), _pressFillAccount);
+        },
+      ),
+    );
   }
 
   @override
@@ -150,7 +159,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     }
     _singleActionLocked.value = true;
     try {
-      final FilePickerResult? result = await FilePicker.pickFiles(
+      final PlatformFile? result = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: const ['csv'],
       );
@@ -158,8 +167,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         Utils.showToast(DictKey.commonUiCancel.s);
         return;
       }
-      final File file = File(result.files.single.path!);
-      await DriftServices.appDb.receiptDao.upsertMany(
+      final File file = File(result.path!);
+      await DriftService.appDb.receiptDao.upsertMany(
         pairMap: _api.decodeImportCSV(await file.readAsString()),
         scopeStart: OriginStatus.deviceImport,
         scopeEnd: OriginStatus.deviceImport,
@@ -186,7 +195,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       final carriersMap = <String, InvoiceCarrier>{
         for (final carrier in carriers) carrier.carrierId2: carrier,
       };
-      final List<InvoiceCarrier> oldCarriers = await DriftServices
+      final List<InvoiceCarrier> oldCarriers = await DriftService
           .appDb
           .keyValueStoreDao
           .getExistDefault(.invoiceCarrierList);
@@ -205,7 +214,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
           oldCarrier.status = CarrierStatus.platformExpired;
         }
       }
-      await DriftServices.appDb.keyValueStoreDao.upsert(.invoiceCarrierList, [
+      await DriftService.appDb.keyValueStoreDao.upsert(.invoiceCarrierList, [
         ...carriersMap.values,
         ...oldCarriers,
       ]);
@@ -235,7 +244,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       if (receiptMap.entries.any((e) => e.key.invoiceNumber == null)) {
         throw Exception('invoiceNumber were found to be null.');
       }
-      await DriftServices.appDb.receiptDao.upsertMany(
+      await DriftService.appDb.receiptDao.upsertMany(
         pairMap: receiptMap,
         scopeStart: OriginStatus.platformUnverified,
         scopeEnd: OriginStatus.platformExpired,
@@ -268,7 +277,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
       if (receiptMap.entries.any((e) => e.key.invoiceNumber == null)) {
         throw Exception('invoiceNumber were found to be null.');
       }
-      await DriftServices.appDb.receiptDao.upsertMany(
+      await DriftService.appDb.receiptDao.upsertMany(
         pairMap: receiptMap,
         scopeStart: OriginStatus.platformUnverified,
         scopeEnd: OriginStatus.platformExpired,
@@ -409,26 +418,12 @@ class _PagePlatformViewState extends State<PagePlatformView> {
                     minWidth: double.infinity,
                     maxHeight: 400.0,
                   ),
-                  child: InAppWebView(
-                    keepAlive: _inAppWebViewKeepAlive,
+                  child: WebViewWidget(
+                    controller: _api.controller,
                     gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
                       Factory<OneSequenceGestureRecognizer>(
                         () => EagerGestureRecognizer(),
                       ),
-                    },
-                    initialUrlRequest: URLRequest(
-                      url: WebUri(
-                        'https://www.einvoice.nat.gov.tw/accounts/login/mw',
-                      ),
-                    ),
-                    onWebViewCreated: (controller) {
-                      setState(() => _api.controller = controller);
-                      Timer(const Duration(seconds: 2), _pressFillAccount);
-                    },
-                    shouldInterceptRequest: (controller, request) async {
-                      _api.auth = request.headers?['Authorization'];
-                      if (_api.isInitialized) setState(() {});
-                      return null;
                     },
                   ),
                 ),

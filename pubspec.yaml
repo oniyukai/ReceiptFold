@@ -5,16 +5,16 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.1.1+3
 
 environment:
-  sdk: ^3.12.2
+  sdk: ^3.13.1
 
 dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.9
+  material_ui: ^1.1.0
   provider: ^6.1.5
   collection: ^1.19.1
-  dynamic_color: ^1.9.0
+  dynamic_color: ^2.1.0
   audioplayers: ^6.8.1
   vibration: ^3.2.0
   fluttertoast: ^10.0.0
@@ -26,10 +26,10 @@ dependencies:
   flutter_vector_icons: ^2.0.0
   screen_brightness: ^2.1.11
   flutter_cache_manager: ^3.4.2
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.0
   barcode: ^2.2.9
   flutter_svg: ^2.3.0
-  flutter_form_builder: ^10.3.0+2
+  flutter_form_builder: ^11.0.0
   form_builder_validators: ^11.3.0
   home_widget: ^0.9.3
   path: ^1.9.1
@@ -39,30 +39,30 @@ dependencies:
   watashi_locale:
     git:
       url: https://github.com/oniyukai/watashi_locale.git
-      ref: ^0.1.0
+      ref: main
   uuid: ^4.6.0
   drift: ^2.34.3
   drift_flutter: ^0.3.1
   logger: ^2.7.0
   webdav_client: ^1.2.2
-  file_picker: ^12.0.0-beta.7
-  flutter_inappwebview: ^6.1.5
+  file_picker: ^12.1.2
   csv: ^8.0.0
   native_device_orientation: ^2.1.1
   camera: ^0.12.0+2
-  camera_android: ^0.10.11
-  google_mlkit_commons: ^0.12.0
-  google_mlkit_barcode_scanning: ^0.15.0
-  google_mlkit_text_recognition: ^0.16.0
+  camera_android: ^0.10.11+1
+  google_mlkit_commons: ^0.13.0
+  google_mlkit_barcode_scanning: ^0.16.1
+  google_mlkit_text_recognition: ^0.17.1
   enough_convert: ^1.6.0
   flutter_single_instance: ^1.7.0
+  webview_all: ^1.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  build_runner: ^2.15.1
+  build_runner: ^2.16.0
   flutter_launcher_icons: ^0.14.4
   drift_dev: any
 

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/app_theme.dart';
 import 'package:receipt_fold/common/prefs.dart';

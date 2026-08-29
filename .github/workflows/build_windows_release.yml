@@ -1,4 +1,4 @@
-name: Build ReceiptFold Windows Release
+name: Build Windows Release
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          cache: true
+#          cache: true
 
       - name: Flutter version
         run: flutter --version

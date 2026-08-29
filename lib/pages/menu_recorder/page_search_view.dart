@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart' show Expression;
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_receipt_view.dart';
+import 'package:receipt_fold/services/drift_service.dart';
 
 const int _maxSearchLimit = 100;
 
@@ -54,7 +54,7 @@ class _PageSearchViewState extends State<PageSearchView> {
       _errorMessage = null;
     });
     await _subscription?.cancel();
-    _subscription = DriftServices.appDb.receiptDao
+    _subscription = DriftService.appDb.receiptDao
         .queryStream(
           conditionals: _conditionals,
           limit: _maxSearchLimit,
@@ -199,9 +199,8 @@ class ReceiptListCard extends StatelessWidget {
           ),
           ...receiptMap.entries.map((receiptEntry) {
             final DateTime dateTime = receiptEntry.key.issuedAt;
-            final String shortWeekday = DateFormat.E(
-              DictKey.languageTag,
-            ).format(dateTime);
+            final String shortWeekday = DateFormat.E(DictKey.languageTag)
+                .format(dateTime);
             final textTheme = Theme.of(context).textTheme;
             final colorScheme = Theme.of(context).colorScheme;
             return ListTile(
