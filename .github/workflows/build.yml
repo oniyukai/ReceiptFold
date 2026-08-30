@@ -1,0 +1,112 @@
+name: Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev liblzma-dev \
+            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+            libsecret-1-0 libsecret-1-dev \
+            libwebkit2gtk-4.1-dev \
+            p7zip-full wget locate
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install Fastforge
+        run: dart pub global activate fastforge
+
+      - name: Install AppImage tool
+        run: |
+          wget -O appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          sudo mv appimagetool /usr/local/bin/appimagetool
+
+      - name: Build Linux Release
+        run: flutter build linux --release
+
+      - name: Fastforge Build AppImage
+        run: |
+          ~/.pub-cache/bin/fastforge package \
+            --platform linux \
+            --targets appimage
+
+      - name: Fastforge Build ZIP
+        run: |
+          ~/.pub-cache/bin/fastforge package \
+            --platform linux \
+            --targets zip
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            dist/**
+            build/**
+          if-no-files-found: warn
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install Fastforge
+        run: dart pub global activate fastforge
+
+      - name: Build Windows Release
+        run: flutter build windows --release
+
+      - name: Fastforge Build EXE
+        run: |
+          $env:Path += ";$env:APPDATA\Pub\Cache\bin"
+          fastforge package --platform windows --targets exe
+
+      - name: Fastforge Build ZIP
+        run: |
+          $env:Path += ";$env:APPDATA\Pub\Cache\bin"
+          fastforge package --platform windows --targets zip
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            dist/**
+            build/**
+          if-no-files-found: warn

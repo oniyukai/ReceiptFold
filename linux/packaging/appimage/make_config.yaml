@@ -1,0 +1,16 @@
+display_name: ReceiptFold
+
+icon: assets/appicon.png
+
+keywords:
+  - ReceiptFold
+  - Application
+
+generic_name: A bookkeeping tool that combines receipts, invoices and membership cards.
+
+categories:
+  - Utility
+
+startup_notify: true
+
+include: []

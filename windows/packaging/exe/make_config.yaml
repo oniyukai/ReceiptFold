@@ -1,0 +1,10 @@
+app_id: e2c93e6f-a9c0-4bb2-945b-dcef126d2bee
+publisher: com.receipt.fold
+publisher_url: https://github.com/oniyukai/ReceiptFold
+display_name: ReceiptFold
+create_desktop_icon: true
+
+locales:
+  - zh
+  - en
+  - ja

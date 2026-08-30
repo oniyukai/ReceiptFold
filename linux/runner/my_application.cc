@@ -136,6 +136,13 @@ static void my_application_class_init(MyApplicationClass* klass) {
 static void my_application_init(MyApplication* self) {}
 
 MyApplication* my_application_new() {
+  // WebKitGTK's DMABuf renderer (GPU-process accelerated compositing) fails to
+  // import a DMA-BUF as an EGL image on some multi-GPU/PRIME setups (e.g.
+  // Intel Arc + NVIDIA), leaving the WebView blank and printing
+  // "Failed to create EGL image from DMABuf of size ...". Fall back to the
+  // traditional GL renderer, which WebKitGTK enables via this env var.
+  g_setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", TRUE);
+
   // Set the program name to the application ID, which helps various systems
   // like GTK and desktop environments map this running application to its
   // corresponding .desktop file. This ensures better integration by allowing
