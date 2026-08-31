@@ -4,6 +4,7 @@ class ExpandableCard extends StatefulWidget {
   final String text;
   final IconData? iconData;
   final bool? initialExpanded;
+  final Clip? clipBehavior;
   final Widget? collapsedChild;
   final Widget? expandedChild;
 
@@ -12,6 +13,7 @@ class ExpandableCard extends StatefulWidget {
     required this.text,
     this.iconData,
     this.initialExpanded = true,
+    this.clipBehavior,
     this.collapsedChild,
     this.expandedChild,
   });
@@ -70,6 +72,7 @@ class _ExpandableCardState extends State<ExpandableCard>
   @override
   Widget build(BuildContext context) {
     return Card(
+      clipBehavior: widget.clipBehavior,
       child: Column(
         children: [
           ListTile(

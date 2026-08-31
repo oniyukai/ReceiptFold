@@ -54,7 +54,7 @@ enum DriftDispatcher {
         );
       } catch (e) {
         LogService(
-          'connectWebDAV failed.',
+          '$WebDAVAdapter.connect(…)',
           errorObject: e,
           classType: DriftDispatcher,
         ).e();

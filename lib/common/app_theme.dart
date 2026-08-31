@@ -99,6 +99,7 @@ abstract final class MyAppTheme {
       inputDecorationTheme: const InputDecorationTheme(
         border: OutlineInputBorder(),
       ),
+      cardTheme: const CardThemeData(clipBehavior: Clip.antiAlias),
     );
   }
 }

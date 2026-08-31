@@ -26,9 +26,7 @@ jobs:
             libsecret-1-0 libsecret-1-dev \
             libwebkit2gtk-4.1-dev \
             p7zip-full wget locate
-
-      - name: Enable Linux desktop
-        run: flutter config --enable-linux-desktop
+          sudo updatedb
 
       - name: Install dependencies
         run: flutter pub get
@@ -42,9 +40,6 @@ jobs:
             https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
           sudo mv appimagetool /usr/local/bin/appimagetool
-
-      - name: Build Linux Release
-        run: flutter build linux --release
 
       - name: Fastforge Build AppImage
         run: |
@@ -64,7 +59,6 @@ jobs:
           name: linux-build
           path: |
             dist/**
-            build/**
           if-no-files-found: warn
 
   build-windows:
@@ -80,17 +74,11 @@ jobs:
         with:
           channel: stable
 
-      - name: Enable Windows desktop
-        run: flutter config --enable-windows-desktop
-
       - name: Install dependencies
         run: flutter pub get
 
       - name: Install Fastforge
         run: dart pub global activate fastforge
-
-      - name: Build Windows Release
-        run: flutter build windows --release
 
       - name: Fastforge Build EXE
         run: |
@@ -108,5 +96,46 @@ jobs:
           name: windows-build
           path: |
             dist/**
-            build/**
           if-no-files-found: warn
+
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev liblzma-dev
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --split-per-abi
+
+      - name: Sign APKs
+        uses: ilharp/sign-android-release@v2
+        id: sign_app
+        with:
+          releaseDir: build/app/outputs/flutter-apk
+          signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
+          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload signed APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apks
+          path: |
+            build/app/outputs/flutter-apk/**

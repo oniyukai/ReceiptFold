@@ -68,13 +68,13 @@ class InvoicePrizeSearcher {
       );
     } on DioException catch (e) {
       LogService(
-        '_requestPrizeAward $DioException.',
+        '_requestPrizeAward($invQuery)',
         errorObject: e,
         instance: this,
       ).d();
     } catch (e) {
       LogService(
-        '_requestPrizeAward $Exception.',
+        '_requestPrizeAward($invQuery)',
         errorObject: e,
         instance: this,
       ).w();

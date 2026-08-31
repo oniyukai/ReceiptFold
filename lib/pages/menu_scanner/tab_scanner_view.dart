@@ -21,6 +21,7 @@ import 'package:receipt_fold/pages/menu_nav_bar.dart';
 import 'package:receipt_fold/pages/menu_scanner/tab_scanner_widgets.dart';
 import 'package:receipt_fold/services/drift_service.dart';
 import 'package:receipt_fold/services/invoice_prize_searcher.dart';
+import 'package:receipt_fold/services/log_service.dart';
 
 /// ASCII "*"
 const int _asterisk = 0x2A;
@@ -130,6 +131,14 @@ class _TabScannerViewState extends State<TabScannerView> {
           ),
         );
       }
+    } catch (e) {
+      if (context.readPrefs.get(.isAppDeveloperMode)) {
+        LogService(
+          '_processImage($InputImage)',
+          errorObject: e,
+          instance: this,
+        ).w();
+      }
     } finally {
       _isProcessingImage = false;
       if (mounted) setState(() {});
@@ -225,7 +234,11 @@ class _TabScannerViewState extends State<TabScannerView> {
           Uint8List.fromList([...leftUint8List, ...rightUint8List.sublist(2)]),
         );
       } catch (e) {
-        debugPrint('$QrCodeInvoice.parse: $e');
+        LogService(
+          '$QrCodeInvoice.parse($Uint8List)',
+          errorObject: e,
+          instance: this,
+        ).w();
         isRecognizedValid = false;
       }
     }

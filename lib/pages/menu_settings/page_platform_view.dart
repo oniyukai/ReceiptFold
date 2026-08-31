@@ -144,11 +144,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
     try {
       await _api.fillLoginForm(account.phone, account.password);
     } catch (e) {
-      LogService(
-        'fillLoginForm $Exception.',
-        errorObject: e,
-        instance: _api,
-      ).w();
+      LogService('_api.fillLoginForm(…)', errorObject: e, instance: _api).w();
     }
   }
 
@@ -413,6 +409,7 @@ class _PagePlatformViewState extends State<PagePlatformView> {
               ExpandableCard(
                 iconData: Icons.web,
                 text: DictKey.platformWebView.s,
+                clipBehavior: Clip.none,
                 expandedChild: ConstrainedBox(
                   constraints: const BoxConstraints(
                     minWidth: double.infinity,
