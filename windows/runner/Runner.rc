@@ -92,9 +92,9 @@ BEGIN
             VALUE "CompanyName", "com.receipt.fold" "\0"
             VALUE "FileDescription", "ReceiptFold" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "receipt_fold" "\0"
+            VALUE "InternalName", "ReceiptFold" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.receipt.fold. All rights reserved." "\0"
-            VALUE "OriginalFilename", "receipt_fold.exe" "\0"
+            VALUE "OriginalFilename", "ReceiptFold.exe" "\0"
             VALUE "ProductName", "ReceiptFold" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
