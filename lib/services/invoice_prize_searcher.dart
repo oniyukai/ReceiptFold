@@ -6,6 +6,14 @@ import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/services/drift_service.dart';
 import 'package:receipt_fold/services/log_service.dart';
+import 'package:xml/xml.dart';
+
+const String _websiteLink = 'https://www.etax.nat.gov.tw/etw-main/ETW183W2_';
+final RegExp _rLink = RegExp(
+  r'^'
+  '$_websiteLink'
+  r'(\d{5})$',
+);
 
 class InvoicePrizeSearcher {
   static Map<String, InvoicePrizeAward>? _awardMapCache;
@@ -66,12 +74,6 @@ class InvoicePrizeSearcher {
           () => _requestPrizeAward(invQuery),
         ),
       );
-    } on DioException catch (e) {
-      LogService(
-        '_requestPrizeAward($invQuery)',
-        errorObject: e,
-        instance: this,
-      ).d();
     } catch (e) {
       LogService(
         '_requestPrizeAward($invQuery)',
@@ -107,78 +109,128 @@ class InvoicePrizeSearcher {
   }
 
   Future<List<InvoicePrize>> _requestPrizeAward(String invQuery) async {
+    final errors = [];
+    for (final (fnName, fnCall) in [
+      ('_requestWebsite', _requestWebsite),
+      ('_requestRSS', _requestRSS),
+    ]) {
+      try {
+        final prizes = await fnCall(invQuery);
+        if (prizes.isNotEmpty) return prizes;
+      } catch (e) {
+        LogService('$fnName($invQuery)', errorObject: e, instance: this).d();
+        errors.add(e);
+      }
+    }
+    throw Exception(errors);
+  }
+
+  Future<List<InvoicePrize>> _requestWebsite(String invQuery) async {
     final prizes = <InvoicePrize>[];
-    final String fullUrl =
-        'https://www.etax.nat.gov.tw/etw-main/ETW183W2_$invQuery/';
-    LogService('_requestPrizeAward...: $fullUrl', instance: this).d();
+    final String fullUrl = '$_websiteLink$invQuery/';
+    LogService('_requestWebsite...: $fullUrl', instance: this).d();
     final Response response = await _dio
         .get(fullUrl)
         .timeout(const Duration(seconds: 6));
     if (response.statusCode != 200) {
-      LogService('response.statusCode != 200.', instance: this).d();
-      return prizes;
+      throw Exception('response.statusCode = ${response.statusCode}');
     }
     final Document document = parse(response.data);
     final Element? table = document.querySelector('table#tenMillionsTable');
     if (table == null) {
-      LogService(
-        'Element "table#tenMillionsTable" does not exists.',
-        instance: this,
-      ).w();
-      return prizes;
+      throw Exception('Element "table#tenMillionsTable" does not exists.');
     }
     final Element? tbody = table.querySelector('tbody');
     if (tbody == null) {
-      LogService('Element "tbody" does not exists.', instance: this).w();
-      return prizes;
+      throw Exception('Element "tbody" does not exists.');
     }
     final List<Element> rows = tbody.querySelectorAll('tr');
 
     for (int i = 0; i < rows.length; i += 1) {
+      if (i + 1 >= rows.length) continue; // 說明在下一行的 td 中，有 td 才表示這行確實有獎號資料
       final Element row = rows[i];
       final Element? th = row.querySelector('th[scope="row"]');
       final Element? td = row.querySelector('td');
-      if (th == null || td == null) continue;
-
-      final String headerText = th.text.trim();
-      final int? amount = switch (headerText) {
-        '特別獎' => 10000000,
-        '特獎' => 2000000,
-        '頭獎' => 200000,
-        '增開六獎' => 200,
-        _ => null,
-      };
-      if (amount == null) continue;
-
-      final List<String> numbers = td
-          .querySelectorAll('div.col-12')
-          .map((div) => div.text.trim())
-          .toList();
-      if (i + 1 >= rows.length) continue; // 說明在下一行的 td 中，有 td 才表示這行確實有獎號資料
-
       final Element nextRow = rows[i + 1];
       final Element? nextTd = nextRow.querySelector('td');
-      if (nextTd == null) continue;
+      if (th == null || td == null || nextTd == null) continue;
+      prizes.addAll(
+        _analyzePrize(
+          th.text.trim(),
+          td
+              .querySelectorAll('div.col-12')
+              .map((div) => div.text.trim())
+              .toList(),
+        ),
+      );
+    }
+    return prizes;
+  }
 
-      for (final number in numbers) {
-        prizes.add(InvoicePrize(amount, headerText, number));
-        if (headerText == '頭獎') {
-          // 頭獎號碼可衍生出二獎～六獎（依末幾碼比對）
-          prizes.addAll([
-            if (number.length >= 7)
-              InvoicePrize(40000, '二獎', number.substring(number.length - 7)),
-            if (number.length >= 6)
-              InvoicePrize(10000, '三獎', number.substring(number.length - 6)),
-            if (number.length >= 5)
-              InvoicePrize(4000, '四獎', number.substring(number.length - 5)),
-            if (number.length >= 4)
-              InvoicePrize(1000, '五獎', number.substring(number.length - 4)),
-            if (number.length >= 3)
-              InvoicePrize(200, '六獎', number.substring(number.length - 3)),
-          ]);
-        }
+  Future<List<InvoicePrize>> _requestRSS(String invQuery) async {
+    const String fullUrl = 'https://invoice.etax.nat.gov.tw/invoice.xml';
+    LogService('_requestRSS...: $fullUrl', instance: this).d();
+    final Response response = await _dio
+        .get(fullUrl)
+        .timeout(const Duration(seconds: 6));
+    if (response.statusCode != 200) {
+      throw Exception('response.statusCode = ${response.statusCode}');
+    }
+    final XmlDocument document = XmlDocument.parse(response.data.toString());
+    final awardMap = <String, InvoicePrizeAward>{};
+
+    for (final XmlElement eItem in document.findAllElements('item')) {
+      final String description =
+          eItem.findElements('description').firstOrNull?.innerText.trim() ?? '';
+      final String link =
+          eItem.findElements('link').firstOrNull?.innerText.trim() ?? '';
+      final RegExpMatch? mLink = _rLink.firstMatch(link);
+      if (mLink == null || description.isEmpty) continue;
+      final Document dDescription = parse(description);
+      final prizes = <InvoicePrize>[];
+
+      for (final Element eP in dDescription.querySelectorAll('p')) {
+        final List<String> textSplit = eP.text.split('：');
+        if (textSplit.length != 2) continue;
+        prizes.addAll(
+          _analyzePrize(textSplit.first, textSplit.last.split('、')),
+        );
       }
-      i += 1; // 跳過下一行（說明行），因為已經處理
+
+      awardMap[mLink.group(1)!] = InvoicePrizeAward(
+        invQuery: mLink.group(1)!,
+        lastWebQueryTime: UnitUtils.nowUnixTime,
+        prizes: prizes,
+      );
+    }
+
+    return awardMap[invQuery]?.prizes ?? const [];
+  }
+
+  List<InvoicePrize> _analyzePrize(String name, List<String> numbers) {
+    name = name.trim();
+    final prizes = <InvoicePrize>[];
+    final int? amount = switch (name) {
+      '特別獎' => 10000000,
+      '特獎' => 2000000,
+      '頭獎' => 200000,
+      '增開六獎' => 200,
+      _ => null,
+    };
+    if (amount == null) return prizes;
+    for (final String number in numbers) {
+      final String num = number.trim();
+      if (num.isEmpty) continue;
+      prizes.addAll([
+        InvoicePrize(amount, name, num),
+        if (name == '頭獎' && num.length >= 7) ...[
+          InvoicePrize(40000, '二獎', num.substring(num.length - 7)),
+          InvoicePrize(10000, '三獎', num.substring(num.length - 6)),
+          InvoicePrize(4000, '四獎', num.substring(num.length - 5)),
+          InvoicePrize(1000, '五獎', num.substring(num.length - 4)),
+          InvoicePrize(200, '六獎', num.substring(num.length - 3)),
+        ],
+      ]);
     }
     return prizes;
   }

@@ -4,6 +4,49 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev liblzma-dev
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --split-per-abi
+
+      - name: Sign APKs
+        uses: ilharp/sign-android-release@v2
+        id: sign_app
+        with:
+          releaseDir: build/app/outputs/flutter-apk
+          signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
+          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: |
+            build/app/outputs/flutter-apk/*signed.apk
+          if-no-files-found: error
+
   build-linux:
     name: Build Linux
     runs-on: ubuntu-latest
@@ -53,7 +96,7 @@ jobs:
           name: linux-build
           path: |
             dist/**
-          if-no-files-found: warn
+          if-no-files-found: error
 
   build-windows:
     name: Build Windows
@@ -85,47 +128,4 @@ jobs:
           name: windows-build
           path: |
             dist/**
-          if-no-files-found: warn
-
-  build-android:
-    name: Build Android
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev liblzma-dev
-
-      - name: Install Flutter dependencies
-        run: flutter pub get
-
-      - name: Build APK
-        run: flutter build apk --split-per-abi
-
-      - name: Sign APKs
-        uses: ilharp/sign-android-release@v2
-        id: sign_app
-        with:
-          releaseDir: build/app/outputs/flutter-apk
-          signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
-          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-
-      - name: Upload Android artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-build
-          path: |
-            build/app/outputs/flutter-apk/*.apk
-          if-no-files-found: warn
+          if-no-files-found: error

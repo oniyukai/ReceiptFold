@@ -36,7 +36,7 @@ class TabScannerView extends StatefulWidget {
 }
 
 class _TabScannerViewState extends State<TabScannerView> {
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  AudioPlayer? _audioPlayer;
   InvoicePrizeAward? _invoiceAward;
   InvoicePrize? _invoicePrize;
   late final _barcodeScanner = BarcodeScanner(
@@ -55,6 +55,10 @@ class _TabScannerViewState extends State<TabScannerView> {
   bool _isProcessingSave = false;
   Future<void> Function()? _latestSaveQueued;
 
+  /// 因為 Linux.AppImage 打包包含 "libgst*.so*" 等 GStreamer 依賴, 卻沒帶 plugin 目錄導致崩潰,
+  /// 而本 APP 在 Linux 也不會有播放, 我也懶的移除依賴, 索性採用 lazy init
+  AudioPlayer get _getAudioPlayer => _audioPlayer ??= AudioPlayer();
+
   @override
   void dispose() {
     super.dispose();
@@ -62,7 +66,7 @@ class _TabScannerViewState extends State<TabScannerView> {
     _setOrientationLock(false);
     _barcodeScanner.close();
     _textRecognizer.close();
-    _audioPlayer.dispose();
+    _audioPlayer?.dispose();
   }
 
   @override
@@ -258,7 +262,7 @@ class _TabScannerViewState extends State<TabScannerView> {
     if (lastReceipt == null ||
         receipt.invoiceNumber != lastReceipt.invoiceNumber) {
       Utils.deviceVibrate();
-      Utils.audioPlayBeep(_audioPlayer);
+      Utils.audioPlayBeep(_getAudioPlayer);
       unawaited(_refreshPrize(receipt));
       unawaited(_processUpdate(receiptRecord));
       return;
@@ -290,7 +294,7 @@ class _TabScannerViewState extends State<TabScannerView> {
     if (_invoicePrize != null) {
       await Future.delayed(const Duration(milliseconds: 400));
       await Utils.deviceVibrate();
-      await Utils.audioPlayBeep(_audioPlayer);
+      await Utils.audioPlayBeep(_getAudioPlayer);
     }
   }
 
