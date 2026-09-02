@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/pages/menu_manager/page_carrier_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_mobile_form.dart';

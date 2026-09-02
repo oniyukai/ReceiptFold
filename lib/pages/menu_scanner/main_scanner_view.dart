@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 import 'package:receipt_fold/pages/menu_scanner/tab_manual_view.dart';
 import 'package:receipt_fold/pages/menu_scanner/tab_number_view.dart';
 import 'package:receipt_fold/pages/menu_scanner/tab_scanner_view.dart';
+import 'package:receipt_fold/services/invoice_prize_searcher.dart';
 
 class MainScannerView extends StatefulWidget {
   const MainScannerView({super.key});

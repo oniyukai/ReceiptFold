@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/locale/app_language.dart';

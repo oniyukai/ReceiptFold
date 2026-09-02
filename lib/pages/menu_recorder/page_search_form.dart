@@ -6,18 +6,18 @@ import 'package:drift/drift.dart'
         Expression,
         BooleanExpressionOperators,
         StringExpressionOperators;
-import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/menu_recorder/page_search_view.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/widget/my_text_field.dart';
+import 'package:receipt_fold/services/drift_service.dart';
 
 const int _maxSplitString = 4;
 
@@ -31,9 +31,9 @@ class PageSearchForm extends StatefulWidget {
 class _PageSearchFormState extends State<PageSearchForm> {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<FormBuilderState> _formKey = GlobalKey<FormBuilderState>();
-  final $ReceiptsTable _receiptsTable = DriftServices.appDb.receipts;
+  final $ReceiptsTable _receiptsTable = DriftService.appDb.receipts;
   final $ReceiptProductsTable _productsTable =
-      DriftServices.appDb.receiptProducts;
+      DriftService.appDb.receiptProducts;
   late final _stringDriftColumn = <GeneratedColumn<String>>[
     for (final column in _receiptsTable.$columns)
       if (column is GeneratedColumn<String> &&

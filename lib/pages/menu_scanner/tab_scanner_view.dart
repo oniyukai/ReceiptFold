@@ -4,9 +4,9 @@ import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:camera/camera.dart';
 import 'package:drift/drift.dart' show Value;
-import 'package:flutter/material.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/prefs.dart';
@@ -17,10 +17,11 @@ import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/entity/period.dart';
 import 'package:receipt_fold/entity/recognized_invoice.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
 import 'package:receipt_fold/pages/menu_scanner/tab_scanner_widgets.dart';
+import 'package:receipt_fold/services/drift_service.dart';
+import 'package:receipt_fold/services/invoice_prize_searcher.dart';
+import 'package:receipt_fold/services/log_service.dart';
 
 /// ASCII "*"
 const int _asterisk = 0x2A;
@@ -130,6 +131,14 @@ class _TabScannerViewState extends State<TabScannerView> {
           ),
         );
       }
+    } catch (e) {
+      if (context.readPrefs.get(.isAppDeveloperMode)) {
+        LogService(
+          '_processImage($InputImage)',
+          errorObject: e,
+          instance: this,
+        ).w();
+      }
     } finally {
       _isProcessingImage = false;
       if (mounted) setState(() {});
@@ -225,7 +234,11 @@ class _TabScannerViewState extends State<TabScannerView> {
           Uint8List.fromList([...leftUint8List, ...rightUint8List.sublist(2)]),
         );
       } catch (e) {
-        debugPrint('$QrCodeInvoice.parse: $e');
+        LogService(
+          '$QrCodeInvoice.parse($Uint8List)',
+          errorObject: e,
+          instance: this,
+        ).w();
         isRecognizedValid = false;
       }
     }
@@ -315,7 +328,7 @@ class _TabScannerViewState extends State<TabScannerView> {
         prizeName: Value(prize.name),
       );
     }
-    await DriftServices.appDb.receiptDao.upsertMany(
+    await DriftService.appDb.receiptDao.upsertMany(
       pairMap: {receipt: products},
       scopeStart: OriginStatus.deviceScan,
       scopeEnd: OriginStatus.deviceScan,

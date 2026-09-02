@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
+import 'package:receipt_fold/services/drift_service.dart';
 
 // todo: iOS載具與會員桌面小工具
 
@@ -17,7 +17,7 @@ Future<void> updateHomeScreenMobile() async {
   if (!Platform.isAndroid && !Platform.isIOS) return;
   await HomeWidget.renderFlutterWidget(
     GadgetMobile(
-      items: await DriftServices.appDb.keyValueStoreDao.getExistDefault(
+      items: await DriftService.appDb.keyValueStoreDao.getExistDefault(
         .mobileBarcodeList,
       ),
     ),

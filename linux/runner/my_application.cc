@@ -45,11 +45,11 @@ static void my_application_activate(GApplication* application) {
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "receipt_fold");
+    gtk_header_bar_set_title(header_bar, "ReceiptFold");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
-    gtk_window_set_title(window, "receipt_fold");
+    gtk_window_set_title(window, "ReceiptFold");
   }
 
   gtk_window_set_default_size(window, 1280, 720);
@@ -136,6 +136,13 @@ static void my_application_class_init(MyApplicationClass* klass) {
 static void my_application_init(MyApplication* self) {}
 
 MyApplication* my_application_new() {
+  // WebKitGTK's DMABuf renderer (GPU-process accelerated compositing) fails to
+  // import a DMA-BUF as an EGL image on some multi-GPU/PRIME setups (e.g.
+  // Intel Arc + NVIDIA), leaving the WebView blank and printing
+  // "Failed to create EGL image from DMABuf of size ...". Fall back to the
+  // traditional GL renderer, which WebKitGTK enables via this env var.
+  g_setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", TRUE);
+
   // Set the program name to the application ID, which helps various systems
   // like GTK and desktop environments map this running application to its
   // corresponding .desktop file. This ensures better integration by allowing

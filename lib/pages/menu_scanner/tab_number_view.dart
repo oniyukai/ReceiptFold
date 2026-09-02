@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/entity/invoice_prize.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
-import 'package:receipt_fold/modules/invoice_prize_searcher.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
+import 'package:receipt_fold/services/drift_service.dart';
+import 'package:receipt_fold/services/invoice_prize_searcher.dart';
 
 class TabNumberView extends StatefulWidget {
   final InvoicePrizeSearcher searcher;
@@ -32,7 +32,7 @@ class _TabNumberViewState extends State<TabNumberView> {
   void initState() {
     super.initState();
     unawaited(initPrizeAward());
-    _kVStoreSubscription = DriftServices.appDb.keyValueStoreDao
+    _kVStoreSubscription = DriftService.appDb.keyValueStoreDao
         .stream(const [.invoicePrizeAwardList])
         .listen(
           (data) => setState(() {

@@ -4,10 +4,10 @@ import 'dart:ui' as ui;
 import 'dart:ui';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/common/utils.dart';
 
 double _translateX(

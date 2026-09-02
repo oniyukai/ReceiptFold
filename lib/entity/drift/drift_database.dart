@@ -4,7 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
+import 'package:receipt_fold/services/drift_service.dart';
 import 'package:uuid/v7.dart';
 
 part 'drift_database.g.dart';
@@ -67,7 +67,7 @@ abstract class SyncableDao extends DatabaseAccessor<MyDriftDatabase> {
 class MyDriftDatabase extends _$MyDriftDatabase {
   MyDriftDatabase([QueryExecutor? executor])
     : super(executor ?? _openConnection()) {
-    if (executor == null) DriftServices.appDb = this;
+    if (executor == null) DriftService.appDb = this;
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   }
 

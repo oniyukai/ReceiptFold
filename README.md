@@ -13,8 +13,7 @@
 
 使用 Flutter 跨平台開發。
 
-- Android、Windows
-- [ ] Linux
+- Android、Linux、Windows
 - [ ] iOS
 - [ ] MacOS
 

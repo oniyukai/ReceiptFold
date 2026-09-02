@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 typedef LocaleInstance = Map<DictKey, String?>;
 
 extension StaticString on DictKey {
   static const String
     appName = 'ReceiptFold',
-    appVersion = '0.1.1+3',
-    appVersionTag = 'v0.1_26.08.13+3',
+    appVersion = '0.1.2+4',
+    appVersionTag = 'v0.1_26.09.03+4',
     // Language
     localeLanguageEn = 'English',
     localeLanguageJa = '日本語',

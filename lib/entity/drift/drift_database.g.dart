@@ -2418,7 +2418,16 @@ class $$KeyValueStoresTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$KeyValueStoresTable, KeyValueStore>(table),
+                  BaseReferences<
+                    _$MyDriftDatabase,
+                    $KeyValueStoresTable,
+                    KeyValueStore
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -2442,56 +2451,54 @@ typedef $$KeyValueStoresTableProcessedTableManager =
       KeyValueStore,
       PrefetchHooks Function()
     >;
-typedef $$ReceiptsTableCreateCompanionBuilder =
-    ReceiptsCompanion Function({
-      Value<DateTime> modified,
-      Value<String> uuid,
-      required OriginStatus originStatus,
-      Value<String?> userNote,
-      required DateTime issuedAt,
-      required double totalAmount,
-      Value<String?> invoiceNumber,
-      Value<String?> randomNumber,
-      Value<String?> carrierName,
-      Value<String?> carrierType,
-      Value<String?> carrierId2,
-      Value<String?> sellerName,
-      Value<String?> sellerTaxId,
-      Value<String?> sellerAddress,
-      Value<String?> sellerRemark,
-      Value<String?> prizeName,
-      Value<double?> prizeAmount,
-      Value<String?> invoiceJsonSummary,
-      Value<String?> invoiceJsonData,
-      Value<String?> invoiceJsonDetail,
-      Value<String?> invoiceJsonAward,
-      Value<int> rowid,
-    });
-typedef $$ReceiptsTableUpdateCompanionBuilder =
-    ReceiptsCompanion Function({
-      Value<DateTime> modified,
-      Value<String> uuid,
-      Value<OriginStatus> originStatus,
-      Value<String?> userNote,
-      Value<DateTime> issuedAt,
-      Value<double> totalAmount,
-      Value<String?> invoiceNumber,
-      Value<String?> randomNumber,
-      Value<String?> carrierName,
-      Value<String?> carrierType,
-      Value<String?> carrierId2,
-      Value<String?> sellerName,
-      Value<String?> sellerTaxId,
-      Value<String?> sellerAddress,
-      Value<String?> sellerRemark,
-      Value<String?> prizeName,
-      Value<double?> prizeAmount,
-      Value<String?> invoiceJsonSummary,
-      Value<String?> invoiceJsonData,
-      Value<String?> invoiceJsonDetail,
-      Value<String?> invoiceJsonAward,
-      Value<int> rowid,
-    });
+typedef $$ReceiptsTableCreateCompanionBuilder = ReceiptsCompanion Function({
+  Value<DateTime> modified,
+  Value<String> uuid,
+  required OriginStatus originStatus,
+  Value<String?> userNote,
+  required DateTime issuedAt,
+  required double totalAmount,
+  Value<String?> invoiceNumber,
+  Value<String?> randomNumber,
+  Value<String?> carrierName,
+  Value<String?> carrierType,
+  Value<String?> carrierId2,
+  Value<String?> sellerName,
+  Value<String?> sellerTaxId,
+  Value<String?> sellerAddress,
+  Value<String?> sellerRemark,
+  Value<String?> prizeName,
+  Value<double?> prizeAmount,
+  Value<String?> invoiceJsonSummary,
+  Value<String?> invoiceJsonData,
+  Value<String?> invoiceJsonDetail,
+  Value<String?> invoiceJsonAward,
+  Value<int> rowid,
+});
+typedef $$ReceiptsTableUpdateCompanionBuilder = ReceiptsCompanion Function({
+  Value<DateTime> modified,
+  Value<String> uuid,
+  Value<OriginStatus> originStatus,
+  Value<String?> userNote,
+  Value<DateTime> issuedAt,
+  Value<double> totalAmount,
+  Value<String?> invoiceNumber,
+  Value<String?> randomNumber,
+  Value<String?> carrierName,
+  Value<String?> carrierType,
+  Value<String?> carrierId2,
+  Value<String?> sellerName,
+  Value<String?> sellerTaxId,
+  Value<String?> sellerAddress,
+  Value<String?> sellerRemark,
+  Value<String?> prizeName,
+  Value<double?> prizeAmount,
+  Value<String?> invoiceJsonSummary,
+  Value<String?> invoiceJsonData,
+  Value<String?> invoiceJsonDetail,
+  Value<String?> invoiceJsonAward,
+  Value<int> rowid,
+});
 
 final class $$ReceiptsTableReferences
     extends BaseReferences<_$MyDriftDatabase, $ReceiptsTable, Receipt> {
@@ -3033,7 +3040,7 @@ class $$ReceiptsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$ReceiptsTable, Receipt>(table),
                   $$ReceiptsTableReferences(db, table, e),
                 ),
               )
@@ -3413,7 +3420,7 @@ class $$ReceiptProductsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$ReceiptProductsTable, ReceiptProduct>(table),
                   $$ReceiptProductsTableReferences(db, table, e),
                 ),
               )
@@ -3439,19 +3446,15 @@ class $$ReceiptProductsTableTableManager
                     >
                   >(state) {
                     if (receiptUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.receiptUuid,
-                                referencedTable:
-                                    $$ReceiptProductsTableReferences
-                                        ._receiptUuidTable(db),
-                                referencedColumn:
-                                    $$ReceiptProductsTableReferences
-                                        ._receiptUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.receiptUuid,
+                        referencedTable: $$ReceiptProductsTableReferences
+                            ._receiptUuidTable(db),
+                        referencedColumn: $$ReceiptProductsTableReferences
+                            ._receiptUuidTable(db)
+                            .uuid,
+                      ) as T;
                     }
 
                     return state;
@@ -3601,7 +3604,16 @@ class $$DeletedUuidsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$DeletedUuidsTable, DeletedUuid>(table),
+                  BaseReferences<
+                    _$MyDriftDatabase,
+                    $DeletedUuidsTable,
+                    DeletedUuid
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),

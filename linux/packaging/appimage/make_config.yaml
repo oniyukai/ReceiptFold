@@ -1,0 +1,20 @@
+display_name: ReceiptFold
+
+icon: assets/appicon.png
+
+keywords:
+  - ReceiptFold
+  - Application
+
+generic_name: A bookkeeping tool for receipts, invoices and membership cards.
+
+categories:
+  - Utility
+
+startup_notify: true
+
+# 這些庫在 Ubuntu CI 上屬於 libflutter 的相依閉包，會被 fastforge 排除
+# 視為「系統提供」，但 Fedora 等發行版的 soname 不同
+include:
+  - libjpeg.so.8
+  - libbz2.so.1.0

@@ -1,19 +1,19 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/common/router.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/entity/drift/key_value_store.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/gadget/gadget_member.dart';
 import 'package:receipt_fold/pages/gadget/gadget_mobile.dart';
 import 'package:receipt_fold/pages/menu_manager/page_member_form.dart';
 import 'package:receipt_fold/pages/menu_manager/page_mobile_form.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
+import 'package:receipt_fold/services/drift_service.dart';
 
 class TabMemberView extends StatefulWidget {
   const TabMemberView({super.key});
@@ -33,7 +33,7 @@ class _TabMemberViewState extends State<TabMemberView> {
   @override
   void initState() {
     super.initState();
-    _kVStoreSubscription = DriftServices.appDb.keyValueStoreDao
+    _kVStoreSubscription = DriftService.appDb.keyValueStoreDao
         .stream(const [.mobileBarcodeList, .memberBarcodeList])
         .listen(
           (data) => setState(() {
@@ -61,7 +61,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     items: _memberItems,
     itemBuilder: (item) => MemberItemCard(item: item),
     saveOnTap: (items) async {
-      await DriftServices.appDb.keyValueStoreDao.upsert(
+      await DriftService.appDb.keyValueStoreDao.upsert(
         .memberBarcodeList,
         items,
       );
@@ -74,7 +74,7 @@ class _TabMemberViewState extends State<TabMemberView> {
     items: _mobileItems,
     itemBuilder: (item) => MobileItemCard(item: item),
     saveOnTap: (items) async {
-      await DriftServices.appDb.keyValueStoreDao.upsert(
+      await DriftService.appDb.keyValueStoreDao.upsert(
         .mobileBarcodeList,
         items,
       );

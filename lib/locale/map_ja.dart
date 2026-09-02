@@ -74,10 +74,8 @@ const LocaleInstance mapJa = {
       'この形式は特殊文字をサポートしていません。ISO 8859-1 の範囲内である必要があります。',
   .barcodeErrorUnsupportedCharsAscii:
       'この形式は特殊文字をサポートしていません。ASCII の範囲内である必要があります。',
-  .barcodeErrorRegexCode93:
-      'Code 93 は大文字26文字、数字(0–9)、および7つの特殊文字 « -, ., space, \$, /, +, % » をエンコードできます。',
-  .barcodeErrorRegexCode39:
-      'Code 39 は大文字26文字、数字(0–9)、および7つの特殊文字 « -, ., space, \$, /, +, % » をエンコードできます。',
+  .barcodeErrorRegexCode93: 'Code 93 は大文字26文字、数字(0–9)、および7つの特殊文字 « -, ., space, \$, /, +, % » をエンコードできます。',
+  .barcodeErrorRegexCode39: 'Code 39 は大文字26文字、数字(0–9)、および7つの特殊文字 « -, ., space, \$, /, +, % » をエンコードできます。',
   .barcodeErrorRegexCodabar:
       'Codabar は数字(0–9) および6つの特殊文字 « -, \$, :, /, ., + » をエンコードできます。',
   .barcodeErrorItfEvenLength: 'ITF は偶数の文字数である必要があります。',

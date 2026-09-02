@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/locale/map_en.dart';
 import 'package:receipt_fold/locale/map_ja.dart';

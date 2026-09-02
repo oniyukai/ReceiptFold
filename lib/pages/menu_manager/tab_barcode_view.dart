@@ -2,10 +2,10 @@ import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:provider/provider.dart';
 import 'package:receipt_fold/common/prefs.dart';
@@ -13,13 +13,13 @@ import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/barcode_format.dart';
 import 'package:receipt_fold/entity/barcode_item.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/drift_services.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_member_view.dart';
 import 'package:receipt_fold/pages/menu_nav_bar.dart';
 import 'package:receipt_fold/pages/menu_settings/main_settings_widgets.dart';
 import 'package:receipt_fold/pages/widget/barcode_field.dart';
 import 'package:receipt_fold/pages/widget/expandable_card.dart';
 import 'package:receipt_fold/pages/widget/overlay_show.dart';
+import 'package:receipt_fold/services/drift_service.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
 class TabBarcodeView extends StatefulWidget {
@@ -76,10 +76,10 @@ class _TabBarcodeViewState extends State<TabBarcodeView> {
   Future<void> _initLoadItem() async {
     if (_isInitialized) return;
     _isInitialized = true;
-    _mobileItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(
+    _mobileItems = await DriftService.appDb.keyValueStoreDao.getExistDefault(
       .mobileBarcodeList,
     );
-    _memberItems = await DriftServices.appDb.keyValueStoreDao.getExistDefault(
+    _memberItems = await DriftService.appDb.keyValueStoreDao.getExistDefault(
       .memberBarcodeList,
     );
     if (_mobileItems.isNotEmpty) _mobileItemIndex = 0;

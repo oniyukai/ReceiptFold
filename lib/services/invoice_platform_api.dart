@@ -1,32 +1,127 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:csv/csv.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:intl/intl.dart';
 import 'package:receipt_fold/common/utils.dart';
 import 'package:receipt_fold/entity/drift/drift_database.dart';
 import 'package:receipt_fold/entity/drift/receipt.dart';
 import 'package:receipt_fold/entity/invoice_carrier.dart';
 import 'package:receipt_fold/locale/app_language.dart';
-import 'package:receipt_fold/modules/log_service.dart';
+import 'package:receipt_fold/services/log_service.dart';
+import 'package:webview_all/webview_all.dart';
+
+const String _einvoiceLoginUrl =
+    'https://www.einvoice.nat.gov.tw/accounts/login/mw';
+const String _authCaptureChannelName = 'AuthCapture';
+
+/// 替代 flutter_inappwebview 的 shouldInterceptRequest
+const String _authCaptureUserScriptSource =
+    '''
+(function () {
+  var CHANNEL = '$_authCaptureChannelName';
+  function notifyAuth(auth) {
+    if (!auth || typeof auth !== 'string' || auth.length === 0) return;
+    try {
+      globalThis.__einvoiceAuth = auth;
+    } catch (e) {}
+    try {
+      if (globalThis[CHANNEL] && typeof globalThis[CHANNEL].postMessage === 'function') {
+        globalThis[CHANNEL].postMessage(auth);
+      }
+    } catch (e) {}
+  }
+  function authFromHeaders(headers) {
+    if (!headers) return null;
+    try {
+      if (typeof Headers !== 'undefined' && headers instanceof Headers && headers.get) {
+        var h = headers.get('Authorization');
+        if (h) return h;
+      }
+    } catch (e) {}
+    if (typeof headers !== 'object') return null;
+    if (Array.isArray(headers)) {
+      for (var i = 0; i < headers.length; i++) {
+        var pair = headers[i];
+        if (pair && pair.length >= 2 && String(pair[0]).toLowerCase() === 'authorization') {
+          return pair[1];
+        }
+      }
+    } else {
+      for (var key in headers) {
+        if (Object.prototype.hasOwnProperty.call(headers, key) && String(key).toLowerCase() === 'authorization') {
+          return headers[key];
+        }
+      }
+    }
+    return null;
+  }
+  function patchFetch() {
+    if (window.__einvoiceFetchPatched || typeof window.fetch !== 'function') return;
+    var originalFetch = window.fetch;
+    window.fetch = function (input, init) {
+      var auth = authFromHeaders(init && init.headers);
+      if (!auth && input && input.headers) auth = authFromHeaders(input.headers);
+      notifyAuth(auth);
+      return originalFetch.apply(this, arguments);
+    };
+    window.__einvoiceFetchPatched = true;
+  }
+  function patchXhr() {
+    if (window.__einvoiceXhrPatched || typeof window.XMLHttpRequest === 'undefined') return;
+    var originalSet = XMLHttpRequest.prototype.setRequestHeader;
+    XMLHttpRequest.prototype.setRequestHeader = function (name, value) {
+      if (String(name).toLowerCase() === 'authorization') notifyAuth(value);
+      return originalSet.apply(this, arguments);
+    };
+    window.__einvoiceXhrPatched = true;
+  }
+  patchFetch();
+  patchXhr();
+})();
+''';
+
+double? _tryDouble(String text) =>
+    NumberFormat.decimalPattern('en').tryParse(text)?.toDouble();
 
 class InvoicePlatformApi {
   static const int maxQueryMonths = 8;
 
-  InAppWebViewController? _controller;
+  late final WebViewController controller;
   String? _auth;
 
-  set controller(InAppWebViewController value) => _controller = value;
+  bool get isInitialized => _auth != null;
 
-  set auth(String? value) => _auth = value ?? _auth;
-
-  bool get isInitialized => _controller != null && _auth != null;
+  Future<void> init({
+    required VoidCallback onAuthCaptured,
+    required VoidCallback onPageFinished,
+  }) async {
+    controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted);
+    if (await controller.isUserScriptInjectionSupported(
+      WebViewUserScriptInjectionTime.documentStart,
+    )) {
+      await controller.addUserScript(
+        const WebViewUserScript(source: _authCaptureUserScriptSource),
+      );
+    }
+    await controller.addJavaScriptChannel(
+      _authCaptureChannelName,
+      onMessageReceived: (message) {
+        _auth = message.message;
+        onAuthCaptured();
+      },
+    );
+    await controller.setNavigationDelegate(
+      NavigationDelegate(onPageFinished: (_) => onPageFinished()),
+    );
+    await controller.loadRequest(Uri.parse(_einvoiceLoginUrl));
+  }
 
   void close() {
     _auth = null;
-    _controller?.dispose();
   }
 
   OriginStatus? _analyzeOriginStatus(
@@ -53,12 +148,9 @@ class InvoicePlatformApi {
     Map<String, String?> headers = const {},
     dynamic body,
   }) {
-    if (_controller == null) {
-      throw Exception('$this: InAppWebViewController cannot be null.');
-    }
-    return _controller!
+    return controller
         .callAsyncJavaScript(
-          functionBody: '''
+          '''
         const response = await fetch(url, {
           method: 'POST',
           headers: headers,
@@ -69,21 +161,19 @@ class InvoicePlatformApi {
           arguments: {'url': url, 'headers': headers, 'body': body},
         )
         .timeout(const Duration(seconds: 16))
-        .then((value) => (value?.value).toString());
+        .then((value) => value.toString());
   }
 
   Future<String> _fetchInvoiceResData(String token) {
     return _fetch(
-      url:
-          'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getCarrierInvoiceData',
+      url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getCarrierInvoiceData',
       body: token,
     );
   }
 
   Future<String> _fetchInvoiceResDetail(String token) {
     return _fetch(
-      url:
-          'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getCarrierInvoiceDetail?page=0&size=100',
+      url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getCarrierInvoiceDetail?page=0&size=100',
       body: token,
     );
   }
@@ -97,7 +187,7 @@ class InvoicePlatformApi {
         jsonData['invoiceStrStatus'],
       ),
       issuedAt: DateTime.tryParse(jsonData['invoiceInstantDate'] ?? ''),
-      totalAmount: double.tryParse(jsonData['totalAmount'] ?? ''),
+      totalAmount: _tryDouble(jsonData['totalAmount'] ?? ''),
       randomNumber: Value.absentIfNull(
         Utils.noEmptyStr(jsonData['randomNumber']),
       ),
@@ -118,7 +208,7 @@ class InvoicePlatformApi {
     final products = <ReceiptProduct>[];
     double totalAmount = 0.0;
     for (final jsonDetail in jsonDetails) {
-      final double amount = double.tryParse(jsonDetail['amount'] ?? '') ?? 0.0;
+      final double amount = _tryDouble(jsonDetail['amount'] ?? '') ?? 0.0;
       totalAmount += amount;
       products.add(
         ReceiptProduct(
@@ -127,8 +217,8 @@ class InvoicePlatformApi {
           receiptUuid: receipt.uuid,
           sequence: int.tryParse(jsonDetail['sequenceNumber'] ?? '') ?? 0,
           description: jsonDetail['item'] ?? StaticString.nullString,
-          unitPrice: double.tryParse(jsonDetail['unitPrice'] ?? '') ?? 0.0,
-          quantity: double.tryParse(jsonDetail['quantity'] ?? '') ?? 0.0,
+          unitPrice: _tryDouble(jsonDetail['unitPrice'] ?? '') ?? 0.0,
+          quantity: _tryDouble(jsonDetail['quantity'] ?? '') ?? 0.0,
           amount: amount,
         ),
       );
@@ -137,9 +227,9 @@ class InvoicePlatformApi {
   }
 
   Future<void> fillLoginForm(String? phone, String? password) async {
-    await _controller?.evaluateJavascript(
-      source:
-          '''
+    final url = await controller.currentUrl() ?? '';
+    if (!url.startsWith(_einvoiceLoginUrl)) return;
+    await controller.runJavaScript('''
       (function() {
         function setElementValue(id, value) {
           const el = document.getElementById(id);
@@ -154,21 +244,18 @@ class InvoicePlatformApi {
         setElementValue('mobile_phone', '${phone ?? ''}');
         setElementValue('password', '${password ?? ''}');
       })();
-    ''',
-    );
+    ''');
   }
 
   /// 載具清單, 只打算取最多 100 個
   Future<List<InvoiceCarrier>> fetchCarrierList() async {
     LogService('fetchCarrierList...', instance: this).d();
     final fListRes = _fetch(
-      url:
-          'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/getCarrierList',
+      url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/getCarrierList',
       headers: {'Authorization': _auth},
     );
     final fConRes = _fetch(
-      url:
-          'https://service-m.einvoice.nat.gov.tw/btc/portal/api/btc504w/queryCarrierConsolidationInformation?page=0&size=100',
+      url: 'https://service-m.einvoice.nat.gov.tw/btc/portal/api/btc504w/queryCarrierConsolidationInformation?page=0&size=100',
       headers: {'Authorization': _auth},
     );
     final carrierMap = <String, InvoiceCarrier>{};
@@ -197,8 +284,7 @@ class InvoicePlatformApi {
     LogService('fetchAwardList...', instance: this).d();
     final List jsonPeriod = jsonDecode(
       await _fetch(
-        url:
-            'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getInvPeriodList',
+        url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/common/getInvPeriodList',
       ),
     );
     final periodNames = jsonPeriod.take(3).map((e) => e['awardInvoicePeriod']);
@@ -207,8 +293,7 @@ class InvoicePlatformApi {
       periodNames.map(
         (periodName) =>
             _fetch(
-              url:
-                  'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/btc503wGetSearchCarrierInvoiceListJWT',
+              url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/btc503wGetSearchCarrierInvoiceListJWT',
               headers: {
                 'Authorization': _auth,
                 'Content-Type': 'application/json',
@@ -216,8 +301,7 @@ class InvoicePlatformApi {
               body: {'awardDate': periodName, 'isSearchAll': 'true'},
             ).then(
               (periodJwt) => _fetch(
-                url:
-                    'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/getCarrierAwardInvoiceList?page=0&size=100',
+                url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc503w/getCarrierAwardInvoiceList?page=0&size=100',
                 headers: {'Authorization': _auth},
                 body: periodJwt.trim().replaceAll('"', ''),
               ),
@@ -241,14 +325,13 @@ class InvoicePlatformApi {
               uuid: UuidMixin.v7.generate(),
               originStatus: OriginStatus.platformConfirmed,
               issuedAt: DateTime.parse(jsonAward['invoiceDate']),
-              totalAmount:
-                  double.tryParse(jsonAward['totalAmount'] ?? '') ?? 0.0,
+              totalAmount: _tryDouble(jsonAward['totalAmount'] ?? '') ?? 0.0,
               invoiceNumber: Utils.noEmptyStr(jsonAward['invNum']),
               carrierName: Utils.noEmptyStr(jsonAward['carrierName']),
               carrierType: Utils.noEmptyStr(jsonAward['cardCode']),
               carrierId2: Utils.noEmptyStr(jsonAward['carrierId2']),
               prizeName: Utils.noEmptyStr(jsonAward['prizeName']),
-              prizeAmount: double.tryParse(jsonAward['prizeAmt'] ?? ''),
+              prizeAmount: _tryDouble(jsonAward['prizeAmt'] ?? ''),
               invoiceJsonData: await fResData,
               invoiceJsonDetail: await fResDetail,
               invoiceJsonAward: jsonEncode(jsonAward),
@@ -288,8 +371,7 @@ class InvoicePlatformApi {
         );
       }).map(
         (value) => _fetch(
-          url:
-              'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc502w/getSearchCarrierInvoiceListJWT',
+          url: 'https://service-mc.einvoice.nat.gov.tw/btc/cloud/api/btc502w/getSearchCarrierInvoiceListJWT',
           headers: {'Authorization': _auth, 'Content-Type': 'application/json'},
           body: {
             'searchStartDate': value.startStr,
@@ -340,9 +422,9 @@ class InvoicePlatformApi {
                 ) ??
                 OriginStatus.platformUnverified,
             issuedAt: DateTime.parse(jsonInvoice['invoiceDate']),
+            // API totalAmount 特別回傳的是 int
             totalAmount:
-                double.tryParse(jsonInvoice['totalAmount'].toString()) ?? 0.0,
-            // API 特別回傳的是 int
+                _tryDouble(jsonInvoice['totalAmount'].toString()) ?? 0.0,
             invoiceNumber: Utils.noEmptyStr(jsonInvoice['invoiceNumber']),
             carrierName: Utils.noEmptyStr(jsonInvoice['carrierName']),
             carrierType: Utils.noEmptyStr(jsonInvoice['carrierType']),
@@ -377,7 +459,7 @@ class InvoicePlatformApi {
               int.parse(dateString.substring(4, 6)),
               int.parse(dateString.substring(6, 8)),
             ).subtract(const Duration(hours: 8)),
-            totalAmount: double.tryParse(stringList[7]) ?? 0.0,
+            totalAmount: _tryDouble(stringList[7]) ?? 0.0,
             carrierId2: Utils.noEmptyStr(stringList[2]),
             sellerTaxId: Utils.noEmptyStr(stringList[4]),
             sellerName: Utils.noEmptyStr(stringList[5]),
@@ -387,7 +469,7 @@ class InvoicePlatformApi {
         );
       } else if (rowType == 'D') {
         final String invoiceNumber = stringList[1];
-        final double amount = double.tryParse(stringList[2]) ?? 0.0;
+        final double amount = _tryDouble(stringList[2]) ?? 0.0;
         final entry = invMap[invoiceNumber];
         entry?.products.add(
           ReceiptProduct(

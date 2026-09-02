@@ -34,8 +34,7 @@ const LocaleInstance mapEn = {
   .scannerNumberColumnPrize: 'Prize',
   .scannerNumberColumnAmount: 'Amount',
   .scannerNumberColumnNumber: 'Number',
-  .scannerNumberRule:
-      'An invoice whose trailing digits match a winning number entirely wins the matching prize with the highest amount.',
+  .scannerNumberRule: 'An invoice whose trailing digits match a winning number entirely wins the matching prize with the highest amount.',
   .scannerScannerHint: 'Please scan only one invoice at a time.',
   .scannerScannerAuto: 'Auto',
   .scannerScannerNoPrize: 'No Prize',
@@ -72,16 +71,11 @@ const LocaleInstance mapEn = {
   .barcodeErrorNotNumber: 'Must consist of numbers only.',
   .barcodeErrorWrongLength: 'Required length: ',
   .barcodeErrorWrongCheckDigit: 'The last digit (check digit) should be: ',
-  .barcodeErrorUnsupportedCharsIso88591:
-      'This format does not support special characters; they must be within ISO 8859-1.',
-  .barcodeErrorUnsupportedCharsAscii:
-      'This format does not support special characters; they must be within ASCII.',
-  .barcodeErrorRegexCode93:
-      'Code 93 can encode 26 uppercase letters, digits (0–9) and 7 special characters « -, ., space, \$, /, +, % ».',
-  .barcodeErrorRegexCode39:
-      'Code 39 can encode 26 uppercase letters, digits (0–9) and 7 special characters « -, ., space, \$, /, +, % ».',
-  .barcodeErrorRegexCodabar:
-      'Codabar can encode digits (0–9) and 6 special characters « -, \$, :, /, ., + ».',
+  .barcodeErrorUnsupportedCharsIso88591: 'This format does not support special characters; they must be within ISO 8859-1.',
+  .barcodeErrorUnsupportedCharsAscii: 'This format does not support special characters; they must be within ASCII.',
+  .barcodeErrorRegexCode93: 'Code 93 can encode 26 uppercase letters, digits (0–9) and 7 special characters « -, ., space, \$, /, +, % ».',
+  .barcodeErrorRegexCode39: 'Code 39 can encode 26 uppercase letters, digits (0–9) and 7 special characters « -, ., space, \$, /, +, % ».',
+  .barcodeErrorRegexCodabar: 'Codabar can encode digits (0–9) and 6 special characters « -, \$, :, /, ., + ».',
   .barcodeErrorItfEvenLength: 'ITF must contain an even number of characters.',
   .barcodeErrorUpcEStartZero: 'UPC-E must start with 0.',
 
