@@ -16,15 +16,14 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
+          pub-cache: true
 
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev liblzma-dev
-
-      - name: Install Flutter dependencies
-        run: flutter pub get
 
       - name: Build APK
         run: flutter build apk --split-per-abi
@@ -44,7 +43,7 @@ jobs:
         with:
           name: android-build
           path: |
-            build/app/outputs/flutter-apk/*signed.apk
+            build/app/outputs/flutter-apk/*-signed.apk
           if-no-files-found: error
 
   build-linux:
@@ -59,6 +58,8 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
+          pub-cache: true
 
       - name: Install Linux dependencies
         run: |
@@ -70,9 +71,6 @@ jobs:
             libwebkit2gtk-4.1-dev \
             p7zip-full wget locate
           sudo updatedb
-
-      - name: Install Flutter dependencies
-        run: flutter pub get
 
       - name: Install Fastforge
         run: dart pub global activate fastforge
@@ -89,6 +87,19 @@ jobs:
           ~/.pub-cache/bin/fastforge package \
             --platform linux \
             --targets zip,appimage
+
+      - name: Patch AppImage
+        run: |
+          set -euo pipefail
+          cd dist
+          appimage="$(find . -name "*.AppImage" -type f | head -n1)"
+          ./"$appimage" --appimage-extract >/dev/null
+          rm -fv \
+            squashfs-root/usr/lib/libgst*.so* \
+            squashfs-root/usr/lib/libwebkit2gtk*.so* \
+            squashfs-root/usr/lib/libjavascriptcoregtk*.so*
+          ARCH=x86_64 appimagetool --no-appstream squashfs-root "$appimage"
+          rm -rfv squashfs-root
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -110,9 +121,8 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-
-      - name: Install Flutter dependencies
-        run: flutter pub get
+          cache: true
+          pub-cache: true
 
       - name: Install Fastforge
         run: dart pub global activate fastforge

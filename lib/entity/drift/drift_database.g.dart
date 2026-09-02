@@ -2418,7 +2418,16 @@ class $$KeyValueStoresTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$KeyValueStoresTable, KeyValueStore>(table),
+                  BaseReferences<
+                    _$MyDriftDatabase,
+                    $KeyValueStoresTable,
+                    KeyValueStore
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -3031,7 +3040,7 @@ class $$ReceiptsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$ReceiptsTable, Receipt>(table),
                   $$ReceiptsTableReferences(db, table, e),
                 ),
               )
@@ -3411,7 +3420,7 @@ class $$ReceiptProductsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$ReceiptProductsTable, ReceiptProduct>(table),
                   $$ReceiptProductsTableReferences(db, table, e),
                 ),
               )
@@ -3595,7 +3604,16 @@ class $$DeletedUuidsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$DeletedUuidsTable, DeletedUuid>(table),
+                  BaseReferences<
+                    _$MyDriftDatabase,
+                    $DeletedUuidsTable,
+                    DeletedUuid
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
