@@ -83,6 +83,9 @@ const String _authCaptureUserScriptSource =
 })();
 ''';
 
+double? _tryDouble(String text) =>
+    NumberFormat.decimalPattern('en').tryParse(text)?.toDouble();
+
 class InvoicePlatformApi {
   static const int maxQueryMonths = 8;
 
@@ -184,7 +187,7 @@ class InvoicePlatformApi {
         jsonData['invoiceStrStatus'],
       ),
       issuedAt: DateTime.tryParse(jsonData['invoiceInstantDate'] ?? ''),
-      totalAmount: double.tryParse(jsonData['totalAmount'] ?? ''),
+      totalAmount: _tryDouble(jsonData['totalAmount'] ?? ''),
       randomNumber: Value.absentIfNull(
         Utils.noEmptyStr(jsonData['randomNumber']),
       ),
@@ -205,7 +208,7 @@ class InvoicePlatformApi {
     final products = <ReceiptProduct>[];
     double totalAmount = 0.0;
     for (final jsonDetail in jsonDetails) {
-      final double amount = double.tryParse(jsonDetail['amount'] ?? '') ?? 0.0;
+      final double amount = _tryDouble(jsonDetail['amount'] ?? '') ?? 0.0;
       totalAmount += amount;
       products.add(
         ReceiptProduct(
@@ -214,8 +217,8 @@ class InvoicePlatformApi {
           receiptUuid: receipt.uuid,
           sequence: int.tryParse(jsonDetail['sequenceNumber'] ?? '') ?? 0,
           description: jsonDetail['item'] ?? StaticString.nullString,
-          unitPrice: double.tryParse(jsonDetail['unitPrice'] ?? '') ?? 0.0,
-          quantity: double.tryParse(jsonDetail['quantity'] ?? '') ?? 0.0,
+          unitPrice: _tryDouble(jsonDetail['unitPrice'] ?? '') ?? 0.0,
+          quantity: _tryDouble(jsonDetail['quantity'] ?? '') ?? 0.0,
           amount: amount,
         ),
       );
@@ -322,14 +325,13 @@ class InvoicePlatformApi {
               uuid: UuidMixin.v7.generate(),
               originStatus: OriginStatus.platformConfirmed,
               issuedAt: DateTime.parse(jsonAward['invoiceDate']),
-              totalAmount:
-                  double.tryParse(jsonAward['totalAmount'] ?? '') ?? 0.0,
+              totalAmount: _tryDouble(jsonAward['totalAmount'] ?? '') ?? 0.0,
               invoiceNumber: Utils.noEmptyStr(jsonAward['invNum']),
               carrierName: Utils.noEmptyStr(jsonAward['carrierName']),
               carrierType: Utils.noEmptyStr(jsonAward['cardCode']),
               carrierId2: Utils.noEmptyStr(jsonAward['carrierId2']),
               prizeName: Utils.noEmptyStr(jsonAward['prizeName']),
-              prizeAmount: double.tryParse(jsonAward['prizeAmt'] ?? ''),
+              prizeAmount: _tryDouble(jsonAward['prizeAmt'] ?? ''),
               invoiceJsonData: await fResData,
               invoiceJsonDetail: await fResDetail,
               invoiceJsonAward: jsonEncode(jsonAward),
@@ -420,9 +422,9 @@ class InvoicePlatformApi {
                 ) ??
                 OriginStatus.platformUnverified,
             issuedAt: DateTime.parse(jsonInvoice['invoiceDate']),
+            // API totalAmount 特別回傳的是 int
             totalAmount:
-                double.tryParse(jsonInvoice['totalAmount'].toString()) ?? 0.0,
-            // API 特別回傳的是 int
+                _tryDouble(jsonInvoice['totalAmount'].toString()) ?? 0.0,
             invoiceNumber: Utils.noEmptyStr(jsonInvoice['invoiceNumber']),
             carrierName: Utils.noEmptyStr(jsonInvoice['carrierName']),
             carrierType: Utils.noEmptyStr(jsonInvoice['carrierType']),
@@ -457,7 +459,7 @@ class InvoicePlatformApi {
               int.parse(dateString.substring(4, 6)),
               int.parse(dateString.substring(6, 8)),
             ).subtract(const Duration(hours: 8)),
-            totalAmount: double.tryParse(stringList[7]) ?? 0.0,
+            totalAmount: _tryDouble(stringList[7]) ?? 0.0,
             carrierId2: Utils.noEmptyStr(stringList[2]),
             sellerTaxId: Utils.noEmptyStr(stringList[4]),
             sellerName: Utils.noEmptyStr(stringList[5]),
@@ -467,7 +469,7 @@ class InvoicePlatformApi {
         );
       } else if (rowType == 'D') {
         final String invoiceNumber = stringList[1];
-        final double amount = double.tryParse(stringList[2]) ?? 0.0;
+        final double amount = _tryDouble(stringList[2]) ?? 0.0;
         final entry = invMap[invoiceNumber];
         entry?.products.add(
           ReceiptProduct(

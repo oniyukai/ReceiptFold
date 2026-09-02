@@ -19,6 +19,25 @@ import 'package:receipt_fold/services/drift_service.dart';
 import 'package:receipt_fold/services/log_service.dart';
 import 'package:receipt_fold/services/secure_prefs.dart';
 
+Future<({String? url, String? user, String? password})>
+_readWebDAVAccount() async {
+  String? url;
+  String? user;
+  String? password;
+  final String? jsonString = await SecurePrefs.webDAVAccount.read();
+  try {
+    if (jsonString != null) {
+      final Map map = jsonDecode(jsonString);
+      url = map['url'];
+      user = map['user'];
+      password = map['password'];
+    }
+  } catch (e) {
+    debugPrint('_readWebDAVAccount: $e');
+  }
+  return (url: url, user: user, password: password);
+}
+
 enum DriftDispatcher {
   pushForce,
   push,
@@ -118,25 +137,6 @@ enum DriftDispatcher {
       _singleActionLocked.value = false;
     }
   }
-}
-
-Future<({String? url, String? user, String? password})>
-_readWebDAVAccount() async {
-  String? url;
-  String? user;
-  String? password;
-  final String? jsonString = await SecurePrefs.webDAVAccount.read();
-  try {
-    if (jsonString != null) {
-      final Map map = jsonDecode(jsonString);
-      url = map['url'];
-      user = map['user'];
-      password = map['password'];
-    }
-  } catch (e) {
-    debugPrint('_readWebDAVAccount: $e');
-  }
-  return (url: url, user: user, password: password);
 }
 
 class PageBackupView extends StatefulWidget {
