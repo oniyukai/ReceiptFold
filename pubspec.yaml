@@ -1,5 +1,5 @@
 name: receipt_fold
-description: "An expense tracker for tech-savvy users that lets you capture and manage receipts and invoices with offline access and optional cloud sync."
+description: A bookkeeping tool for receipts, invoices and membership cards.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 version: 0.1.2+4
@@ -11,52 +11,58 @@ dependencies:
   flutter:
     sdk: flutter
 
-  material_ui: ^1.1.1
+  material_ui: ^1.2.0
+  intl: ^0.20.2
   provider: ^6.1.5
   collection: ^1.19.1
-  dynamic_color: ^2.1.0
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  shared_preferences: ^2.5.5
+
+  share_plus: ^13.3.0
+  file_picker: ^12.2.0
+  url_launcher: ^6.3.2
   audioplayers: ^6.8.1
   vibration: ^3.2.1
   fluttertoast: ^10.0.0
-  intl: ^0.20.2
-  url_launcher: ^6.3.2
-  share_plus: ^13.3.0
-  shared_preferences: ^2.5.5
-  flutter_secure_storage: ^10.3.1
-  flutter_vector_icons: ^2.0.0
   screen_brightness: ^2.1.11
-  flutter_cache_manager: ^3.4.2
-  cached_network_image: ^4.0.0
+
+  dynamic_color: ^2.1.0
+  flutter_secure_storage: ^10.3.1
+  logger: ^2.8.0
+  native_device_orientation: ^2.1.3
+  uuid: ^4.6.0
+  drift: ^2.34.4
+  drift_flutter: ^0.3.1
+
+  flutter_vector_icons: ^2.0.0
   barcode: ^2.2.9
   flutter_svg: ^2.3.0
   flutter_form_builder: ^11.0.0
   form_builder_validators: ^11.3.0
-  home_widget: ^0.9.3
-  path: ^1.9.1
-  path_provider: ^2.1.6
-  dio: ^5.11.0
-  html: ^0.15.6
-  xml: ^6.6.1
+  flutter_cache_manager: ^3.4.2
+  cached_network_image: ^4.0.0
   watashi_locale:
     git:
       url: https://github.com/oniyukai/watashi_locale.git
       ref: main
-  uuid: ^4.6.0
-  drift: ^2.34.4
-  drift_flutter: ^0.3.1
-  logger: ^2.7.0
-  webdav_client: ^1.2.2
-  file_picker: ^12.2.0
+
+  html: ^0.15.6
+  xml: ^6.6.1
   csv: ^8.0.0
-  native_device_orientation: ^2.1.1
-  camera: ^0.12.0+2
+  dio: ^5.11.1
+  webdav_client: ^1.2.2
+  webview_all: ^1.4.1
+
+  camera: ^0.12.1
   camera_android: ^0.10.11+1
   google_mlkit_commons: ^0.13.0
   google_mlkit_barcode_scanning: ^0.16.1
   google_mlkit_text_recognition: ^0.17.1
   enough_convert: ^1.6.0
+
+  home_widget: ^0.9.4
   flutter_single_instance: ^1.7.0
-  webview_all: ^1.4.1
 
 dev_dependencies:
   flutter_test:

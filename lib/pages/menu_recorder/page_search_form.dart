@@ -131,8 +131,8 @@ class _PageSearchFormState extends State<PageSearchForm> {
           dateTimeConverter.toS(startDate),
         ),
       if (endDate != null)
-        _receiptsTable.issuedAt.isSmallerOrEqualValue(
-          dateTimeConverter.toS(endDate),
+        _receiptsTable.issuedAt.isSmallerThanValue(
+          dateTimeConverter.toS(endDate.add(const Duration(days: 1))),
         ),
       if (minTotalAmount != null)
         _receiptsTable.totalAmount.isBiggerOrEqualValue(minTotalAmount),
