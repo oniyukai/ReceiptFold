@@ -210,10 +210,10 @@ class QrCodeInvoice {
     'sellerNote': sellerNote,
   };
 
-  /// 主解析方法：傳入 QR Code 的 Uint8List
+  /// 主解析方法: 傳入 QR Code 的 Uint8List
   factory QrCodeInvoice.parse(Uint8List bytes) {
     if (bytes.length < 77) {
-      throw FormatException('發票資料長度不足 77 Bytes，格式不正確');
+      throw FormatException('發票資料長度不足 77 Bytes, 格式不正確');
     }
     final headerAscii = ascii.decode(bytes.sublist(0, 77));
     final invoiceNumber = headerAscii.substring(0, 10);
@@ -229,7 +229,7 @@ class QrCodeInvoice {
     final remainingBytes = bytes.sublist(77);
     final byteParts = _splitBytes(remainingBytes, _colon);
 
-    // 第一個 element 因為前綴就是 ":"，所以會是空的，跳過它
+    // 第一個 element 因為前綴就是 ":", 所以會是空的, 跳過它
     int bytePtr = byteParts.isNotEmpty && byteParts[0].isEmpty ? 1 : 0;
     bool inByteParts() => bytePtr < byteParts.length;
     // 提取第 9, 10, 11 欄位
@@ -243,7 +243,7 @@ class QrCodeInvoice {
         ? int.parse(ascii.decode(byteParts[bytePtr++]))
         : 0;
 
-    // 第 12 欄位：中文編碼參數 ('0': Big5, '1': UTF-8, '2': Base64, '3': UTF-8 (境外電商))
+    // 第 12 欄位: 中文編碼參數 ('0': Big5, '1': UTF-8, '2': Base64, '3': UTF-8 (境外電商))
     final encodingParam = inByteParts()
         ? ascii.decode(byteParts[bytePtr++])
         : '1';
@@ -252,7 +252,7 @@ class QrCodeInvoice {
     late final double salesAmount;
     late final double totalAmount;
     if (encodingParam == '3') {
-      // 【境外電商規格】 Header 額度為 00000000，金額存放於第 13, 14 欄位
+      // 【境外電商規格】 Header 額度為 00000000, 金額存放於第 13, 14 欄位
       final foreignSalesHex = inByteParts()
           ? ascii.decode(byteParts[bytePtr++])
           : '0000000000';
@@ -315,7 +315,7 @@ class QrCodeInvoice {
     );
   }
 
-  /// 輔助方法：依據 byte 分隔符號拆分 Uint8List
+  /// 輔助方法: 依據 byte 分隔符號拆分 Uint8List
   static List<Uint8List> _splitBytes(Uint8List bytes, int separator) {
     final parts = <Uint8List>[];
     int start = 0;
@@ -331,7 +331,7 @@ class QrCodeInvoice {
     return parts;
   }
 
-  /// 輔助方法：根據中文編碼參數解碼位元組
+  /// 輔助方法: 根據中文編碼參數解碼位元組
   static String _decodeString(List<int> bytes, String encodingParam) {
     if (bytes.isEmpty) return '';
     switch (encodingParam) {
@@ -348,7 +348,7 @@ class QrCodeInvoice {
     }
   }
 
-  /// 輔助方法：解析境外電商 10 碼 Hex 金額 (前8碼整數，後2碼小數)
+  /// 輔助方法: 解析境外電商 10 碼 Hex 金額 (前 8 碼整數, 後 2 碼小數)
   static double _parseForeignHexAmount(String hex10) {
     final intHex = hex10.substring(0, 8);
     final decHex = hex10.substring(8, 10);

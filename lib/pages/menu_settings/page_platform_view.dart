@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -163,9 +162,8 @@ class _PagePlatformViewState extends State<PagePlatformView> {
         Utils.showToast(DictKey.commonUiCancel.s);
         return;
       }
-      final File file = File(result.path!);
       await DriftService.appDb.receiptDao.upsertMany(
-        pairMap: _api.decodeImportCSV(await file.readAsString()),
+        pairMap: _api.decodeImportCSV(await result.xFile.readAsString()),
         scopeStart: OriginStatus.deviceImport,
         scopeEnd: OriginStatus.deviceImport,
       );
@@ -295,7 +293,18 @@ class _PagePlatformViewState extends State<PagePlatformView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(DictKey.settingDataPlatform.s)),
+      appBar: AppBar(
+        title: Text(DictKey.settingDataPlatform.s),
+        bottom: PreferredSize(
+          preferredSize: Size.zero,
+          child: ValueListenableBuilder(
+            valueListenable: _singleActionLocked,
+            builder: (context, value, child) => value
+                ? const LinearProgressIndicator()
+                : const SizedBox.shrink(),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Scrollbar(
           controller: _scrollController,
@@ -303,12 +312,6 @@ class _PagePlatformViewState extends State<PagePlatformView> {
             controller: _scrollController,
             padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
             children: [
-              ValueListenableBuilder(
-                valueListenable: _singleActionLocked,
-                builder: (context, value, child) => value
-                    ? const LinearProgressIndicator()
-                    : const SizedBox.shrink(),
-              ),
               ExpandableCard(
                 iconData: Icons.play_circle_outline,
                 text: DictKey.platformFunctionAction.s,

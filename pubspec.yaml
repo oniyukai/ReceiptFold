@@ -5,7 +5,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.1.2+4
 
 environment:
-  sdk: ^3.13.1
+  sdk: ^3.13.7
 
 dependencies:
   flutter:
@@ -51,6 +51,7 @@ dependencies:
   xml: ^6.6.1
   csv: ^8.0.0
   dio: ^5.11.1
+  archive: ^4.6.0
   webdav_client: ^1.2.2
   webview_all: ^1.4.1
 

@@ -29,7 +29,7 @@ class PrefDef<RUN extends Object, STO extends Object> {
     );
     assert(
       RUN == STO || toSTO != null && toRUN != null,
-      'When <$RUN>!=<$STO>: toSTO_ & toRUN_ are required.',
+      'When <$RUN>!=<$STO>: toSTO & toRUN are required.',
     );
     _toSTO = toSTO ?? (fromRUN) => fromRUN as STO;
     _toRUN = toRUN != null
@@ -87,7 +87,7 @@ enum PrefsEnum {
 
   T defaultValue<T>() => _getPrefDef.defaultValue as T;
 
-  /// 不依賴BuildContext, 不即時請謹慎使用
+  /// 不依賴 [BuildContext], 不即時請謹慎使用
   T get<T>() {
     final prefDef = _getPrefDef;
     final fromSTO = PrefsProvider._instance.get(name);
@@ -141,7 +141,7 @@ class PrefsProvider extends ChangeNotifier {
   OneNotifier<T> oneNotifier<T>(PrefsEnum key) =>
       _prefsNotifierMap[key] as OneNotifier<T>;
 
-  /// 依賴BuildContext
+  /// 依賴 [BuildContext]
   T get<T>(PrefsEnum key) {
     final value = _prefsNotifierMap[key]!.value;
     assert(key._getPrefDef.isRUN(value));

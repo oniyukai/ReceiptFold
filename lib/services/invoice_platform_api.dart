@@ -235,7 +235,7 @@ class InvoicePlatformApi {
           const el = document.getElementById(id);
           if (el) {
             el.value = value;
-            el.dispatchEvent(new Event('input', { bubbles: true })); // 觸發 input 事件，讓網頁框架（如 Angular/Vue）知道值變了
+            el.dispatchEvent(new Event('input', { bubbles: true })); // 觸發 input 事件, 讓網頁框架（如 Angular/Vue）知道值變了
             el.dispatchEvent(new Event('change', { bubbles: true })); // 觸發 change 事件
             el.dispatchEvent(new Event('blur', { bubbles: true })); // 觸發打字完成後的 blur 事件
           }

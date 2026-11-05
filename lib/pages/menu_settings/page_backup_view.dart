@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:logger/logger.dart';
@@ -67,9 +68,9 @@ enum DriftDispatcher {
           user: account.user!,
           password: account.password!,
           remoteDir: 'ReceiptFoldSync',
-          remoteFileName: 'drift.sqlite.gz',
-          decodeConverter: TransportAdapter.fileConverter(gzip.decoder),
-          encodeConverter: TransportAdapter.fileConverter(gzip.encoder),
+          remoteFileName: 'drift.sqlite.zst',
+          decodeConverter: TransportAdapter.fileConverter(zstdCodec.decoder),
+          encodeConverter: TransportAdapter.fileConverter(zstdCodec.encoder),
         );
       } catch (e) {
         LogService(
@@ -257,7 +258,18 @@ class _PageBackupViewState extends State<PageBackupView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(DictKey.settingDataBackup.s)),
+      appBar: AppBar(
+        title: Text(DictKey.settingDataBackup.s),
+        bottom: PreferredSize(
+          preferredSize: Size.zero,
+          child: ValueListenableBuilder(
+            valueListenable: DriftDispatcher._singleActionLocked,
+            builder: (context, value, child) => value
+                ? const LinearProgressIndicator()
+                : const SizedBox.shrink(),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Scrollbar(
           controller: _scrollController,
@@ -265,12 +277,6 @@ class _PageBackupViewState extends State<PageBackupView> {
             controller: _scrollController,
             padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
             children: [
-              ValueListenableBuilder(
-                valueListenable: DriftDispatcher._singleActionLocked,
-                builder: (context, value, child) => value
-                    ? const LinearProgressIndicator()
-                    : const SizedBox.shrink(),
-              ),
               ExpandableCard(
                 iconData: Icons.devices,
                 text: DictKey.backupDevice.s,

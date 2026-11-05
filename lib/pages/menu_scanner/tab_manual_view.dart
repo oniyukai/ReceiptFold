@@ -101,9 +101,9 @@ class _TabManualViewState extends State<TabManualView> {
           ),
           if (_prizeAwardList == null)
             Text(DictKey.scannerManualHint.s, textAlign: TextAlign.center),
-          if (_prizeAwardList?.isEmpty == true)
+          if (_prizeAwardList?.isEmpty ?? false)
             Text(DictKey.scannerManualNoData.s, textAlign: TextAlign.center),
-          if (_prizeAwardList?.isNotEmpty == true)
+          if (_prizeAwardList?.isNotEmpty ?? false)
             for (final prizeAward in _prizeAwardList!)
               DataTable(
                 columns: [

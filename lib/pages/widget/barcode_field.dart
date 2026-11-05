@@ -106,20 +106,32 @@ String? barcodeValidator(String? value, BarcodeFormat? format) {
   }
 
   final List<FormFieldValidator<String>> validators = switch (format) {
-    .qrCode => [(_) => maxByteLength(2953)],
-    .dataMatrix => [
+    BarcodeFormat.qrCode => [(_) => maxByteLength(2953)],
+    BarcodeFormat.dataMatrix => [
       (_) => maxByteLength(1556),
       (_) => tryVerify(DictKey.barcodeErrorUnsupportedCharsIso88591.s),
     ],
-    .aztec => [
+    BarcodeFormat.aztec => [
       (_) => maxByteLength(1914),
       (_) => tryVerify(DictKey.barcodeErrorUnsupportedCharsIso88591.s),
     ],
-    .pdf417 => [(_) => maxByteLength(1108)],
-    .ean13 => [onlyNumbers, (_) => hardLength(13), (_) => tryCheckDigit()],
-    .ean8 => [onlyNumbers, (_) => hardLength(8), (_) => tryCheckDigit()],
-    .upcA => [onlyNumbers, (_) => hardLength(12), (_) => tryCheckDigit()],
-    .upcE => [
+    BarcodeFormat.pdf417 => [(_) => maxByteLength(1108)],
+    BarcodeFormat.ean13 => [
+      onlyNumbers,
+      (_) => hardLength(13),
+      (_) => tryCheckDigit(),
+    ],
+    BarcodeFormat.ean8 => [
+      onlyNumbers,
+      (_) => hardLength(8),
+      (_) => tryCheckDigit(),
+    ],
+    BarcodeFormat.upcA => [
+      onlyNumbers,
+      (_) => hardLength(12),
+      (_) => tryCheckDigit(),
+    ],
+    BarcodeFormat.upcE => [
       onlyNumbers,
       FormBuilderValidators.startsWith(
         '0',
@@ -128,7 +140,7 @@ String? barcodeValidator(String? value, BarcodeFormat? format) {
       (_) => hardLength(8),
       (_) => tryCheckDigit(),
     ],
-    .code128 => [
+    BarcodeFormat.code128 => [
       (_) => maxLength(2046),
       (_) => tryVerify(DictKey.barcodeErrorUnsupportedCharsAscii.s),
       FormBuilderValidators.match(
@@ -136,19 +148,19 @@ String? barcodeValidator(String? value, BarcodeFormat? format) {
         errorText: DictKey.barcodeErrorUnsupportedCharsAscii.s,
       ),
     ],
-    .code93 => [
+    BarcodeFormat.code93 => [
       (_) => maxLength(47),
       (_) => tryVerify(DictKey.barcodeErrorRegexCode93.s),
     ],
-    .code39 => [
+    BarcodeFormat.code39 => [
       (_) => maxLength(43),
       (_) => tryVerify(DictKey.barcodeErrorRegexCode39.s),
     ],
-    .codabar => [
+    BarcodeFormat.codabar => [
       (_) => maxLength(40),
       (_) => tryVerify(DictKey.barcodeErrorRegexCodabar.s),
     ],
-    .itf => [
+    BarcodeFormat.itf => [
       onlyNumbers,
       (_) => validator(
         (value.length % 2) == 0,

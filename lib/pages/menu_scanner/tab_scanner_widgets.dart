@@ -382,8 +382,8 @@ class _LifecycleVisibilityState extends State<LifecycleVisibility> {
 
   @override
   void dispose() {
-    _lifecycleListener.dispose();
     super.dispose();
+    _lifecycleListener.dispose();
   }
 
   @override
@@ -392,14 +392,14 @@ class _LifecycleVisibilityState extends State<LifecycleVisibility> {
   }
 }
 
-class CameraView extends StatefulWidget {
+class CameraWindow extends StatefulWidget {
   final List<CustomPaint> customPaints;
   final Function(InputImage inputImage) onImage;
   final Widget Function(BuildContext, String) errorBuilder;
   final CameraLensDirection initialCameraLensDirection;
   final Function(CameraLensDirection direction)? onCameraLensDirectionChanged;
 
-  const CameraView({
+  const CameraWindow({
     super.key,
     required this.customPaints,
     required this.onImage,
@@ -409,10 +409,10 @@ class CameraView extends StatefulWidget {
   });
 
   @override
-  State<CameraView> createState() => _CameraViewState();
+  State<CameraWindow> createState() => _CameraWindowState();
 }
 
-class _CameraViewState extends State<CameraView> {
+class _CameraWindowState extends State<CameraWindow> {
   static List<CameraDescription> _cameras = [];
   String? _errorMsg;
   CameraController? _controller;

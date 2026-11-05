@@ -33,7 +33,7 @@ class PageReceiptViewArgs {
   bool _check(bool value) {
     assert(
       (period == null) != (receiptRecord == null),
-      'PageReceiptViewArgs(period is ${period.runtimeType}, receiptRecord is ${receiptRecord.runtimeType}), 其中一個必須有，另一個必須為空.',
+      'PageReceiptViewArgs(period is ${period.runtimeType}, receiptRecord is ${receiptRecord.runtimeType}), 其中一個必須有, 另一個必須為空.',
     );
     return value;
   }

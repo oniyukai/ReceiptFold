@@ -83,8 +83,8 @@ class InvoicePrizeSearcher {
     } finally {
       _pendingRequests.remove(invQuery);
     }
-    if (awardMap[invQuery]?.prizes.isNotEmpty != true) {
-      prizes.sort((a, b) => b.amount.compareTo(a.amount)); // 獎金高的放前面，同金額維持插入順序
+    if (awardMap[invQuery]?.prizes.isEmpty ?? true) {
+      prizes.sort((a, b) => b.amount.compareTo(a.amount)); // 獎金高的放前面, 同金額維持插入順序
       final invoicePrizeAward = awardMap[invQuery] = InvoicePrizeAward(
         invQuery: invQuery,
         lastWebQueryTime: UnitUtils.nowUnixTime,
@@ -147,7 +147,7 @@ class InvoicePrizeSearcher {
     final List<Element> rows = tbody.querySelectorAll('tr');
 
     for (int i = 0; i < rows.length; i += 1) {
-      if (i + 1 >= rows.length) continue; // 說明在下一行的 td 中，有 td 才表示這行確實有獎號資料
+      if (i + 1 >= rows.length) continue; // 說明在下一行的 td 中, 有 td 才表示這行確實有獎號資料
       final Element row = rows[i];
       final Element? th = row.querySelector('th[scope="row"]');
       final Element? td = row.querySelector('td');

@@ -41,7 +41,7 @@ class Period {
     );
   }
 
-  /// 獲取該期别的結束日期 (下兩個月的前一天，並包含當天所有時間)
+  /// 獲取該期别的結束日期 (下兩個月的前一天, 並包含當天所有時間)
   DateTime get end {
     assert(_iterationType != _PeriodIterationType.inv);
     return DateTime(
@@ -114,7 +114,7 @@ class Period {
     );
   }
 
-  /// 獲取基於台北時間的上一期，不建議與本地時間混用
+  /// 獲取基於台北時間的上一期, 不建議與本地時間混用
   Period get invPrevious {
     assert(_iterationType != _PeriodIterationType.local);
     return Period._iteration(

@@ -403,7 +403,7 @@ class _TabScannerViewState extends State<TabScannerView> {
                 valueListenable: _isCameraOpen,
                 child: LifecycleVisibility(
                   replacement: const Center(child: CircularProgressIndicator()),
-                  child: CameraView(
+                  child: CameraWindow(
                     customPaints: [?_customPaintBarcode, ?_customPaintText],
                     onImage: _processImage,
                     errorBuilder: (context, msg) => Center(child: Text(msg)),

@@ -47,7 +47,7 @@ enum OriginStatus {
 }
 
 class Receipts extends Table with ModifiedMixin, UuidMixin {
-  // App欄位
+  // App 欄位
   late final originStatus = integer().map(OriginStatus.converter)();
   late final userNote = text().nullable()();
 
@@ -92,7 +92,7 @@ class ReceiptProducts extends Table with ModifiedMixin, UuidMixin {
   Set<Column> get primaryKey => {uuid};
 }
 
-/// 所有被刪除row的 [Receipts], [ReceiptProducts] 的 [uuid] 都要被登記進來
+/// 所有被刪除 row 的 [Receipts], [ReceiptProducts] 的 [uuid] 都要被登記進來
 class DeletedUuids extends Table with ModifiedMixin {
   late final uuid = text().withLength(max: 36)();
 
@@ -181,7 +181,7 @@ class ReceiptDao extends SyncableDao {
     final productUuids = products.map((e) => e.uuid).toSet();
     final oldProductMap = Map.fromEntries(await oldProducts);
     final productDelUuids = oldProductMap.keys
-        .whereNot((id) => productUuids.contains(id))
+        .whereNot(productUuids.contains)
         .toList();
 
     receipt = receipt.copyWith(modified: (await oldReceipt)?.modified);
@@ -373,7 +373,7 @@ class ReceiptDao extends SyncableDao {
     final deletedUuidsQuery = _deletedUuids.selectOnly()
       ..addColumns([_deletedUuids.uuid]);
 
-    // 找尋來源平台但是時間與號碼相同的 舊receiptUuid
+    // 找尋來源平台但是時間與號碼相同的 舊 receiptUuid
     final otherReceipts = _receipts.createAlias('other_receipts');
     final platformDupReceiptIdsQuery = _receipts.selectOnly()
       ..addColumns([_receipts.uuid])
@@ -390,7 +390,7 @@ class ReceiptDao extends SyncableDao {
                       tbl.issuedAt.equalsExp(_receipts.issuedAt)),
                 )
                 ..where(
-                  (tbl) => // 篩選出modified不是最大, 都是最大則篩選建構時間不是最新
+                  (tbl) => // 篩選出 modified 不是最大, 都是最大則篩選建構時間不是最新
                       (tbl.modified.isBiggerThan(_receipts.modified) |
                       (tbl.modified.equalsExp(_receipts.modified) &
                           tbl.uuid.isBiggerThan(_receipts.uuid))),
@@ -428,7 +428,7 @@ class ReceiptDao extends SyncableDao {
             tbl.receiptUuid.isInQuery(deletedUuidsQuery) |
             tbl.receiptUuid.isNotInQuery(
               _receipts.selectOnly()..addColumns([_receipts.uuid]),
-            )), // 清除不在delIds的孤兒, 這不用加到delIdsTbl
+            )), // 清除不在 delIds 的孤兒, 這不用加到 delIdsTbl
       );
       batch.deleteWhere(
         _receipts,

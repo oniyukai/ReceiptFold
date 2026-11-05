@@ -32,12 +32,12 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => MenuNavBarProvider()),
-        ChangeNotifierProvider(create: (_) => PrefsProvider()),
+        ChangeNotifierProvider(create: (ctx) => MenuNavBarProvider()),
+        ChangeNotifierProvider(create: (ctx) => PrefsProvider()),
         Provider(
-          create: (_) => MyDriftDatabase(),
+          create: (ctx) => MyDriftDatabase(),
           lazy: false,
-          dispose: (_, db) => db.close(),
+          dispose: (ctx, db) => db.close(),
         ),
       ],
       child: const MyApp(),

@@ -3,9 +3,26 @@
 <h4 align="center">收據、明細、發票、會員載具於一身的記帳管理工具。</h4>
 
 <p align="center">
-<a href="https://github.com/oniyukai/ReceiptFold/blob/main/LICENSE"><img src="https://img.shields.io/github/license/oniyukai/ReceiptFold.svg"></a>
+<a href="LICENSE"><img src="https://img.shields.io/github/license/oniyukai/ReceiptFold.svg"></a>
 <a href="https://github.com/oniyukai/ReceiptFold"><img src="https://img.shields.io/github/v/release/oniyukai/ReceiptFold.svg"></a>
 </p>
+
+## 螢幕截圖
+
+<table style="width: 100%;">
+  <tr>
+    <td><img alt="demo image" src="docs/images/screenshot_01.png"></td>
+    <td><img alt="demo image" src="docs/images/screenshot_02.png"></td>
+    <td><img alt="demo image" src="docs/images/screenshot_03.png"></td>
+    <td><img alt="demo image" src="docs/images/screenshot_04.png"></td>
+  </tr>
+  <tr>
+    <td><img alt="demo image" src="docs/images/screenshot_05.png"></td>
+    <td><img alt="demo image" src="docs/images/screenshot_06.png"></td>
+    <td><img alt="demo image" src="docs/images/screenshot_07.png"></td>
+    <td><img alt="demo image" src="docs/images/screenshot_08.png"></td>
+  </tr>
+</table>
 
 ## 功能亮點
 
@@ -46,23 +63,6 @@
 - 備份同步: 可與裝置文件或以 WebDAV 進行存檔備份或資料同步。
 - 隱私無廣告: 無廣告無追蹤，所有資料皆由使用者自主控制，不進行商業利用。
 
-## 螢幕截圖
-
-<table>
-  <tr>
-    <td><img alt="demo image" src="docs/images/screenshot_01.png"></td>
-    <td><img alt="demo image" src="docs/images/screenshot_02.png"></td>
-    <td><img alt="demo image" src="docs/images/screenshot_03.png"></td>
-    <td><img alt="demo image" src="docs/images/screenshot_04.png"></td>
-  </tr>
-  <tr>
-    <td><img alt="demo image" src="docs/images/screenshot_05.png"></td>
-    <td><img alt="demo image" src="docs/images/screenshot_06.png"></td>
-    <td><img alt="demo image" src="docs/images/screenshot_07.png"></td>
-    <td><img alt="demo image" src="docs/images/screenshot_08.png"></td>
-  </tr>
-</table>
-
 ## 聲明與條款
 
 本程式為純客戶端應用程式，開發者不提供伺服器服務、不接觸用戶數據、不遙測控制，旨在賦予使用者對其個人消費資料之自主控制權，並提供便捷之記帳與資料管理工具。
@@ -74,7 +74,7 @@
 
 ```text
 ReceiptFold - A local-first bookkeeping app giving users full autonomy over their data.
-Copyright (C) 2026  ONIYUKAI  https://github.com/oniyukai/ReceiptFold
+Copyright (C) 2026  ONIYUKAI https://github.com/oniyukai/ReceiptFold
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by

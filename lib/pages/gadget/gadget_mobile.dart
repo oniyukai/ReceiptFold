@@ -8,7 +8,7 @@ import 'package:receipt_fold/locale/app_language.dart';
 import 'package:receipt_fold/pages/menu_manager/tab_barcode_view.dart';
 import 'package:receipt_fold/services/drift_service.dart';
 
-// todo: iOS載具與會員桌面小工具
+// todo: iOS 載具與會員桌面小工具
 
 const String _androidName = 'HomeWidgetMobile';
 const String _homeWidgetMobilePath = 'HomeWidgetMobilePath';

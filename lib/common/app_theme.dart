@@ -83,7 +83,7 @@ abstract final class MyAppTheme {
       colorScheme = darkDynamic;
     } else {
       colorScheme = ColorScheme.fromSeed(
-        seedColor: seedColor ?? Colors.blue, // <- sys顏色不支援時會用到
+        seedColor: seedColor ?? Colors.blue, // <- sys 顏色不支援時會用到
         brightness: brightness,
       );
     }

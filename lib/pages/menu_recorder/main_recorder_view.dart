@@ -16,7 +16,7 @@ import 'package:receipt_fold/pages/widget/overlay_show.dart';
 import 'package:receipt_fold/services/drift_service.dart';
 import 'package:receipt_fold/services/invoice_prize_searcher.dart';
 
-/// 快取半徑，表示當前頁面左右各快取多少頁
+/// 快取半徑, 表示當前頁面左右各快取多少頁
 const int _cacheRadius = 1;
 const int _initialPageIndex = 1024;
 
@@ -57,13 +57,13 @@ class MainRecorderViewModel extends ChangeNotifier {
   PeriodData getPeriodData(int index) =>
       _periodDataCache[index] ?? _loadReceiptsByIndex(index);
 
-  /// 當 PageView 頁面改變時呼叫，更新目前頁面索引
+  /// 當 PageView 頁面改變時呼叫, 更新目前頁面索引
   void switchPeriodByIndex(int index) {
     if (_currentPageIndex == index) return;
     _currentPageIndex = index;
     _cleanUpCache();
 
-    // 這個是可以讓左右滑動前就比itemBuilder更先載入好, 不必定需要
+    // 這個是可以讓左右滑動前就比 itemBuilder 更先載入好, 不必定需要
     _loadReceiptsByIndex(_currentPageIndex + 1);
     _loadReceiptsByIndex(_currentPageIndex - 1);
 
@@ -226,7 +226,7 @@ class _MainRecorderViewState extends State<MainRecorderView> {
   Widget build(BuildContext context) {
     DictKey.load(context);
     return ChangeNotifierProvider(
-      create: (_) => MainRecorderViewModel(),
+      create: (ctx) => MainRecorderViewModel(),
       child: Consumer<MainRecorderViewModel>(
         builder: (context, model, child) {
           final currentPeriodData = model.getPeriodData(model.currentPageIndex);

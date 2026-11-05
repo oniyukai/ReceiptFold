@@ -62,7 +62,7 @@ abstract final class UnitUtils {
     return '${(bytes / pow(1024, i)).toStringAsFixed(decimals)} ${suffixes[i]}';
   }
 
-  /// 將數字修飾, 如果有小數會才顯示小數後，正數每3位數一個","隔開
+  /// 將數字修飾, 如果有小數會才顯示小數後, 正數每3位數一個","隔開
   static String amountText(num amount) =>
       NumberFormat.decimalPattern().format(amount);
 }
@@ -72,7 +72,7 @@ abstract final class Utils {
   static bool isPortrait(BuildContext context) =>
       MediaQuery.of(context).orientation == Orientation.portrait;
 
-  /// 一個簡易的Toast訊息提示
+  /// 一個簡易的 Toast 訊息提示
   static Future<void> showToast(String msg, [bool longTime = false]) =>
       Platform.isAndroid || Platform.isIOS
       ? Fluttertoast.showToast(
@@ -98,7 +98,7 @@ abstract final class Utils {
     try {
       await audioPlayer.play(AssetSource('short_beep_tone.mp3'));
     } catch (e) {
-      await showToast(e.toString());
+      showToast(e.toString());
     }
   }
 
@@ -164,5 +164,5 @@ abstract final class Utils {
 
   /// 如果 [String.isNotEmpty] 回傳 null
   static String? noEmptyStr(String? s) =>
-      s?.trim().isNotEmpty == true ? s : null;
+      s?.trim().isNotEmpty ?? false ? s : null;
 }

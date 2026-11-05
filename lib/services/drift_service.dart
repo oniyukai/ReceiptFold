@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
@@ -122,7 +123,7 @@ abstract class TransportAdapter {
   /// 傳入的 [file] 實踐時不要手動刪除, 上傳成功回傳自己的參數 [file], 失敗 throw.
   Future<File> upload(File file);
 
-  /// [converter] 可以傳入 [gzip.decoder] 來壓縮, 或是傳入 [gzip.encoder] 解壓縮.
+  /// [converter] 可以傳入 [ZstdCodec.decoder] 來壓縮, 或是傳入 [ZstdCodec.encoder] 解壓縮.
   static Upload fileConverter([Converter<List<int>, List<int>>? converter]) {
     return (sourceFile) async {
       final Directory tempDir = await getTemporaryDirectory();
@@ -231,7 +232,7 @@ class WebDAVAdapter extends TransportAdapter {
       LogService('$_remotePath not found.', errorObject: e, instance: this).d();
       return null;
     }
-    if (remoteFile.isDir == true) {
+    if (remoteFile.isDir ?? false) {
       throw Exception('${remoteFile.path} cannot be directory.');
     }
     final Directory tempDir = await getTemporaryDirectory();
